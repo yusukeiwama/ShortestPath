@@ -22,6 +22,7 @@
 		434D6F0C185A13530068D753 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 434D6EEB185A13530068D753 /* UIKit.framework */; };
 		434D6F14185A13530068D753 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 434D6F12185A13530068D753 /* InfoPlist.strings */; };
 		434D6F16185A13530068D753 /* ShortestPathTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 434D6F15185A13530068D753 /* ShortestPathTests.m */; };
+		434D6F23185A22270068D753 /* TSPData in Resources */ = {isa = PBXBuildFile; fileRef = 434D6F22185A22270068D753 /* TSPData */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -55,6 +56,7 @@
 		434D6F11185A13530068D753 /* ShortestPathTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "ShortestPathTests-Info.plist"; sourceTree = "<group>"; };
 		434D6F13185A13530068D753 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		434D6F15185A13530068D753 /* ShortestPathTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ShortestPathTests.m; sourceTree = "<group>"; };
+		434D6F22185A22270068D753 /* TSPData */ = {isa = PBXFileReference; lastKnownFileType = folder; path = TSPData; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -114,12 +116,10 @@
 		434D6EED185A13530068D753 /* ShortestPath */ = {
 			isa = PBXGroup;
 			children = (
-				434D6EF6185A13530068D753 /* USKAppDelegate.h */,
-				434D6EF7185A13530068D753 /* USKAppDelegate.m */,
-				434D6EF9185A13530068D753 /* Main_iPhone.storyboard */,
-				434D6EFC185A13530068D753 /* Main_iPad.storyboard */,
-				434D6EFF185A13530068D753 /* USKViewController.h */,
-				434D6F00185A13530068D753 /* USKViewController.m */,
+				434D6F22185A22270068D753 /* TSPData */,
+				434D6F1F185A21D40068D753 /* Model */,
+				434D6F20185A21DF0068D753 /* View */,
+				434D6F21185A21E50068D753 /* Controller */,
 				434D6F02185A13530068D753 /* Images.xcassets */,
 				434D6EEE185A13530068D753 /* Supporting Files */,
 			);
@@ -153,6 +153,33 @@
 				434D6F12185A13530068D753 /* InfoPlist.strings */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		434D6F1F185A21D40068D753 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Model;
+			sourceTree = "<group>";
+		};
+		434D6F20185A21DF0068D753 /* View */ = {
+			isa = PBXGroup;
+			children = (
+				434D6EF9185A13530068D753 /* Main_iPhone.storyboard */,
+				434D6EFC185A13530068D753 /* Main_iPad.storyboard */,
+			);
+			name = View;
+			sourceTree = "<group>";
+		};
+		434D6F21185A21E50068D753 /* Controller */ = {
+			isa = PBXGroup;
+			children = (
+				434D6EF6185A13530068D753 /* USKAppDelegate.h */,
+				434D6EF7185A13530068D753 /* USKAppDelegate.m */,
+				434D6EFF185A13530068D753 /* USKViewController.h */,
+				434D6F00185A13530068D753 /* USKViewController.m */,
+			);
+			name = Controller;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -203,6 +230,9 @@
 				LastUpgradeCheck = 0500;
 				ORGANIZATIONNAME = "Yusuke Iwama";
 				TargetAttributes = {
+					434D6EE3185A13530068D753 = {
+						DevelopmentTeam = VV4XJ6D4G4;
+					};
 					434D6F07185A13530068D753 = {
 						TestTargetID = 434D6EE3185A13530068D753;
 					};
@@ -234,6 +264,7 @@
 			files = (
 				434D6EFE185A13530068D753 /* Main_iPad.storyboard in Resources */,
 				434D6F03185A13530068D753 /* Images.xcassets in Resources */,
+				434D6F23185A22270068D753 /* TSPData in Resources */,
 				434D6EFB185A13530068D753 /* Main_iPhone.storyboard in Resources */,
 				434D6EF2185A13530068D753 /* InfoPlist.strings in Resources */,
 			);
@@ -393,6 +424,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "ShortestPath/ShortestPath-Prefix.pch";
 				INFOPLIST_FILE = "ShortestPath/ShortestPath-Info.plist";
@@ -406,6 +438,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "ShortestPath/ShortestPath-Prefix.pch";
 				INFOPLIST_FILE = "ShortestPath/ShortestPath-Info.plist";

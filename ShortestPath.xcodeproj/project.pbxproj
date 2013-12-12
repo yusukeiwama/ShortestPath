@@ -23,6 +23,7 @@
 		434D6F14185A13530068D753 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 434D6F12185A13530068D753 /* InfoPlist.strings */; };
 		434D6F16185A13530068D753 /* ShortestPathTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 434D6F15185A13530068D753 /* ShortestPathTests.m */; };
 		434D6F23185A22270068D753 /* TSPData in Resources */ = {isa = PBXBuildFile; fileRef = 434D6F22185A22270068D753 /* TSPData */; };
+		434D6F26185A22B10068D753 /* USKTSP.m in Sources */ = {isa = PBXBuildFile; fileRef = 434D6F25185A22B10068D753 /* USKTSP.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -57,6 +58,8 @@
 		434D6F13185A13530068D753 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		434D6F15185A13530068D753 /* ShortestPathTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ShortestPathTests.m; sourceTree = "<group>"; };
 		434D6F22185A22270068D753 /* TSPData */ = {isa = PBXFileReference; lastKnownFileType = folder; path = TSPData; sourceTree = SOURCE_ROOT; };
+		434D6F24185A22B10068D753 /* USKTSP.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = USKTSP.h; sourceTree = "<group>"; };
+		434D6F25185A22B10068D753 /* USKTSP.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = USKTSP.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -158,6 +161,8 @@
 		434D6F1F185A21D40068D753 /* Model */ = {
 			isa = PBXGroup;
 			children = (
+				434D6F24185A22B10068D753 /* USKTSP.h */,
+				434D6F25185A22B10068D753 /* USKTSP.m */,
 			);
 			name = Model;
 			sourceTree = "<group>";
@@ -286,6 +291,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				434D6F01185A13530068D753 /* USKViewController.m in Sources */,
+				434D6F26185A22B10068D753 /* USKTSP.m in Sources */,
 				434D6EF8185A13530068D753 /* USKAppDelegate.m in Sources */,
 				434D6EF4185A13530068D753 /* main.m in Sources */,
 			);

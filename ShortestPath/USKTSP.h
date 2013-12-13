@@ -8,6 +8,27 @@
 
 #import <Foundation/Foundation.h>
 
+typedef struct TSPNode{
+	NSInteger nodeID;
+	CGPoint coordination;
+} TSPNode;
+
 @interface USKTSP : NSObject
+
+@property (readonly) NSString *name;
+@property (readonly) NSString *comment;
+@property (readonly) NSString *type;
+@property (readonly) NSUInteger dimension;
+@property (readonly) NSString *edgeWeightType;
+@property (readonly) TSPNode *nodes;
+
+/// lengths of arcs (size of array is (numberOfNodes * numberOfNodes))
+@property (readonly) double *adjacencyMatrix;
+
+/**
+ initialize with specified TSP data file.
+ @param path input file path
+ */
+- initWithFilePath:(NSString *)path;
 
 @end

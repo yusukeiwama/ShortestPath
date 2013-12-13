@@ -7,6 +7,7 @@
 //
 
 #import "USKViewController.h"
+#import "USKTSP.h"
 
 @interface USKViewController ()
 
@@ -17,7 +18,9 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-	// Do any additional setup after loading the view, typically from a nib.
+	
+	USKTSP *tsp = [[USKTSP alloc] initWithFilePath:[[NSBundle mainBundle] pathForResource:@"TSPData/eil51" ofType:@"tsp"]];
+	
 }
 
 - (void)didReceiveMemoryWarning

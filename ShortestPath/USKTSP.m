@@ -110,7 +110,7 @@ int compareDistances(const NeighborInfo *a, const NeighborInfo *b)
 }
 
 - (PathInfo)shortestPathByNearestNeighborFromStartNodeIndex:(int)startNodeIndex
-{ // ノード番号は1始まりなので注意！！！！！
+{
 	PathInfo shortestPath;
 	int fromNodeIndex, toNodeIndex;
 	int *visitedNodeIndices = calloc(dimension, sizeof(int));
@@ -150,7 +150,7 @@ int compareDistances(const NeighborInfo *a, const NeighborInfo *b)
 	
 	shortestPath.path = visitedNodeIndices;
 	shortestPath.length = totalDistance;
-//	[self printPath:shortestPath];
+	[self printPath:shortestPath];
 	return shortestPath;
 }
 

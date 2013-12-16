@@ -20,7 +20,7 @@
     [super viewDidLoad];
 	
 	USKTSP *tsp = [[USKTSP alloc] initWithFilePath:[[NSBundle mainBundle] pathForResource:@"TSPData/eil51" ofType:@"tsp"]];
-	
+	[tsp shortestPathByNearestNeighborFromStartNodeIndex:0];
 }
 
 - (void)didReceiveMemoryWarning

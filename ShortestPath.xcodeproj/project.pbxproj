@@ -514,6 +514,7 @@
 				434D6F1B185A13530068D753 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		434D6F1C185A13530068D753 /* Build configuration list for PBXNativeTarget "ShortestPathTests" */ = {
 			isa = XCConfigurationList;
@@ -522,6 +523,7 @@
 				434D6F1E185A13530068D753 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

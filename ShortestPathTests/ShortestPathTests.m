@@ -7,6 +7,7 @@
 //
 
 #import <XCTest/XCTest.h>
+#import "USKTSP.h"
 
 @interface ShortestPathTests : XCTestCase
 
@@ -26,9 +27,16 @@
     [super tearDown];
 }
 
-- (void)testExample
+- (void)testNN
 {
-    XCTFail(@"No implementation for \"%s\"", __PRETTY_FUNCTION__);
+	USKTSP *tsp = [USKTSP TSPWithFile:[[NSBundle mainBundle] pathForResource:@"TSPData/eil51" ofType:@"tsp"]];
+	PathInfo shortestPath = [tsp shortestPathByNNFrom:1];
+	
+	int expectedPath[51] = {1, 32, 11, 38, 5, 49, 9, 50, 16, 2, 29, 21, 34, 30, 10, 39, 33, 45, 15, 44, 37, 17, 4, 18, 47, 12, 46, 51, 27, 48, 8, 26, 31, 28, 3, 20, 35, 36, 22, 6, 14, 25, 13, 41, 19, 42, 40, 24, 23, 7, 43};
+	
+	for (int i = 0; i < tsp.dimension; i++) {
+		XCTAssertEqual(shortestPath.path[i], expectedPath[i], @"Wrong path.");
+	}
 }
 
 @end

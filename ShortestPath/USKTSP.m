@@ -6,38 +6,6 @@
 //  Copyright (c) 2013 Yusuke Iwama. All rights reserved.
 //
 
-/* 
- A SAMPLE OF SYMMETRIC TRAVELING SALESMAN PROBLEM (TSP) FILE
- 
- NAME: ch130
- TYPE: TSP
- COMMENT: 130 city problem (Churritz)
- DIMENSION: 130
- EDGE_WEIGHT_TYPE: EUC_2D
- NODE_COORD_SECTION
- 1 334.5909245845 161.7809319139
- 2 397.6446634067 262.8165330708
- ...
- 129 178.1107815614 104.6905805938
- 130 403.2874386776 205.8971749407
- EOF
- */
-
-/* 
- A SAMPLE OF OPTIMAL SOLUTION FILE
-
- NAME : ch130.opt.tour
- COMMENT : Length 6110
- TYPE : TOUR
- DIMENSION : 130
- TOUR_SECTION
- 1
- 41
- ...
- 71
- -1
- */
-
 #import "USKTSP.h"
 
 int compareDistances(const NeighborInfo *a, const NeighborInfo *b)
@@ -45,14 +13,29 @@ int compareDistances(const NeighborInfo *a, const NeighborInfo *b)
 	return ((NeighborInfo)(*a)).distance - ((NeighborInfo)(*b)).distance;
 }
 
-//PathInfo swapNodes(PathInfo *path, int i, int j)
-//{
-//	
-//}
+void swapNodes(int *path, int dimension, int i, int j)
+{
+	int  *newPath = calloc(dimension, sizeof(int));
+	
+	int l = 0;
+	for (int k = 0; k <= i; k++) {
+		newPath[l] = path[k];
+		l++;
+	}
+	for (int k = j; k >= i + 1; k--) {
+		newPath[l] = path[k];
+		l++;
+	}
+	for (int k = j + 1; k < dimension; k++) {
+		newPath[l] = path[k];
+		l++;
+	}
+	
+	memcpy(path, newPath, dimension * sizeof(int));
+}
 
 @interface USKTSP ()
 @end
-
 
 @implementation USKTSP
 
@@ -80,6 +63,7 @@ int compareDistances(const NeighborInfo *a, const NeighborInfo *b)
 
 - (void)readTSPDataFromFile:(NSString *)path
 {
+	// Split contents of file into lines.
 	_filePath = path;
 	NSString *rawString = [[NSString alloc] initWithContentsOfFile:path encoding:NSASCIIStringEncoding error:nil];
 	NSArray *lines = [rawString componentsSeparatedByString:@"\n"];
@@ -87,9 +71,9 @@ int compareDistances(const NeighborInfo *a, const NeighborInfo *b)
 	// Read basic information.
 	int i = 0;
 	while ([lines[i] rangeOfString:@"NODE_COORD_SECTION"].location == NSNotFound) {
-		NSArray *components = [lines[i] componentsSeparatedByString:@":"];
-		NSString *key = [self trimmedStringFromString:components[0]];
-		NSString *val = [self trimmedStringFromString:components[1]];
+		NSArray *components = [[self trimmedStringWithString:lines[i]] componentsSeparatedByString:@":"];
+		NSString *key = [self trimmedStringWithString:components[0]];
+		NSString *val = [self trimmedStringWithString:components[1]];
 		[self storeValueString:val forKey:key];
 		i++;
 	}
@@ -101,7 +85,8 @@ int compareDistances(const NeighborInfo *a, const NeighborInfo *b)
 		int i = 0;
 		int offset = 6;
 		while ([lines[i + offset] rangeOfString:@"EOF"].location == NSNotFound) {
-			NSArray *nodeInfo = [lines[i + offset] componentsSeparatedByString:@" "];
+			NSArray *nodeInfo = [[self trimmedStringWithString:lines[i + offset]] componentsSeparatedByString:@" "];
+			nodeInfo = [self trimmedArrayWithArray:nodeInfo];
 			_nodes[i].index			 = [nodeInfo[0] intValue];
 			_nodes[i].coordination.x = [nodeInfo[1] doubleValue];
 			_nodes[i].coordination.y = [nodeInfo[2] doubleValue];
@@ -110,7 +95,7 @@ int compareDistances(const NeighborInfo *a, const NeighborInfo *b)
 	}
 }
 
-- (NSString *)trimmedStringFromString:(NSString *)string
+- (NSString *)trimmedStringWithString:(NSString *)string
 {
 	// Trim whitespace. (i.e. @" ch130" => @"ch130")
 	return [string stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@" "]];
@@ -125,24 +110,28 @@ int compareDistances(const NeighborInfo *a, const NeighborInfo *b)
 	else if ([key isEqualToString:@"EDGE_WEIGHT_TYPE"])	_edgeWeightType	= valueString;
 }
 
+- (NSArray *)trimmedArrayWithArray:(NSArray *)array
+{
+	NSMutableArray *mutableArray = [NSMutableArray array];
+	for (int i = 0; i < array.count; i++) {
+		NSString *string = array[i];
+		if ([string isEqualToString:@""] == NO) {
+			[mutableArray addObject:array[i]];
+		}
+	}
+	return mutableArray;
+}
+
 - (void)computeAdjacencyMatrix
 {
 	if (self.adjacencyMatrix == NULL) {
 		_adjacencyMatrix = calloc(_dimension * _dimension, sizeof(double));
-	}
-	
-	if ([_edgeWeightType isEqualToString:@"EUC_2D"]) {
+		
 		for (int i = 0; i < _dimension; i++) {
 			for (int j = 0; j < _dimension; j++) {
-				double x1 = _nodes[i].coordination.x;
-				double x2 = _nodes[j].coordination.x;
-				double y1 = _nodes[i].coordination.y;
-				double y2 = _nodes[i].coordination.y;
-				_adjacencyMatrix[_dimension * i + j] = (int)(sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2)) + 0.5);
+				_adjacencyMatrix[_dimension * i + j] = [self distanceBetween:_nodes[i].coordination and:_nodes[j].coordination];
 			}
 		}
-	} else {
-		NSLog(@"Unknown edge_weight_type");
 	}
 }
 
@@ -150,37 +139,36 @@ int compareDistances(const NeighborInfo *a, const NeighborInfo *b)
 {
 	if (self.neighborMatrix == NULL) {
 		_neighborMatrix = calloc(_dimension * _dimension, sizeof(NeighborInfo));
-	}
-	
-	if ([_edgeWeightType isEqualToString:@"EUC_2D"]) {
+		[self computeAdjacencyMatrix];
+		
 		for (int i = 0; i < _dimension; i++) {
 			for (int j = 0; j < _dimension; j++) {
-				double x1 = _nodes[i].coordination.x;
-				double x2 = _nodes[j].coordination.x;
-				double y1 = _nodes[i].coordination.y;
-				double y2 = _nodes[j].coordination.y;
-				_adjacencyMatrix[_dimension * i + j] = (int)(sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2)) + 0.5);
+				// Copy adjacency matrix.
 				_neighborMatrix[_dimension * i + j].index	 = _nodes[j].index;
 				_neighborMatrix[_dimension * i + j].distance = _adjacencyMatrix[_dimension * i + j];
 			}
 			
 			// ignore i == j element because the element is not a neighbor but itself.
 			_neighborMatrix[_dimension * i + i] = _neighborMatrix[_dimension * i + _dimension - 1];
-
-			// Sort neighbors of node-i by distance.
+			
+			// Sort neighbors  by distance.
 			qsort(&(_neighborMatrix[_dimension * i + 0]), _dimension - 1, sizeof(NeighborInfo), (int(*)(const void *, const void *))compareDistances);
 		}
-	} else {
-		NSLog(@"Unknown edge_weight_type");
 	}
 }
 
-- (PathInfo)shortestPathByNearestNeighborFromStartNodeIndex:(int)start
+- (int)distanceBetween:(CGPoint)A and:(CGPoint)B
+{
+	return (int)(sqrt((B.x - A.x) * (B.x - A.x) + (B.y- A.y) * (B.y - A.y)) + 0.5);
+}
+
+
+- (PathInfo)shortestPathByNNFrom:(int)start
 {
 	PathInfo shortestPath;
 	int from, to;
 	NSMutableArray *visited = [NSMutableArray array];
-	double totalDistance = 0.0;
+	double distance = 0.0;
 
 	from = start;
 	[visited addObject:[NSNumber numberWithInt:from]];
@@ -195,17 +183,17 @@ int compareDistances(const NeighborInfo *a, const NeighborInfo *b)
 				continue;
 			} else { // not visited yet
 				[visited addObject:[NSNumber numberWithInt:to]];
-				totalDistance += self.neighborMatrix[self.dimension * (from - 1) + j].distance;
+				distance += self.neighborMatrix[self.dimension * (from - 1) + j].distance;
 				from = to;
 				break;
 			}
 		}
 	}
-	totalDistance += self.adjacencyMatrix[self.dimension * (from - 1) + start]; // Go back to the start node
+	distance += self.adjacencyMatrix[self.dimension * (from - 1) + start]; // Go back to the start node
 	
 	shortestPath.path	= [self intArrayFromArray:visited];
-	shortestPath.length	= totalDistance;
-	[self printPath:shortestPath];
+	shortestPath.length	= distance;
+	
 	return shortestPath;
 }
 
@@ -218,30 +206,30 @@ int compareDistances(const NeighborInfo *a, const NeighborInfo *b)
 	return arr;
 }
 
-- (PathInfo)improvePathBy2opt:(PathInfo)exisingPath
+- (void)improvePathBy2opt:(PathInfo *)path
 {
-	PathInfo improvedPath, newPath;
+	double newLength;
 	BOOL improved = NO;
 	
-	improvedPath = exisingPath;
-	do {
+//	do {
 		for (int i = 0; i < self.dimension - 2; i++) {
 			for (int j = i + 1; j < self.dimension - 1; j++) {
-//				newPath = swapNodes(&improvedPath, i, j);
-				newPath.length = improvedPath.length
-				- self.adjacencyMatrix[self.dimension * i		+ (i + 1)]
-				- self.adjacencyMatrix[self.dimension * j		+ (j + 1)]
-				+ self.adjacencyMatrix[self.dimension * i		+ j]
-				+ self.adjacencyMatrix[self.dimension * (i + 1)	+ (j + 1)];
-				if (newPath.length < improvedPath.length) {
-					improvedPath = newPath;
+				if (i == j) continue;
+				newLength = path->length
+				- self.adjacencyMatrix[self.dimension * (path->path[i]	  - 1)	+ (path->path[i + 1] - 1)]
+				- self.adjacencyMatrix[self.dimension * (path->path[j]     - 1)	+ (path->path[j + 1] - 1)]
+				+ self.adjacencyMatrix[self.dimension * (path->path[i]     - 1)	+ (path->path[j]     - 1)]
+				+ self.adjacencyMatrix[self.dimension * (path->path[i + 1] - 1)	+ (path->path[j + 1] - 1)];
+				if (newLength < path->length) {
+					swapNodes(path->path, self.dimension, i, j);
+					path->length = newLength;
 					improved = YES;
+				} else {
+					improved = NO;
 				}
 			}
 		}
-	} while (improved);
-	
-	return improvedPath;
+//	} while (improved);
 }
 
 - (void)printInformation
@@ -302,20 +290,28 @@ int compareDistances(const NeighborInfo *a, const NeighborInfo *b)
 }
 
 
-
 - (void)printPath:(PathInfo)pathInfo
 {
-	printf("Shortest path is ...\n");
+	printf("========== SHORTEST PATH ==========\n");
+	printf("Path: ");
 	for (int i = 0; i < self.dimension; i++) {
-		printf("%2d ", pathInfo.path[i]);
+		printf("%d, ", pathInfo.path[i]);
 	}
 	printf("\nLength = %.1f", pathInfo.length);
 }
 
+- (void)freePath:(PathInfo)path
+{
+	if (path.path) {
+		free(path.path);
+	}
+}
+
 - (void)dealloc
 {
-	free(_nodes);
-	free(_adjacencyMatrix);
+	if (_nodes)				free(_nodes);
+	if (_adjacencyMatrix)	free(_adjacencyMatrix);
+	if (_neighborMatrix)	free(_neighborMatrix);
 }
 
 @end

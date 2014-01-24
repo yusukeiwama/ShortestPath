@@ -42,7 +42,7 @@ typedef struct PathInfo {
 @property (readonly) NSString	*edgeWeightType;
 @property (readonly) TSPNode	*nodes;
 
-/// n by n lengths of arcs matrix (size of array is (numberOfNodes * numberOfNodes))
+/// n by n lengths of arcs matrix (size of array is (dimension * dimension))
 @property (readonly) double *adjacencyMatrix; // UNUSED (use neighborMatrix instead)
 
 /// n by n-1 sorted neighbor maxtrix (vertical vector of sorted neighbors of each node)
@@ -51,9 +51,18 @@ typedef struct PathInfo {
 + (id)TSPWithFile:(NSString *)path;
 - (id)initWithFile:(NSString *)path;
 
-- (PathInfo)shortestPathByNearestNeighborFromStartNodeIndex:(int)startNodeIndex;
+- (void)freePath:(PathInfo)path;
 
-- (PathInfo)improvePathBy2opt:(PathInfo)exisingPath;
+/**
+ *  Compute the shortest path by Nearest Neighbor method. It may not be the optimal path.
+ *
+ *  @param Start Index of the node to start from.
+ *
+ *  @return Path information for the shortest path.
+ */
+- (PathInfo)shortestPathByNNFrom:(int)start;
+
+- (void)improvePathBy2opt:(PathInfo *)path;
 
 
 // AS ro must fix to 0.5

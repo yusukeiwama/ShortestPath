@@ -102,7 +102,7 @@ int compareDistances(const NeighborInfo *a, const NeighborInfo *b)
 		int offset = 6;
 		while ([lines[i + offset] rangeOfString:@"EOF"].location == NSNotFound) {
 			NSArray *nodeInfo = [lines[i + offset] componentsSeparatedByString:@" "];
-			_nodes[i].index			 = [nodeInfo[0] intValue] - 1;
+			_nodes[i].index			 = [nodeInfo[0] intValue];
 			_nodes[i].coordination.x = [nodeInfo[1] doubleValue];
 			_nodes[i].coordination.y = [nodeInfo[2] doubleValue];
 			i++;
@@ -175,49 +175,47 @@ int compareDistances(const NeighborInfo *a, const NeighborInfo *b)
 	}
 }
 
-- (PathInfo)shortestPathByNearestNeighborFromStartNodeIndex:(int)startNodeIndex
+- (PathInfo)shortestPathByNearestNeighborFromStartNodeIndex:(int)start
 {
 	PathInfo shortestPath;
-	int fromNodeIndex, toNodeIndex;
-	int *visitedNodeIndices = calloc(self.dimension, sizeof(int));
+	int from, to;
+	NSMutableArray *visited = [NSMutableArray array];
 	double totalDistance = 0.0;
 
-	// Prepare visited nodes array.
-	for (int i = 0; i < self.dimension; i++) {
-		visitedNodeIndices[i] = -1;	// -1 means no node is set.
-	}
-	fromNodeIndex = startNodeIndex;
-	visitedNodeIndices[0] = startNodeIndex;
-	int numberOfVisitedNodes = 1;
+	from = start;
+	[visited addObject:[NSNumber numberWithInt:from]];
 
-	// Find the shortest path by the nearest neighbor method.
-	while (numberOfVisitedNodes < self.dimension) {
+	while (visited.count < self.dimension) {
 		for (int j = 0; j < self.dimension - 1; j++) {
-			toNodeIndex = self.neighborMatrix[self.dimension * fromNodeIndex + j].index;
-			for (int i = 0; i < self.dimension; i++) {
-				if (visitedNodeIndices[i] == -1) { // no more visited node
-					break;
-				}
-				if (toNodeIndex == visitedNodeIndices[i]) { // toNodeID is already taken
-					toNodeIndex = -1; // make toNodeID invalid(-1).
-					break;
-				}
-			}
-			if (toNodeIndex != -1) { // if toNodeID is valid
-				visitedNodeIndices[numberOfVisitedNodes] = toNodeIndex;
-				numberOfVisitedNodes++;
-				totalDistance += self.neighborMatrix[self.dimension * fromNodeIndex + j].distance;
-				fromNodeIndex = toNodeIndex;
+			// Look up the nearest node.
+			to = self.neighborMatrix[self.dimension * (from - 1) + j].index;
+			
+			// Check if the node has already been visited.
+			if ([visited containsObject:[NSNumber numberWithInt:to]]) { // visited
+				continue;
+			} else { // not visited yet
+				[visited addObject:[NSNumber numberWithInt:to]];
+				totalDistance += self.neighborMatrix[self.dimension * (from - 1) + j].distance;
+				from = to;
 				break;
 			}
 		}
 	}
-	totalDistance += self.adjacencyMatrix[self.dimension * fromNodeIndex + startNodeIndex]; // Go back to the start node
+	totalDistance += self.adjacencyMatrix[self.dimension * (from - 1) + start]; // Go back to the start node
 	
-	shortestPath.path = visitedNodeIndices;
-	shortestPath.length = totalDistance;
+	shortestPath.path	= [self intArrayFromArray:visited];
+	shortestPath.length	= totalDistance;
 	[self printPath:shortestPath];
 	return shortestPath;
+}
+
+- (int *)intArrayFromArray:(NSArray *)array
+{
+	int *arr = calloc(array.count, sizeof(int));
+	for (int i = 0; i < array.count; i++) {
+		arr[i] = [((NSNumber *)array[i]) intValue];
+	}
+	return arr;
 }
 
 - (PathInfo)improvePathBy2opt:(PathInfo)exisingPath
@@ -261,11 +259,30 @@ int compareDistances(const NeighborInfo *a, const NeighborInfo *b)
 	printf("\n");
 }
 
+- (void)printAdjecencyMatrix
+{
+	printf("========== WEIGHTED ADJECENCY MATRIX ==========\n");
+	printf("      ");
+	for (int i = 0; i < self.dimension; i++) {
+		printf("%4d ", self.nodes[i].index);
+	}
+	printf("\n");
+	
+	for (int i = 0; i < self.dimension; i++) {
+		printf("%4d: ", self.nodes[i].index);
+		for (int j = 0; j < self.dimension; j++) {
+			printf("%4.1f ", self.adjacencyMatrix[self.dimension * i + j]);
+		}
+		printf("\n");
+	}
+	printf("\n");
+}
+
 - (void)printNeighborMatrix
 {
 	printf("========== NEIGHBOR INDEX MATRIX ==========\n");
 	for (int i = 0; i < self.dimension; i++) {
-		printf("%4d: ", i);
+		printf("%4d: ", self.nodes[i].index);
 		for (int j = 0; j < self.dimension - 1; j++) {
 			printf("%2d ", self.neighborMatrix[self.dimension * i + j].index);
 		}
@@ -275,7 +292,7 @@ int compareDistances(const NeighborInfo *a, const NeighborInfo *b)
 	
 	printf("========== NEIGHBOR DISTANCE MATRIX ==========\n");
 	for (int i = 0; i < self.dimension; i++) {
-		printf("%4d: ", i);
+		printf("%4d: ", self.nodes[i].index);
 		for (int j = 0; j < self.dimension - 1; j++) {
 			printf("%4.1f ", self.neighborMatrix[self.dimension * i + j].distance);
 		}
@@ -284,24 +301,7 @@ int compareDistances(const NeighborInfo *a, const NeighborInfo *b)
 	printf("\n");
 }
 
-- (void)printAdjecencyMatrix
-{
-	printf("========== WEIGHTED ADJECENCY MATRIX ==========\n");
-	printf("      ");
-	for (int j = 0; j < self.dimension; j++) {
-		printf("%4d ", j);
-	}
-	printf("\n");
 
-	for (int i = 0; i < self.dimension; i++) {
-		printf("%4d: ", i);
-		for (int j = 0; j < self.dimension; j++) {
-			printf("%4.1f ", self.adjacencyMatrix[self.dimension * i + j]);
-		}
-		printf("\n");
-	}
-	printf("\n");
-}
 
 - (void)printPath:(PathInfo)pathInfo
 {

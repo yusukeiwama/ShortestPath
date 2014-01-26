@@ -25,23 +25,24 @@ int compareDistances(const NeighborInfo *a, const NeighborInfo *b)
 
 void swapNodes(int *path, int dimension, int i, int j)
 {
-	int  *newPath = calloc(dimension, sizeof(int));
+	int  *tmpPath = calloc(dimension, sizeof(int));
 	
 	int l = 0;
 	for (int k = 0; k <= i; k++) {
-		newPath[l] = path[k];
+		tmpPath[l] = path[k];
 		l++;
 	}
-	for (int k = j; k >= i + 1; k--) {
-		newPath[l] = path[k];
+	for (int k = j; k > i; k--) {
+		tmpPath[l] = path[k];
 		l++;
 	}
 	for (int k = j + 1; k < dimension; k++) {
-		newPath[l] = path[k];
+		tmpPath[l] = path[k];
 		l++;
 	}
 	
-	memcpy(path, newPath, dimension * sizeof(int));
+	memcpy(path, tmpPath, dimension * sizeof(int));
+	free(tmpPath);
 }
 
 @interface USKTSP ()

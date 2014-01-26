@@ -460,14 +460,7 @@
 		434D6F1F185A21D40068D753 /* Model */ = {
 			isa = PBXGroup;
 			children = (
-				434D6F24185A22B10068D753 /* USKTSP.h */,
-				434D6F25185A22B10068D753 /* USKTSP.m */,
-				43BAD61B18950C430016F3B2 /* USKTSPExperimentManager.h */,
-				43BAD61C18950C430016F3B2 /* USKTSPExperimentManager.m */,
-				43BAD61E18951BEF0016F3B2 /* USKTSPVisualizer.h */,
-				43BAD61F18951BEF0016F3B2 /* USKTSPVisualizer.m */,
-				43BAD7471895A4620016F3B2 /* USKTrimmer.h */,
-				43BAD7481895A4620016F3B2 /* USKTrimmer.m */,
+				43BAD74B1895B2420016F3B2 /* TSP */,
 			);
 			name = Model;
 			sourceTree = "<group>";
@@ -640,6 +633,29 @@
 				43BAD6B118959EFE0016F3B2 /* vm1748.tsp */,
 			);
 			name = TSPData;
+			sourceTree = "<group>";
+		};
+		43BAD74A1895B22D0016F3B2 /* Support Class */ = {
+			isa = PBXGroup;
+			children = (
+				43BAD7471895A4620016F3B2 /* USKTrimmer.h */,
+				43BAD7481895A4620016F3B2 /* USKTrimmer.m */,
+			);
+			name = "Support Class";
+			sourceTree = "<group>";
+		};
+		43BAD74B1895B2420016F3B2 /* TSP */ = {
+			isa = PBXGroup;
+			children = (
+				434D6F24185A22B10068D753 /* USKTSP.h */,
+				434D6F25185A22B10068D753 /* USKTSP.m */,
+				43BAD61B18950C430016F3B2 /* USKTSPExperimentManager.h */,
+				43BAD61C18950C430016F3B2 /* USKTSPExperimentManager.m */,
+				43BAD61E18951BEF0016F3B2 /* USKTSPVisualizer.h */,
+				43BAD61F18951BEF0016F3B2 /* USKTSPVisualizer.m */,
+				43BAD74A1895B22D0016F3B2 /* Support Class */,
+			);
+			name = TSP;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

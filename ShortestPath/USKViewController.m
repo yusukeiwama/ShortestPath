@@ -16,31 +16,17 @@
 
 @end
 
-@implementation USKViewController
+@implementation USKViewController {
+	NSArray *samples;
+}
 
 - (void)viewDidLoad
 {
     [super viewDidLoad];
 	
-	USKTSP *tsp = [USKTSP TSPWithFile:[[NSBundle mainBundle] pathForResource:@"TSPData/ch130" ofType:@"tsp"]];
+	samples = @[@"eil51", @"pr76", @"rat99", @"kroA100", @"ch130"];
 	
-	double sum = 0;
-	PathInfo shortestPath = {MAXFLOAT, NULL};
-	for (int i = 0; i < tsp.dimension; i++) {
-		PathInfo shortPath = [tsp shortestPathByNNFrom:i + 1];
-		[tsp improvePathBy2opt:&shortPath];
-		if (shortPath.length < shortestPath.length) {
-			[tsp freePath:shortestPath];
-			shortestPath = shortPath;
-		} else {
-			[tsp freePath:shortPath];
-		}
-		sum += shortPath.length;
-		printf("%.3f, ", shortPath.length);
-	}
-	printf("\nAverage = %.3f\nShortest = %.3f\n", sum / tsp.dimension, shortestPath.length);
-		
-	[self drawPath:shortestPath ofTSP:tsp];
+	[self experimentA];
 }
 
 - (void)drawPath:(PathInfo)path ofTSP:(USKTSP *)tsp
@@ -92,6 +78,30 @@
 	
 	self.pathImageView.image = UIGraphicsGetImageFromCurrentImageContext();
 	UIGraphicsEndImageContext();
+}
+
+# pragma mark - experiments for assignments
+- (void)experimentA
+{
+	USKTSP *tsp = [USKTSP TSPWithFile:[[NSBundle mainBundle] pathForResource:@"TSPData/ch130" ofType:@"tsp"]];
+	
+	double sum = 0;
+	PathInfo shortestPath = {MAXFLOAT, NULL};
+	for (int i = 0; i < tsp.dimension; i++) {
+		PathInfo shortPath = [tsp shortestPathByNNFrom:i + 1];
+		[tsp improvePathBy2opt:&shortPath];
+		if (shortPath.length < shortestPath.length) {
+			[tsp freePath:shortestPath];
+			shortestPath = shortPath;
+		} else {
+			[tsp freePath:shortPath];
+		}
+		sum += shortPath.length;
+		printf("%.3f, ", shortPath.length);
+	}
+	printf("\nAverage = %.3f\nShortest = %.3f\n", sum / tsp.dimension, shortestPath.length);
+	
+	[self drawPath:shortestPath ofTSP:tsp];
 }
 
 - (void)didReceiveMemoryWarning

@@ -33,7 +33,7 @@
 
 - (void)experimentNN2opt
 {
-	USKTSP *tsp = [USKTSP TSPWithFile:[[NSBundle mainBundle] pathForResource:@"TSPData/bayg29" ofType:@"tsp"]];
+	USKTSP *tsp = [USKTSP TSPWithFile:[[NSBundle mainBundle] pathForResource:@"eil51" ofType:@"tsp"]];
 	
 	double sum = 0;
 	PathInfo shortestPath = {MAXFLOAT, NULL};

@@ -7,6 +7,9 @@
 //
 
 #import "USKTSP.h"
+#import "USKTrimmer.h"
+
+NSDictionary *optimalLengthDictionary;
 
 int distanceBetween(CGPoint A, CGPoint B)
 {
@@ -44,7 +47,9 @@ void swapNodes(int *path, int dimension, int i, int j)
 @interface USKTSP ()
 @end
 
-@implementation USKTSP
+@implementation USKTSP {
+	NSDictionary *_optimalLengthDictionary;
+}
 
 + (id)TSPWithFile:(NSString *)path
 {
@@ -62,12 +67,16 @@ void swapNodes(int *path, int dimension, int i, int j)
 		[self printInformation];
 		[self printAdjecencyMatrix];
 		[self printNeighborMatrix];
+		[USKTSP optimalSolutionWithName:@"rd100"];
 
 	}
 	return self;
 }
 
-- (void)readTSPDataFromFile:(NSString *)path
+#pragma mark - read file
+
+// FIXME: FIX_EDGE_SECTION is not parsed (linhp318.tsp)
+- (BOOL)readTSPDataFromFile:(NSString *)path
 {
 	// Split contents of file into lines.
 	_filePath = path;
@@ -75,93 +84,194 @@ void swapNodes(int *path, int dimension, int i, int j)
 	NSArray *lines = [rawString componentsSeparatedByString:@"\n"];
 
 	// Read basic information.
-	NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
-	int lineNumber = 0;
-	while ([lines[lineNumber] rangeOfString:@"EOF"].location == NSNotFound) {
-		if ([lines[lineNumber] rangeOfString:@"NODE_COORD_SECTION"].location != NSNotFound
-			|| [lines[lineNumber] rangeOfString:@"DISPLAY_DATA_SECTION"].location != NSNotFound) {
+	NSMutableDictionary *tmpDictionary = [NSMutableDictionary dictionary];
+	int l = 0;
+	while ([lines[l] rangeOfString:@"EOF"].location == NSNotFound) {
+		if ([lines[l] rangeOfString:@"NODE_COORD_SECTION"].location != NSNotFound
+			|| [lines[l] rangeOfString:@"DISPLAY_DATA_SECTION"].location != NSNotFound) {
 			// Read node coordinations.
 			BOOL nodeCodeSection = NO;
-			if ([lines[lineNumber] rangeOfString:@"NODE_COORD_SECTION"].location != NSNotFound) {
+			if ([lines[l] rangeOfString:@"NODE_COORD_SECTION"].location != NSNotFound) {
 				nodeCodeSection = YES;
 			}
-			lineNumber++;
-			if ([[dictionary valueForKey:@"TYPE"] isEqualToString:@"TSP"]) {
+			l++;
+			if ([[tmpDictionary valueForKey:@"TYPE"] isEqualToString:@"TSP"]) {
 				_nodes = calloc(_dimension, sizeof(TSPNode));
 				int nodeIndex = 0;
 				while (TRUE) {
-					NSArray *nodeInfo = [[self trimmedStringWithString:lines[lineNumber]] componentsSeparatedByString:@" "];
-					nodeInfo = [self trimmedArrayWithArray:nodeInfo];
+					NSArray *nodeInfo = [[USKTrimmer trimmedStringWithString:lines[l]] componentsSeparatedByString:@" "];
+					nodeInfo = [USKTrimmer trimmedArrayWithArray:nodeInfo];
 					if (nodeInfo.count != 3) {
 						break;
 					}
 					_nodes[nodeIndex].index			 = [nodeInfo[0] intValue];
 					_nodes[nodeIndex].coordination.x = [nodeInfo[1] doubleValue];
 					_nodes[nodeIndex].coordination.y = [nodeInfo[2] doubleValue];
-					lineNumber++;
+					l++;
 					nodeIndex++;
 				}
 			}
 			if (nodeCodeSection) {
 				[self computeAdjacencyMatrix];
 			}
-		} else if ([lines[lineNumber] rangeOfString:@"EDGE_WEIGHT_SECTION"].location != NSNotFound) {
-			lineNumber++;
+		} else if ([lines[l] rangeOfString:@"EDGE_WEIGHT_SECTION"].location != NSNotFound) {
+			l++;
 			// Read adjacency matrix.
-			if ([[dictionary valueForKey:@"TYPE"] isEqualToString:@"TSP"]) {
-				_adjacencyMatrix = calloc(_dimension * _dimension, sizeof(double));
-				int nodeIndex = 0;
-				while (TRUE) {
-					NSArray *edgeWeights = [[self trimmedStringWithString:lines[lineNumber]] componentsSeparatedByString:@" "];
-					edgeWeights = [self trimmedArrayWithArray:edgeWeights];
-					// Read distances from node[nodeIndex].
+			_adjacencyMatrix = calloc(_dimension * _dimension, sizeof(double));
+			// Read edge weights.
+			NSMutableArray *edgeWeights = [NSMutableArray array];
+			while (TRUE) {
+				NSArray *anEdgeWeights = [[USKTrimmer trimmedStringWithString:lines[l]] componentsSeparatedByString:@" "];
+				anEdgeWeights = [USKTrimmer trimmedArrayWithArray:anEdgeWeights];
+				if ([anEdgeWeights[0] rangeOfCharacterFromSet:[NSCharacterSet characterSetWithCharactersInString:@"0123456789"]].location == NSNotFound) {
+					// if there is no number in the first component in the line, break to read next information.
+					break;
+				}
+				[edgeWeights addObjectsFromArray:anEdgeWeights];
+				l++;
+			}
+			// Parse edge weights
+			if ([[tmpDictionary valueForKey:@"EDGE_WEIGHT_FORMAT"] isEqualToString:@"FULL_MATRIX"]) {
+				for (int i = 0; i < edgeWeights.count; i++) {
+					_adjacencyMatrix[i] = [edgeWeights[i] intValue];
+				}
+			} else if ([[tmpDictionary valueForKey:@"EDGE_WEIGHT_FORMAT"] isEqualToString:@"UPPER_ROW"]) {
+				int edgeWeightIndex = 0;
+				for (int nodeIndex = 0; nodeIndex < _dimension; nodeIndex++) {
 					for (int i = 0; i < _dimension - nodeIndex - 1; i++) {
-						_adjacencyMatrix[_dimension * nodeIndex + nodeIndex + 1 + i] = [edgeWeights[i] intValue];
-					}
-					// Copy upper triangle into lower triangle
-					for (int i = 1; i < _dimension; i++) {
-						for (int j = 0; j < i; j++) {
-							_adjacencyMatrix[_dimension * i + j] = _adjacencyMatrix[_dimension * j + i];
-						}
-					}
-					lineNumber++;
-					nodeIndex++;
-					if (edgeWeights.count == 1) {
-						break;
+						_adjacencyMatrix[_dimension * nodeIndex + nodeIndex + 1 + i] = [edgeWeights[edgeWeightIndex] intValue];
+						edgeWeightIndex++;
 					}
 				}
+				// Copy upper triangle into lower triangle
+				for (int i = 1; i < _dimension; i++) {
+					for (int j = 0; j < i; j++) {
+						_adjacencyMatrix[_dimension * i + j] = _adjacencyMatrix[_dimension * j + i];
+					}
+				}
+			} else if ([[tmpDictionary valueForKey:@"EDGE_WEIGHT_FORMAT"] isEqualToString:@"UPPER_DIAG_ROW"]) {
+				int edgeWeightIndex = 0;
+				for (int nodeIndex = 0; nodeIndex < _dimension; nodeIndex++) {
+					for (int i = 0; i < _dimension - nodeIndex; i++) {
+						_adjacencyMatrix[_dimension * nodeIndex + nodeIndex + i] = [edgeWeights[edgeWeightIndex] intValue];
+						edgeWeightIndex++;
+					}
+				}
+				// Copy upper triangle into lower triangle
+				for (int i = 1; i < _dimension; i++) {
+					for (int j = 0; j < i; j++) {
+						_adjacencyMatrix[_dimension * i + j] = _adjacencyMatrix[_dimension * j + i];
+					}
+				}
+			} else if ([[tmpDictionary valueForKey:@"EDGE_WEIGHT_FORMAT"] isEqualToString:@"LOWER_DIAG_ROW"]) {
+				int edgeWeightIndex = 0;
+				for (int nodeIndex = 0; nodeIndex < _dimension; nodeIndex++) {
+					for (int i = 0; i < nodeIndex + 1; i++) {
+						_adjacencyMatrix[_dimension * nodeIndex + i] = [edgeWeights[edgeWeightIndex] intValue];
+						edgeWeightIndex++;
+					}
+				}
+				// Copy lower triangle into upper triangle
+				for (int i = 0; i < _dimension; i++) {
+					for (int j = i + 1; j < _dimension; j++) {
+						_adjacencyMatrix[_dimension * i + j] = _adjacencyMatrix[_dimension * j + i];
+					}
+				}
+				
 			}
 		} else {
-			NSArray *components = [[self trimmedStringWithString:lines[lineNumber]] componentsSeparatedByString:@":"];
-			NSString *key = [self trimmedStringWithString:components[0]];
-			NSString *val = [self trimmedStringWithString:components[1]];
-			[dictionary setValue:val forKey:key];
+			NSArray *components = [[USKTrimmer trimmedStringWithString:lines[l]] componentsSeparatedByString:@":"];
+			NSString *key = [USKTrimmer trimmedStringWithString:components[0]];
+			NSString *val = [USKTrimmer trimmedStringWithString:components[1]];
+			[tmpDictionary setValue:val forKey:key];
 			if ([key isEqualToString:@"DIMENSION"]) {
 				_dimension = [val intValue];
 			}
-			lineNumber++;
+			l++;
 		}
 	}
-	_information = dictionary;
+	_information = tmpDictionary;
+
+	return YES;
 }
 
-- (NSString *)trimmedStringWithString:(NSString *)string
+/**
+ *  Return the optimal solution by reading files.
+ *
+ *  @param name problem name of the TSP.
+ *
+ *  @return optimal path. If there is no path information, returns NULL.
+ */
++ (PathInfo)optimalSolutionWithName:(NSString *)name
 {
-	// Trim whitespace. (i.e. @" ch130" => @"ch130")
-	return [string stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@" "]];
-}
+	PathInfo optimalPath;
+	
+	// Read optimal lengths from file
+	if (optimalLengthDictionary == nil) {
+		NSMutableDictionary *tmpDictionary = [NSMutableDictionary dictionary];
+		NSString *rawString = [[NSString alloc] initWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"optimalSolutions" ofType:@"txt"] encoding:NSASCIIStringEncoding error:nil];
+		NSArray *lines = [rawString componentsSeparatedByString:@"\n"];
+		
+		int l = 0;
+		while ([lines[l] rangeOfString:@"EOF"].location == NSNotFound) {
+			NSArray *components = [[USKTrimmer trimmedStringWithString:lines[l]] componentsSeparatedByString:@":"];
+			components = [USKTrimmer trimmedArrayWithArray:components];
+			NSString *key = [USKTrimmer trimmedStringWithString:components[0]];
+			NSString *val = [USKTrimmer trimmedStringWithString:components[1]];
+			[tmpDictionary setValue:val forKey:key];
+			l++;
+		}
+		optimalLengthDictionary = tmpDictionary;
+	}
+	// Look up optimal length dictionary for the specified name.
+	optimalPath.length = [[optimalLengthDictionary valueForKey:name] intValue];
+	
+	// Read optimal path from file.
+	NSString *rawString = [[NSString alloc] initWithContentsOfFile:[[NSBundle mainBundle] pathForResource:name ofType:@"opt.tour"] encoding:NSASCIIStringEncoding error:nil];
+	if (rawString) {
+		NSArray *lines = [rawString componentsSeparatedByString:@"\n"];
+		
+		// Look up TOUR_SECTION
+		int l = 0;
+		int dimension = 0;
+		while ([lines[l] rangeOfString:@"EOF"].location == NSNotFound) {
+			if ([lines[l] rangeOfString:@"TOUR_SECTION"].location != NSNotFound) {
+					// Read .tsp file to get dimenison.
+					NSString *tspString = [[NSString alloc] initWithContentsOfFile:[[NSBundle mainBundle] pathForResource:name ofType:@"tsp"] encoding:NSASCIIStringEncoding error:nil];
+					NSArray *tspLines = [tspString componentsSeparatedByString:@"\n"];
 
-- (NSArray *)trimmedArrayWithArray:(NSArray *)array
-{
-	NSMutableArray *mutableArray = [NSMutableArray array];
-	for (int i = 0; i < array.count; i++) {
-		NSString *string = array[i];
-		if ([string isEqualToString:@""] == NO) {
-			[mutableArray addObject:array[i]];
+					int tl = 0;
+					while ([tspLines[tl] rangeOfString:@"DIMENSION"].location == NSNotFound) {
+						tl++;
+					}
+					NSArray *components = [[USKTrimmer trimmedStringWithString:tspLines[tl]] componentsSeparatedByString:@":"];
+					dimension = [[USKTrimmer trimmedStringWithString:components[1]] intValue];
+				
+				// Read path
+				l++;
+				optimalPath.path = calloc(dimension, sizeof(int));
+				// Read path
+				NSMutableArray *path = [NSMutableArray array];
+				while (TRUE) {
+					NSArray *aPath = [[USKTrimmer trimmedStringWithString:lines[l]] componentsSeparatedByString:@" "];
+					aPath = [USKTrimmer trimmedArrayWithArray:aPath];
+					if (path.count == dimension) {
+						break;
+					}
+					[path addObjectsFromArray:aPath];
+					l++;
+				}
+				// Set optimal path.
+				optimalPath.path = [USKTSP intArrayFromArray:path];
+			}
+			l++;
 		}
 	}
-	return mutableArray;
+
+	return optimalPath;
 }
+
+#pragma mark - compute matrix
 
 - (void)computeAdjacencyMatrix
 {
@@ -174,10 +284,6 @@ void swapNodes(int *path, int dimension, int i, int j)
 				for (int j = i + 1; j < _dimension; j++) {
 					_adjacencyMatrix[_dimension * i + j] = distanceBetween(_nodes[i].coordination, _nodes[j].coordination);
 				}
-			}
-			// Distance to the same node is 0
-			for (int i = 0; i < _dimension; i++) {
-				_adjacencyMatrix[_dimension * i + i] = 0;
 			}
 			// Copy upper triangle into lower triangle
 			for (int i = 1; i < _dimension; i++) {
@@ -204,7 +310,7 @@ void swapNodes(int *path, int dimension, int i, int j)
 		for (int i = 0; i < _dimension; i++) {
 			for (int j = 0; j < _dimension; j++) {
 				// Copy adjacency matrix.
-				_neighborMatrix[_dimension * i + j].index	 = _nodes[j].index;
+				_neighborMatrix[_dimension * i + j].index	 = j + 1;
 				_neighborMatrix[_dimension * i + j].distance = _adjacencyMatrix[_dimension * i + j];
 			}
 			
@@ -216,6 +322,8 @@ void swapNodes(int *path, int dimension, int i, int j)
 		}
 	}
 }
+
+#pragma mark - Algorithms
 
 - (PathInfo)shortestPathByNNFrom:(int)start
 {
@@ -245,13 +353,13 @@ void swapNodes(int *path, int dimension, int i, int j)
 	}
 	distance += self.adjacencyMatrix[self.dimension * (from - 1) + start]; // Go back to the start node
 	
-	shortestPath.path	= [self intArrayFromArray:visited];
+	shortestPath.path	= [USKTSP intArrayFromArray:visited];
 	shortestPath.length	= distance;
 	
 	return shortestPath;
 }
 
-- (int *)intArrayFromArray:(NSArray *)array
++ (int *)intArrayFromArray:(NSArray *)array
 {
 	int *arr = calloc(array.count, sizeof(int));
 	for (int i = 0; i < array.count; i++) {
@@ -294,11 +402,13 @@ void swapNodes(int *path, int dimension, int i, int j)
 		printf("%s: %s\n", [key cStringUsingEncoding:NSUTF8StringEncoding], [obj cStringUsingEncoding:NSUTF8StringEncoding]);
 	}];
 		
-	printf("NODE_COORD_SECTION:\n");
-	for (int i = 0; i < self.dimension; i++) {
-		printf("%3d %13.2f %13.2f\n", self.nodes[i].index, self.nodes[i].coordination.x, self.nodes[i].coordination.y);
+	if (_nodes != NULL) {
+		printf("NODE_COORD_SECTION:\n");
+		for (int i = 0; i < self.dimension; i++) {
+			printf("%3d %13.2f %13.2f\n", self.nodes[i].index, self.nodes[i].coordination.x, self.nodes[i].coordination.y);
+		}
+		printf("\n");
 	}
-	printf("\n");
 }
 
 - (void)printAdjecencyMatrix
@@ -306,12 +416,12 @@ void swapNodes(int *path, int dimension, int i, int j)
 	printf("========== WEIGHTED ADJECENCY MATRIX ==========\n");
 	printf("      ");
 	for (int i = 0; i < self.dimension; i++) {
-		printf("%4d ", self.nodes[i].index);
+		printf("%4d ", i + 1);
 	}
 	printf("\n");
 	
 	for (int i = 0; i < self.dimension; i++) {
-		printf("%4d: ", self.nodes[i].index);
+		printf("%4d: ", i + 1);
 		for (int j = 0; j < self.dimension; j++) {
 			printf("%4d ", ((int)self.adjacencyMatrix[self.dimension * i + j]));
 		}
@@ -324,7 +434,7 @@ void swapNodes(int *path, int dimension, int i, int j)
 {
 	printf("========== NEIGHBOR INDEX MATRIX ==========\n");
 	for (int i = 0; i < self.dimension; i++) {
-		printf("%4d: ", self.nodes[i].index);
+		printf("%4d: ", i + 1);
 		for (int j = 0; j < self.dimension - 1; j++) {
 			printf("%4d ", self.neighborMatrix[self.dimension * i + j].index);
 		}
@@ -334,7 +444,7 @@ void swapNodes(int *path, int dimension, int i, int j)
 	
 	printf("========== NEIGHBOR DISTANCE MATRIX ==========\n");
 	for (int i = 0; i < self.dimension; i++) {
-		printf("%4d: ", self.nodes[i].index);
+		printf("%4d: ", i + 1);
 		for (int j = 0; j < self.dimension - 1; j++) {
 			printf("%4d ", (int)(self.neighborMatrix[self.dimension * i + j].distance));
 		}

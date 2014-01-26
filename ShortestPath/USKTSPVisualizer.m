@@ -22,6 +22,9 @@ CGPoint correctedPoint(CGPoint point)
 
 - (void)drawPath:(PathInfo)path ofTSP:(USKTSP *)tsp
 {
+	if (tsp.nodes == NULL) {
+		return;
+	}
 	// Find top, left, right, bottom nodes.
 	double top = MAXFLOAT, left = MAXFLOAT, bottom = 0, right = 0;
 	for (int i = 0; i < tsp.dimension; i++) {

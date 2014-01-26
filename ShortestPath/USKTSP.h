@@ -22,7 +22,7 @@ typedef struct TSPNode {
 
 typedef struct NeighborInfo {
 	int		index;
-	double	distance;
+	int 	distance;
 } NeighborInfo;
 
 
@@ -33,23 +33,19 @@ typedef struct PathInfo {
 
 @interface USKTSP : NSObject
 
-@property (readonly) NSString	*filePath;
-
-@property (readonly) NSString	*name;
-@property (readonly) NSString	*comment;
-@property (readonly) NSString	*type;
-@property (readonly) NSInteger	dimension;
-@property (readonly) NSString	*edgeWeightType;
-@property (readonly) TSPNode	*nodes;
-
-/// n by n lengths of arcs matrix (size of array is (dimension * dimension))
-@property (readonly) double *adjacencyMatrix; // UNUSED (use neighborMatrix instead)
+@property (readonly) NSString	  *filePath;
+@property (readonly) NSDictionary *information;
+@property (readonly) int		  dimension;
+@property (readonly) TSPNode      *nodes;
+@property (readonly) int		  *adjacencyMatrix;
 
 /// n by n-1 sorted neighbor maxtrix (vertical vector of sorted neighbors of each node)
 @property (readonly) NeighborInfo *neighborMatrix;
 
 + (id)TSPWithFile:(NSString *)path;
 - (id)initWithFile:(NSString *)path;
+
++ (id)randomTSPWithDimension:(NSInteger)d;
 
 - (void)freePath:(PathInfo)path;
 

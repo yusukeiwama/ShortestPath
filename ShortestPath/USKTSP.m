@@ -9,6 +9,9 @@
 #import "USKTSP.h"
 #import "USKTrimmer.h"
 
+// Cannot deal because of short of memory.
+#define MAX_DIMENSION 3000
+
 NSDictionary *optimalLengthDictionary;
 
 int euc2D(CGPoint A, CGPoint B)
@@ -72,13 +75,15 @@ void swap2opt(int *path, int dimension, int i, int j)
 {
 	self = [super init];
 	if (self) {
-		[self readTSPDataFromFile:path];
-
-		[self computeNeighborMatrix];
-		
-//		[self printInformation];
-//		[self printAdjecencyMatrix];
-//		[self printNeighborMatrix];
+		if ([self readTSPDataFromFile:path]) {
+			[self computeNeighborMatrix];
+			
+//			[self printInformation];
+//			[self printAdjecencyMatrix];
+//			[self printNeighborMatrix];
+		} else {
+			return nil;
+		}
 	}
 	return self;
 }
@@ -116,11 +121,12 @@ void swap2opt(int *path, int dimension, int i, int j)
 	_filePath = path;
 	NSString *rawString = [[NSString alloc] initWithContentsOfFile:path encoding:NSASCIIStringEncoding error:nil];
 	NSArray *lines = [rawString componentsSeparatedByString:@"\n"];
+	lines = [USKTrimmer trimmedArrayWithArray:lines];
 
 	// Read basic information.
 	NSMutableDictionary *tmpDictionary = [NSMutableDictionary dictionary];
 	int l = 0;
-	while ([lines[l] rangeOfString:@"EOF"].location == NSNotFound) {
+	while (l < lines.count && [lines[l] rangeOfString:@"EOF"].location == NSNotFound) {
 		if ([lines[l] rangeOfString:@"NODE_COORD_SECTION"].location != NSNotFound
 			|| [lines[l] rangeOfString:@"DISPLAY_DATA_SECTION"].location != NSNotFound) {
 			// Read node coordinations.
@@ -132,13 +138,13 @@ void swap2opt(int *path, int dimension, int i, int j)
 			if ([[tmpDictionary valueForKey:@"TYPE"] isEqualToString:@"TSP"]) {
 				_nodes = calloc(_dimension, sizeof(TSPNode));
 				int nodeIndex = 0;
-				while (TRUE) {
-					NSArray *nodeInfo = [[USKTrimmer trimmedStringWithString:lines[l]] componentsSeparatedByString:@" "];
+				while (nodeIndex < _dimension) {
+					NSArray *nodeInfo = [[USKTrimmer trimmedStringWithString:lines[l]] componentsSeparatedByCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"	: "]];
 					nodeInfo = [USKTrimmer trimmedArrayWithArray:nodeInfo];
 					if (nodeInfo.count != 3) {
 						break;
 					}
-					_nodes[nodeIndex].number			 = [nodeInfo[0] intValue];
+					_nodes[nodeIndex].number  = [nodeInfo[0] intValue];
 					_nodes[nodeIndex].coord.x = [nodeInfo[1] doubleValue];
 					_nodes[nodeIndex].coord.y = [nodeInfo[2] doubleValue];
 					l++;
@@ -213,6 +219,12 @@ void swap2opt(int *path, int dimension, int i, int j)
 				}
 				
 			}
+		} else if ([lines[l] rangeOfString:@"FIXED_EDGES_SECTION"].location != NSNotFound) {
+			// !!!: Ignoring...
+			while ([lines[l] rangeOfString:@"-1"].location == NSNotFound) {
+				l++;
+			}
+			l++;
 		} else {
 			NSArray *components = [[USKTrimmer trimmedStringWithString:lines[l]] componentsSeparatedByString:@":"];
 			NSString *key = [USKTrimmer trimmedStringWithString:components[0]];
@@ -220,6 +232,9 @@ void swap2opt(int *path, int dimension, int i, int j)
 			[tmpDictionary setValue:val forKey:key];
 			if ([key isEqualToString:@"DIMENSION"]) {
 				_dimension = [val intValue];
+				if (_dimension > MAX_DIMENSION) {
+					return NO;
+				}
 			}
 			l++;
 		}
@@ -262,10 +277,13 @@ void swap2opt(int *path, int dimension, int i, int j)
 		// Look up TOUR_SECTION
 		int l = 0;
 		int dimension = 0;
+		
 		while ([lines[l] rangeOfString:@"EOF"].location == NSNotFound
 			   && [lines[l] rangeOfString:@"-1"].location == NSNotFound
 			   && l < lines.count) {
 			if ([lines[l] rangeOfString:@"TOUR_SECTION"].location != NSNotFound) {
+
+
 					// Read .tsp file to get dimenison.
 					NSString *tspString = [[NSString alloc] initWithContentsOfFile:[[NSBundle mainBundle] pathForResource:name ofType:@"tsp"] encoding:NSASCIIStringEncoding error:nil];
 					NSArray *tspLines = [tspString componentsSeparatedByString:@"\n"];
@@ -479,14 +497,7 @@ void swap2opt(int *path, int dimension, int i, int j)
 	}
 }
 
-#pragma mark - Release and Deconstruction methods
-
-+ (void)freePath:(PathInfo)path
-{
-	if (path.path) {
-		free(path.path);
-	}
-}
+#pragma mark - Deconstruction
 
 - (void)dealloc
 {

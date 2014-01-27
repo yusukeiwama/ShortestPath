@@ -13,6 +13,7 @@
 typedef enum USKTSPExperiment {
 	USKTSPExperimentNN,
 	USKTSPExperimentNN2opt,
+	USKTSPExperimentOptimal
 } USKTSPExperiment;
 
 @interface USKTSPExperimentManager : NSObject

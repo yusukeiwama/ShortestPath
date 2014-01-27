@@ -11,24 +11,22 @@
 static const UIEdgeInsets margin = {20.0, 20.0, 20.0, 20.0};
 static CGPoint offset = {0.0, 0.0};
 static CGSize  scale  = {1.0, 1.0};
+static CGFloat height;
 
 CGPoint correctedPoint(CGPoint point)
 {
 	return CGPointMake((point.x - offset.x) * scale.width  + margin.left,
-					   (point.y - offset.y) * scale.height + margin.top);
+					   ((point.y - offset.y) * scale.height + margin.top) * (-1) + height);
 }
 
 @implementation USKTSPVisualizer
 
-- (void)drawPath:(PathInfo)path ofTSP:(USKTSP *)tsp
+- (void)prepareForCorrectionWithTSP:(USKTSP *)tsp
 {
-	if (tsp.nodes == NULL) {
-		return;
-	}
 	// Find top, left, right, bottom nodes.
 	double top = MAXFLOAT, left = MAXFLOAT, bottom = 0, right = 0;
 	for (int i = 0; i < tsp.dimension; i++) {
-		if (tsp.nodes[i].coord.x < left)	  left   = tsp.nodes[i].coord.x;
+		if (tsp.nodes[i].coord.x < left)   left   = tsp.nodes[i].coord.x;
 		if (tsp.nodes[i].coord.x > right)  right  = tsp.nodes[i].coord.x;
 		if (tsp.nodes[i].coord.y < top)    top    = tsp.nodes[i].coord.y;
 		if (tsp.nodes[i].coord.y > bottom) bottom = tsp.nodes[i].coord.y;
@@ -38,8 +36,14 @@ CGPoint correctedPoint(CGPoint point)
 	offset = CGPointMake(left, top);
 	scale  = CGSizeMake((self.imageView.frame.size.width - margin.left - margin.right) / (right - left),
 						(self.imageView.frame.size.height - margin.top - margin.bottom) / (bottom - top));
+	height = self.imageView.frame.size.height;
+}
+
+- (BOOL)drawPath:(PathInfo)path ofTSP:(USKTSP *)tsp
+{
+	if (path.path == NULL || tsp == nil || tsp.nodes == NULL) return NO;
 	
-	// Quartz 2D / OpenGL / Cocoa2D
+	[self prepareForCorrectionWithTSP:tsp];
 	
 	// Start drawing
 	UIGraphicsBeginImageContextWithOptions((self.imageView.frame.size), YES, 0);
@@ -73,6 +77,32 @@ CGPoint correctedPoint(CGPoint point)
 	
 	self.imageView.image = UIGraphicsGetImageFromCurrentImageContext();
 	UIGraphicsEndImageContext();
+	
+	return YES;
+}
+
+- (BOOL)PNGWithPath:(PathInfo)path ofTSP:(USKTSP *)tsp toFileNamed:(NSString *)fileName
+{
+	NSArray	 *filePaths   = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+	NSString *documentDir = [filePaths objectAtIndex:0];
+	NSString *outputPath  = [documentDir stringByAppendingPathComponent:fileName];
+	NSURL    *outputURL   = [NSURL fileURLWithPath:outputPath];
+	// Example Path: /Users/yusukeiwama/Library/Application Support/iPhone Simulator/7.0.3/Applications/85BB258F-2ED0-464C-AD92-1C5D11012E67/Documents
+	
+	
+	if ([self drawPath:path ofTSP:tsp]) {
+		NSData *imageData = UIImagePNGRepresentation(self.imageView.image);
+		if ([imageData writeToURL:outputURL atomically:YES]) {
+			NSLog(@"%@ is saved", fileName);
+			return YES;
+		} else {
+			NSLog(@"Failed to save %@", fileName);
+			return NO;
+		}
+	}
+	
+	NSLog(@"Failed to draw %@", fileName);
+	return NO;
 }
 
 @end

@@ -12,20 +12,27 @@
 
 @implementation USKTSPExperimentManager {
 	NSArray *_sampleFileNames;
+	NSArray *_allFileNames;
 }
 
 - (void)doExperiment:(USKTSPExperiment)experiment
 {
 	switch (experiment) {
-		case USKTSPExperimentNN:	 [self experimentNN];		break;
-		case USKTSPExperimentNN2opt: [self experimentNN2opt];	break;
+		case USKTSPExperimentNN:	  [self experimentNN];		break;
+		case USKTSPExperimentNN2opt:  [self experimentNN2opt];	break;
+		case USKTSPExperimentOptimal: [self experimentOptimal]; break;
 		default:												break;
 	}
 }
 
 - (void)loadSampleFileNames
 {
-	_sampleFileNames = @[@"eil51", @"pr76", @"rat99", @"kroA100", @"ch130"];
+	_sampleFileNames = @[@"eil51", @"pr76", @"rat99", @"kroA100", @"ch130", @"tsp225"];
+}
+
+- (void)loadAllFileNames
+{
+	_allFileNames = @[@"a280", @"ali535", @"att48", @"att532", @"bayg29", @"bays29", @"berlin52", @"bier127", @"brazil58", @"brd14051",	@"brg180", @"burma14", @"ch130", @"ch150", @"d198", @"d493", @"d657", @"d1291", @"d1655", @"d2103", @"d15112", @"d18512", @"dantzig42", @"dsj1000", @"eil51", @"eil76", @"eil101", @"fl417", @"fl1400", @"fl1577", @"fl3795", @"fnl4461", @"fri26", @"gil262", @"gr17", @"gr21", @"gr24", @"gr48", @"gr96", @"gr120", @"gr137", @"gr202", @"gr229", @"gr431", @"gr666", @"hk48", @"kroA100", @"kroB100", @"kroC100", @"kroD100", @"kroE100", @"kroA150", @"kroB150", @"kroA200", @"kroB200", @"lin105", @"lin318", @"linhp318", @"nrw1379", @"p654", @"pa561", @"pcb442", @"pcb1173", @"pcb3038", @"pla7397", @"pla33810", @"pla85900", @"pr76", @"pr107", @"pr124", @"pr136", @"pr144", @"pr152", @"pr226", @"pr264", @"pr299", @"pr439", @"pr1002", @"pr2392", @"rat99", @"rat195", @"rat575", @"rat783", @"rd100", @"rd400", @"rl1304", @"rl1323", @"rl1889", @"rl5915", @"rl5934", @"rl11849", @"si175", @"si535", @"si1032", @"st70", @"swiss42", @"ts225", @"tsp225", @"u159", @"u574", @"u724", @"u1060", @"u1432", @"u1817", @"u2152", @"u2319", @"ulysses16", @"ulysses22", @"usa13509", @"vm1084", @"vm1748"];
 }
 
 + (BOOL)writeString:(NSString *)string toFileNamed:(NSString *)fileName
@@ -40,6 +47,7 @@
 		NSLog(@"%@ is saved", fileName);
 		return YES;
 	} else {
+		NSLog(@"Failed to save %@", fileName);
 		return NO;
 	}
 }
@@ -52,22 +60,33 @@
 	NSMutableString *statisticString = [@"NAME, OPTIMAL, SHORTEST, AVE, LONGEST, SIGMA\n" mutableCopy];
 	
 	[self loadSampleFileNames];
-	for (NSString *fileName in _sampleFileNames) {
-		USKTSP *tsp = [USKTSP TSPWithFile:[[NSBundle mainBundle] pathForResource:fileName ofType:@"tsp"]];
+	for (NSString *sampleName in _sampleFileNames) {
+		USKTSP *tsp = [USKTSP TSPWithFile:[[NSBundle mainBundle] pathForResource:sampleName ofType:@"tsp"]];
 		
 		// Compute average path length.
 		int	lengthSum = 0;
-		int shortest  = INT32_MAX;
-		int longest   = 0;
+		PathInfo shortPath = {INT32_MAX, NULL};
+		PathInfo longPath  = {0,         NULL};
 		int lengths[tsp.dimension];
 		for (int i = 0; i < tsp.dimension; i++) {
+			BOOL update = NO;
 			PathInfo aPath = [tsp shortestPathByNNFrom:i + 1];
 			lengths[i] = aPath.length;
 			lengthSum += aPath.length;
-			[dataString appendString:[NSString stringWithFormat:@"%@, %d, %d, %d\n", fileName, tsp.dimension, i + 1, aPath.length]];
-			if (aPath.length < shortest) shortest = aPath.length;
-			if (aPath.length > longest)  longest  = aPath.length;
-			[USKTSP freePath:aPath];
+			[dataString appendString:[NSString stringWithFormat:@"%@, %d, %d, %d\n", sampleName, tsp.dimension, i + 1, aPath.length]];
+			if (aPath.length > longPath.length) {
+				free(longPath.path);
+				longPath  = aPath;
+				update = YES;
+			}
+			if (aPath.length < shortPath.length) {
+				free(shortPath.path);
+				shortPath = aPath;
+				update = YES;
+			}
+			if (update == NO) {
+				free(aPath.path);
+			}
 		}
 		double averageLength = (double)lengthSum / tsp.dimension;
 		
@@ -77,7 +96,11 @@
 			deviationSumSquare += (lengths[i] - averageLength) * (lengths[i] - averageLength);
 		}
 		double standardDeviation = sqrt(deviationSumSquare / tsp.dimension);
-		[statisticString appendFormat:@"%@, %d, %d, %.0f, %d, %.0f\n", fileName, [USKTSP optimalSolutionWithName:fileName].length, shortest, averageLength, longest, standardDeviation];
+		[statisticString appendFormat:@"%@, %d, %d, %.0f, %d, %.0f\n", sampleName, [USKTSP optimalSolutionWithName:sampleName].length, shortPath.length, averageLength, longPath.length, standardDeviation];
+		
+		// Visualize the shortest path.
+		[self.visualizer PNGWithPath:longPath ofTSP:tsp toFileNamed:[NSString stringWithFormat:@"%@_NN_Long.png", sampleName]];
+		[self.visualizer PNGWithPath:shortPath ofTSP:tsp toFileNamed:[NSString stringWithFormat:@"%@_NN_Short.png", sampleName]];
 	}
 	
 	// Export data
@@ -96,23 +119,34 @@
 	NSMutableString *statisticString = [@"NAME, OPTIMAL, SHORTEST, AVE, LONGEST, SIGMA\n" mutableCopy];
 	
 	[self loadSampleFileNames];
-	for (NSString *fileName in _sampleFileNames) {
-		USKTSP *tsp = [USKTSP TSPWithFile:[[NSBundle mainBundle] pathForResource:fileName ofType:@"tsp"]];
+	for (NSString *sampleName in _sampleFileNames) {
+		USKTSP *tsp = [USKTSP TSPWithFile:[[NSBundle mainBundle] pathForResource:sampleName ofType:@"tsp"]];
 		
 		// Compute average path length.
 		int	lengthSum = 0;
-		int shortest  = INT32_MAX;
-		int longest   = 0;
+		PathInfo shortPath = {INT32_MAX, NULL};
+		PathInfo longPath  = {0,         NULL};
 		int lengths[tsp.dimension];
 		for (int i = 0; i < tsp.dimension; i++) {
+			BOOL update = NO;
 			PathInfo aPath = [tsp shortestPathByNNFrom:i + 1];
 			[tsp improvePathBy2opt:&aPath];
 			lengths[i] = aPath.length;
 			lengthSum += aPath.length;
-			[dataString appendString:[NSString stringWithFormat:@"%@, %d, %d, %d\n", fileName, tsp.dimension, i + 1, aPath.length]];
-			if (aPath.length < shortest) shortest = aPath.length;
-			if (aPath.length > longest)  longest  = aPath.length;
-			[USKTSP freePath:aPath];
+			[dataString appendString:[NSString stringWithFormat:@"%@, %d, %d, %d\n", sampleName, tsp.dimension, i + 1, aPath.length]];
+			if (aPath.length > longPath.length) {
+				if (longPath.path) free(longPath.path);
+				longPath  = aPath;
+				update = YES;
+			}
+			if (aPath.length < shortPath.length) {
+				if (shortPath.path) free(shortPath.path);
+				shortPath = aPath;
+				update = YES;
+			}
+			if (update == NO) {
+				if (aPath.path) free(aPath.path);
+			}
 		}
 		double averageLength = (double)lengthSum / tsp.dimension;
 		
@@ -122,12 +156,27 @@
 			deviationSumSquare += (lengths[i] - averageLength) * (lengths[i] - averageLength);
 		}
 		double standardDeviation = sqrt(deviationSumSquare / tsp.dimension);
-		[statisticString appendFormat:@"%@, %d, %d, %.0f, %d, %.0f\n", fileName, [USKTSP optimalSolutionWithName:fileName].length, shortest, averageLength, longest, standardDeviation];
+		[statisticString appendFormat:@"%@, %d, %d, %.0f, %d, %.0f\n", sampleName, [USKTSP optimalSolutionWithName:sampleName].length, shortPath.length, averageLength, longPath.length, standardDeviation];
+
+		// Visualize the shortest path.
+		[self.visualizer PNGWithPath:longPath ofTSP:tsp toFileNamed:[NSString stringWithFormat:@"%@_NN2opt_Long.png", sampleName]];
+		[self.visualizer PNGWithPath:shortPath ofTSP:tsp toFileNamed:[NSString stringWithFormat:@"%@_NN2opt_Short.png", sampleName]];
 	}
 	
 	// Export data
 	[USKTSPExperimentManager writeString:dataString		 toFileNamed:@"NN2optData.csv"];
 	[USKTSPExperimentManager writeString:statisticString toFileNamed:@"NN2optStatistics.csv"];
+}
+
+- (void)experimentOptimal
+{
+	[self loadAllFileNames];
+	for (NSString *sampleName in _allFileNames) {
+		USKTSP *tsp = [USKTSP TSPWithFile:[[NSBundle mainBundle] pathForResource:sampleName ofType:@"tsp"]];
+		PathInfo anOptimalPath = [USKTSP optimalSolutionWithName:sampleName];
+		[self.visualizer PNGWithPath:anOptimalPath ofTSP:tsp toFileNamed:[NSString stringWithFormat:@"%@_Optimal.png", sampleName]];
+		free(anOptimalPath.path);
+	}
 }
 
 

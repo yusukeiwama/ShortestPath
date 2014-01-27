@@ -15,7 +15,7 @@ int euc2D(CGPoint A, CGPoint B)
 {
 	double dx = B.x - A.x;
 	double dy = B.y - A.y;
-	return nearbyint(sqrt(dx * dx + dy * dy));
+	return rint(sqrt(dx * dx + dy * dy));
 }
 
 int compareDistances(const NeighborInfo *a, const NeighborInfo *b)
@@ -61,6 +61,8 @@ void swap2opt(int *path, int dimension, int i, int j)
 	NSDictionary *_optimalLengthDictionary;
 }
 
+#pragma mark - Constructors
+
 + (id)TSPWithFile:(NSString *)path
 {
 	return [[USKTSP alloc] initWithFile:path];
@@ -77,8 +79,29 @@ void swap2opt(int *path, int dimension, int i, int j)
 		[self printInformation];
 		[self printAdjecencyMatrix];
 		[self printNeighborMatrix];
-		[self printPath: [USKTSP optimalSolutionWithName:@"eil51"]];
+	}
+	return self;
+}
 
++ (id)randomTSPWithDimension:(NSInteger)dimension
+{
+	return [[USKTSP alloc] initRandomTSPWithDimension:dimension];
+}
+
+- (id)initRandomTSPWithDimension:(NSInteger)dimension
+{
+	self = [super init];
+	if (self) {
+		srand((unsigned)time(NULL));
+		
+		_dimension = dimension;
+		_nodes = calloc(dimension, sizeof(TSPNode));
+		for (int i = 0; i < dimension; i++) {
+			CGPoint p = CGPointMake(100.0 * rand() / (RAND_MAX + 1.0), 100.0 * rand() / (RAND_MAX + 1.0));
+			_nodes[i].number = i + 1;
+			_nodes[i].coord  = p;
+		}
+		[self computeNeighborMatrix];
 	}
 	return self;
 }
@@ -86,6 +109,7 @@ void swap2opt(int *path, int dimension, int i, int j)
 #pragma mark - read file
 
 // FIXME: FIX_EDGE_SECTION is not parsed (linhp318.tsp)
+// FIXME: unsupported EDGE_WEIGHT_FORMAT
 - (BOOL)readTSPDataFromFile:(NSString *)path
 {
 	// Split contents of file into lines.
@@ -205,16 +229,10 @@ void swap2opt(int *path, int dimension, int i, int j)
 	return YES;
 }
 
-/**
- *  Return the optimal solution by reading files.
- *
- *  @param name problem name of the TSP.
- *
- *  @return optimal path. If there is no path information, returns NULL.
- */
+
 + (PathInfo)optimalSolutionWithName:(NSString *)name
 {
-	PathInfo optimalPath;
+	PathInfo optimalPath = {-1, NULL};
 	
 	// Read optimal lengths from file
 	if (optimalLengthDictionary == nil) {
@@ -244,7 +262,9 @@ void swap2opt(int *path, int dimension, int i, int j)
 		// Look up TOUR_SECTION
 		int l = 0;
 		int dimension = 0;
-		while ([lines[l] rangeOfString:@"EOF"].location == NSNotFound) {
+		while ([lines[l] rangeOfString:@"EOF"].location == NSNotFound
+			   && [lines[l] rangeOfString:@"-1"].location == NSNotFound
+			   && l < lines.count) {
 			if ([lines[l] rangeOfString:@"TOUR_SECTION"].location != NSNotFound) {
 					// Read .tsp file to get dimenison.
 					NSString *tspString = [[NSString alloc] initWithContentsOfFile:[[NSBundle mainBundle] pathForResource:name ofType:@"tsp"] encoding:NSASCIIStringEncoding error:nil];
@@ -258,18 +278,20 @@ void swap2opt(int *path, int dimension, int i, int j)
 					dimension = [[USKTrimmer trimmedStringWithString:components[1]] intValue];
 				
 				// Read path
-				l++;
 				optimalPath.path = calloc(dimension, sizeof(int));
 				// Read path
 				NSMutableArray *path = [NSMutableArray array];
 				while (TRUE) {
+					l++;
 					NSArray *aPath = [[USKTrimmer trimmedStringWithString:lines[l]] componentsSeparatedByString:@" "];
 					aPath = [USKTrimmer trimmedArrayWithArray:aPath];
 					if (path.count == dimension) {
+						if ([lines[l] rangeOfString:@"-1"].location != NSNotFound) {
+							l--;
+						}
 						break;
 					}
 					[path addObjectsFromArray:aPath];
-					l++;
 				}
 				// Set optimal path.
 				optimalPath.path = [USKTSP intArrayFromArray:path];
@@ -347,7 +369,7 @@ void swap2opt(int *path, int dimension, int i, int j)
 	}
 	// Go back to the start node
 	[visited addObject:[NSNumber numberWithInt:start]];
-	distanceSum += self.adjacencyMatrix[self.dimension * (from - 1) + start];
+	distanceSum += self.adjacencyMatrix[self.dimension * (from - 1) + (start - 1)];
 	
 	shortestPath.path	= [USKTSP intArrayFromArray:visited];
 	shortestPath.length	= distanceSum;
@@ -391,7 +413,7 @@ void swap2opt(int *path, int dimension, int i, int j)
 
 - (void)printInformation
 {
-	printf("========== FILE INFORMATION ==========\n");
+	printf("\n========== FILE INFORMATION ==========\n");
 	[self.information enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop){
 		printf("%s: %s\n", [key cStringUsingEncoding:NSUTF8StringEncoding], [obj cStringUsingEncoding:NSUTF8StringEncoding]);
 	}];
@@ -401,13 +423,12 @@ void swap2opt(int *path, int dimension, int i, int j)
 		for (int i = 0; i < self.dimension; i++) {
 			printf("%3d %13.2f %13.2f\n", self.nodes[i].number, self.nodes[i].coord.x, self.nodes[i].coord.y);
 		}
-		printf("\n");
 	}
 }
 
 - (void)printAdjecencyMatrix
 {
-	printf("========== WEIGHTED ADJECENCY MATRIX ==========\n");
+	printf("\n========== WEIGHTED ADJECENCY MATRIX ==========\n");
 	printf("      ");
 	for (int i = 0; i < self.dimension; i++) {
 		printf("%4d ", i + 1);
@@ -421,12 +442,11 @@ void swap2opt(int *path, int dimension, int i, int j)
 		}
 		printf("\n");
 	}
-	printf("\n");
 }
 
 - (void)printNeighborMatrix
 {
-	printf("========== NEIGHBOR INDEX MATRIX ==========\n");
+	printf("\n========== NEIGHBOR INDEX MATRIX ==========\n");
 	for (int i = 0; i < self.dimension; i++) {
 		printf("%4d: ", i + 1);
 		for (int j = 0; j < self.dimension - 1; j++) {
@@ -434,9 +454,8 @@ void swap2opt(int *path, int dimension, int i, int j)
 		}
 		printf("\n");
 	}
-	printf("\n");
 	
-	printf("========== NEIGHBOR DISTANCE MATRIX ==========\n");
+	printf("\n========== NEIGHBOR DISTANCE MATRIX ==========\n");
 	for (int i = 0; i < self.dimension; i++) {
 		printf("%4d: ", i + 1);
 		for (int j = 0; j < self.dimension - 1; j++) {
@@ -444,23 +463,20 @@ void swap2opt(int *path, int dimension, int i, int j)
 		}
 		printf("\n");
 	}
-	printf("\n");
 }
 
 
-- (void)printPath:(PathInfo)pathInfo
++ (void)printPath:(PathInfo)pathInfo ofTSP:(USKTSP *)tsp
 {
+	printf("\n========== PATH ==========\n");
+	printf("Length = %d\n", pathInfo.length);
+	if (pathInfo.path == NULL) {
+		return;
+	}
 	printf("Path: ");
-	for (int i = 0; i < self.dimension; i++) {
+	for (int i = 0; i < tsp.dimension; i++) {
 		printf("%4d ", pathInfo.path[i]);
 	}
-	printf("\nLength = %d", pathInfo.length);
-	
-	int d = 0;
-	for (int i = 0; i < self.dimension; i++) {
-		d += self.adjacencyMatrix[self.dimension * (pathInfo.path[i] - 1) + (pathInfo.path[i + 1] - 1)];
-	}
-	printf("\nReal length = %d\n", d);
 }
 
 #pragma mark - Release and Deconstruction methods

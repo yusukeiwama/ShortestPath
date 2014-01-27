@@ -33,7 +33,8 @@
 
 - (void)experimentNN2opt
 {
-	USKTSP *tsp = [USKTSP TSPWithFile:[[NSBundle mainBundle] pathForResource:@"eil51" ofType:@"tsp"]];
+	NSString *tspName = @"rat99";
+	USKTSP *tsp = [USKTSP TSPWithFile:[[NSBundle mainBundle] pathForResource:tspName ofType:@"tsp"]];
 	
 	double lengthSum = 0;
 	PathInfo shortestPath = {MAXFLOAT, NULL};
@@ -51,9 +52,12 @@
 		printf("2opt = %d\n", shortPath.length);
 	}
 	printf("\nAverage = %.3f\nShortest = %d\n", lengthSum / tsp.dimension, shortestPath.length);
-	[tsp printPath:shortestPath];
+	[USKTSP printPath:shortestPath ofTSP:tsp];
 	
 	[self.visualizer drawPath:shortestPath ofTSP:tsp];
+	
+	[USKTSP printPath:[USKTSP optimalSolutionWithName:tspName] ofTSP:tsp];
+
 }
 
 

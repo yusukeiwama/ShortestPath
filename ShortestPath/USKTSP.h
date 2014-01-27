@@ -45,7 +45,7 @@ typedef struct PathInfo {
 + (id)TSPWithFile:(NSString *)path;
 - (id)initWithFile:(NSString *)path;
 
-+ (id)randomTSPWithDimension:(NSInteger)d;
++ (id)randomTSPWithDimension:(NSInteger)dimension;
 
 - (void)freePath:(PathInfo)path;
 
@@ -60,7 +60,16 @@ typedef struct PathInfo {
 
 - (void)improvePathBy2opt:(PathInfo *)path;
 
-- (void)printPath:(PathInfo)pathInfo;
+/**
+ *  Return the optimal solution by reading files.
+ *
+ *  @param name problem name of the TSP.
+ *
+ *  @return optimal path. If there is no path information, returns NULL.
+ */
++ (PathInfo)optimalSolutionWithName:(NSString *)name;
+
++ (void)printPath:(PathInfo)pathInfo ofTSP:(USKTSP *)tsp;
 
 
 // AS ro must fix to 0.5

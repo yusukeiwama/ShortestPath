@@ -35,11 +35,11 @@ typedef struct Tour {
 @property (readonly) NSString	  *filePath;
 @property (readonly) NSDictionary *information;
 @property (readonly) int		  dimension;
-@property (readonly) Node      *nodes;
+@property (readonly) Node         *nodes;
+/// n by n weighted adjacency matrix
 @property (readonly) int		  *adjacencyMatrix;
-
 /// n by n-1 sorted neighbor maxtrix (vertical vector of sorted neighbors of each node)
-@property (readonly) Neighbor *neighborMatrix;
+@property (readonly) Neighbor     *neighborMatrix;
 
 + (id)TSPWithFile:(NSString *)path;
 - (id)initWithFile:(NSString *)path;
@@ -53,9 +53,9 @@ typedef struct Tour {
  *
  *  @return Path information for the shortest path.
  */
-- (Tour)shortestPathByNNFrom:(int)start;
+- (Tour)tourByNNFrom:(int)start;
 
-- (void)improvePathBy2opt:(Tour *)path;
+- (void)improveTourBy2opt:(Tour *)tour;
 
 /**
  *  Return the optimal solution by reading files.

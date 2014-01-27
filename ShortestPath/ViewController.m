@@ -6,18 +6,18 @@
 //  Copyright (c) 2013 Yusuke Iwama. All rights reserved.
 //
 
-#import "USKViewController.h"
+#import "ViewController.h"
 #import "TSP.h"
 #import "TSPExperimentManager.h"
 #import "TSPVisualizer.h"
 
-@interface USKViewController ()
+@interface ViewController ()
 
 @property (weak, nonatomic) IBOutlet UIImageView *pathImageView;
 
 @end
 
-@implementation USKViewController
+@implementation ViewController
 
 - (void)viewDidLoad
 {
@@ -30,6 +30,7 @@
 	experimentManager.visualizer = visualizer;
 	
 	[experimentManager doExperiment:USKTSPExperimentNN2opt];
+//    [experimentManager doExperiment:USKTSPExperimentOptimal];
 }
 
 - (void)didReceiveMemoryWarning

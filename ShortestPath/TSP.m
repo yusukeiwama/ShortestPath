@@ -10,7 +10,7 @@
 #import "USKTrimmer.h"
 
 // Cannot deal because of short of memory.
-#define MAX_DIMENSION 3000
+#define MAX_DIMENSION 10000
 
 NSDictionary *optimalLengthDictionary;
 
@@ -29,32 +29,23 @@ int compareDistances(const Neighbor *a, const Neighbor *b)
 int length2opt(Tour *path, TSP *tsp, int i, int j)
 {
 	return  path->length
-	- tsp.adjacencyMatrix[tsp.dimension * (path->route[i]	 - 1)	+ (path->route[i + 1] - 1)]
+	- tsp.adjacencyMatrix[tsp.dimension * (path->route[i]	  - 1)	+ (path->route[i + 1] - 1)]
 	- tsp.adjacencyMatrix[tsp.dimension * (path->route[j]     - 1)	+ (path->route[j + 1] - 1)]
 	+ tsp.adjacencyMatrix[tsp.dimension * (path->route[i]     - 1)	+ (path->route[j]     - 1)]
 	+ tsp.adjacencyMatrix[tsp.dimension * (path->route[i + 1] - 1)	+ (path->route[j + 1] - 1)];
 }
 
-void swap2opt(int *path, int dimension, int i, int j)
+void swap2opt(int *route, int d, int i, int j)
 {
-	int  *tmpPath = calloc(dimension, sizeof(int));
+	int  *newRoute = calloc(d, sizeof(int));
 	
 	int l = 0;
-	for (int k = 0; k <= i; k++) {
-		tmpPath[l] = path[k];
-		l++;
-	}
-	for (int k = j; k > i; k--) {
-		tmpPath[l] = path[k];
-		l++;
-	}
-	for (int k = j + 1; k < dimension; k++) {
-		tmpPath[l] = path[k];
-		l++;
-	}
+	for (int k = 0;     k <= i; k++) newRoute[l++] = route[k];
+	for (int k = j;     k >  i; k--) newRoute[l++] = route[k];
+	for (int k = j + 1; k <  d; k++) newRoute[l++] = route[k];
 	
-	memcpy(path, tmpPath, dimension * sizeof(int));
-	free(tmpPath);
+	memcpy(route, newRoute, d * sizeof(int));
+	free(newRoute);
 }
 
 @interface TSP ()
@@ -283,7 +274,6 @@ void swap2opt(int *path, int dimension, int i, int j)
 			   && l < lines.count) {
 			if ([lines[l] rangeOfString:@"TOUR_SECTION"].location != NSNotFound) {
 
-
 					// Read .tsp file to get dimenison.
 					NSString *tspString = [[NSString alloc] initWithContentsOfFile:[[NSBundle mainBundle] pathForResource:name ofType:@"tsp"] encoding:NSASCIIStringEncoding error:nil];
 					NSArray *tspLines = [tspString componentsSeparatedByString:@"\n"];
@@ -359,43 +349,48 @@ void swap2opt(int *path, int dimension, int i, int j)
 
 #pragma mark - Algorithms
 
-- (Tour)shortestPathByNNFrom:(int)start
+- (Tour)tourByNNFrom:(int)start
 {
-	Tour shortestPath;
+	Tour tour;
 	int from, to;
-	NSMutableArray *visited = [NSMutableArray array];
+    int *visited = calloc(self.dimension + 1, sizeof(int));
 	int distanceSum = 0;
 
 	from = start;
-	[visited addObject:[NSNumber numberWithInt:from]];
+    visited[0] = from;
 
-	while (visited.count < self.dimension) {
-		for (int j = 0; j < self.dimension - 1; j++) {
+    int i = 1;
+	while (i < self.dimension) { // visited count loop
+		for (int j = 0; j < self.dimension - 1; j++) { // neighbor loop
+        loop:
 			// Look up the nearest node.
 			to = self.neighborMatrix[self.dimension * (from - 1) + j].number;
 			
 			// Check if the node has already been visited.
-			if ([visited containsObject:[NSNumber numberWithInt:to]]) { // visited
-				continue;
-			} else { // not visited yet
-				[visited addObject:[NSNumber numberWithInt:to]];
-				distanceSum += self.neighborMatrix[self.dimension * (from - 1) + j].distance;
-				from = to;
-				break;
-			}
-		}
+            for (int k = 0; k < i; k++) { // visited check loop
+                if (to == visited[k]) {
+                    j++;
+                    goto loop;
+                }
+            }
+            // if not visited yet
+            visited[i++] = to;
+            distanceSum += self.neighborMatrix[self.dimension * (from - 1) + j].distance;
+            from = to;
+            break;
+        }
 	}
 	// Go back to the start node
-	[visited addObject:[NSNumber numberWithInt:start]];
+    visited[i] = start;
 	distanceSum += self.adjacencyMatrix[self.dimension * (from - 1) + (start - 1)];
 	
-	shortestPath.route	= [TSP intArrayFromArray:visited];
-	shortestPath.length	= distanceSum;
+	tour.route	= visited;
+	tour.length	= distanceSum;
 	
-	return shortestPath;
+	return tour;
 }
 
-- (void)improvePathBy2opt:(Tour *)path
+- (void)improveTourBy2opt:(Tour *)tour
 {
 	int  newLength;
 	BOOL improved = YES;
@@ -405,10 +400,10 @@ void swap2opt(int *path, int dimension, int i, int j)
 		for (int i = 0; i < self.dimension - 1; i++) {
 			for (int j = i + 1; j < self.dimension ; j++) {
 				if (i == j) continue;
-				newLength = length2opt(path, self, i, j);
-				if (newLength < path->length) {
-					swap2opt(path->route, self.dimension, i, j);
-					path->length = newLength;
+				newLength = length2opt(tour, self, i, j);
+				if (newLength < tour->length) {
+					swap2opt(tour->route, self.dimension, i, j);
+					tour->length = newLength;
 					improved = YES;
 				}
 			}

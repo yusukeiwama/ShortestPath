@@ -65,30 +65,26 @@
 		
 		// Compute average path length.
 		int	lengthSum = 0;
-		Tour shortPath = {INT32_MAX, NULL};
-		Tour longPath  = {0,         NULL};
+		Tour shortPath = {INT32_MAX, calloc(tsp.dimension, sizeof(int))};
+		Tour longPath  = {0,         calloc(tsp.dimension, sizeof(int))};
 		int lengths[tsp.dimension];
 		for (int i = 0; i < tsp.dimension; i++) {
-			BOOL update = NO;
-			Tour aPath = [tsp shortestPathByNNFrom:i + 1];
+			Tour aPath = [tsp tourByNNFrom:i + 1];
 			lengths[i] = aPath.length;
 			lengthSum += aPath.length;
 			[dataString appendString:[NSString stringWithFormat:@"%@, %d, %d, %d\n", sampleName, tsp.dimension, i + 1, aPath.length]];
 			if (aPath.length > longPath.length) {
-				free(longPath.route);
-				longPath  = aPath;
-				update = YES;
+                memcpy(longPath.route, aPath.route, tsp.dimension * sizeof(int));
+                longPath.length = aPath.length;
 			}
 			if (aPath.length < shortPath.length) {
-				free(shortPath.route);
-				shortPath = aPath;
-				update = YES;
+			    memcpy(shortPath.route, aPath.route, tsp.dimension * sizeof(int));
+                shortPath.length = aPath.length;
 			}
-			if (update == NO) {
-				free(aPath.route);
-			}
+            free(aPath.route);
 		}
 		double averageLength = (double)lengthSum / tsp.dimension;
+
 		
 		// Compute standard deviation.
 		double deviationSumSquare = 0.0;
@@ -124,29 +120,24 @@
 		
 		// Compute average path length.
 		int	lengthSum = 0;
-		Tour shortPath = {INT32_MAX, NULL};
-		Tour longPath  = {0,         NULL};
+		Tour shortPath = {INT32_MAX, calloc(tsp.dimension, sizeof(int))};
+		Tour longPath  = {0,         calloc(tsp.dimension, sizeof(int))};
 		int lengths[tsp.dimension];
 		for (int i = 0; i < tsp.dimension; i++) {
-			BOOL update = NO;
-			Tour aPath = [tsp shortestPathByNNFrom:i + 1];
-			[tsp improvePathBy2opt:&aPath];
+			Tour aPath = [tsp tourByNNFrom:i + 1];
+			[tsp improveTourBy2opt:&aPath];
 			lengths[i] = aPath.length;
 			lengthSum += aPath.length;
 			[dataString appendString:[NSString stringWithFormat:@"%@, %d, %d, %d\n", sampleName, tsp.dimension, i + 1, aPath.length]];
 			if (aPath.length > longPath.length) {
-				if (longPath.route) free(longPath.route);
-				longPath  = aPath;
-				update = YES;
+                memcpy(longPath.route, aPath.route, tsp.dimension * sizeof(int));
+                longPath.length = aPath.length;
 			}
 			if (aPath.length < shortPath.length) {
-				if (shortPath.route) free(shortPath.route);
-				shortPath = aPath;
-				update = YES;
+			    memcpy(shortPath.route, aPath.route, tsp.dimension * sizeof(int));
+                shortPath.length = aPath.length;
 			}
-			if (update == NO) {
-				if (aPath.route) free(aPath.route);
-			}
+            free(aPath.route);
 		}
 		double averageLength = (double)lengthSum / tsp.dimension;
 		

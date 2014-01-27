@@ -6,9 +6,9 @@
 //  Copyright (c) 2013 Yusuke Iwama. All rights reserved.
 //
 
-#import "USKAppDelegate.h"
+#import "AppDelegate.h"
 
-@implementation USKAppDelegate
+@implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {

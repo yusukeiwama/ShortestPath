@@ -171,6 +171,7 @@
 		43BAD74218959EFE0016F3B2 /* vm1748.tsp in Resources */ = {isa = PBXBuildFile; fileRef = 43BAD6B118959EFE0016F3B2 /* vm1748.tsp */; };
 		43BAD74318959EFE0016F3B2 /* xray.problems in Resources */ = {isa = PBXBuildFile; fileRef = 43BAD6B218959EFE0016F3B2 /* xray.problems */; };
 		43BAD7491895A4620016F3B2 /* USKTrimmer.m in Sources */ = {isa = PBXBuildFile; fileRef = 43BAD7481895A4620016F3B2 /* USKTrimmer.m */; };
+		43D05D511895EFF6003E7268 /* DOC.PS in Resources */ = {isa = PBXBuildFile; fileRef = 43D05D501895EFF6003E7268 /* DOC.PS */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -357,6 +358,7 @@
 		43BAD6B218959EFE0016F3B2 /* xray.problems */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = xray.problems; sourceTree = "<group>"; };
 		43BAD7471895A4620016F3B2 /* USKTrimmer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = USKTrimmer.h; sourceTree = "<group>"; };
 		43BAD7481895A4620016F3B2 /* USKTrimmer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = USKTrimmer.m; sourceTree = "<group>"; };
+		43D05D501895EFF6003E7268 /* DOC.PS */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = DOC.PS; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -416,6 +418,7 @@
 		434D6EED185A13530068D753 /* ShortestPath */ = {
 			isa = PBXGroup;
 			children = (
+				43D05D501895EFF6003E7268 /* DOC.PS */,
 				43BAD67318959EFE0016F3B2 /* optimalSolutions.txt */,
 				43BAD6B218959EFE0016F3B2 /* xray.problems */,
 				43BAD62118959EDB0016F3B2 /* TSPData */,
@@ -883,6 +886,7 @@
 				43BAD71218959EFE0016F3B2 /* pr124.tsp in Resources */,
 				43BAD6F518959EFE0016F3B2 /* kroA150.tsp in Resources */,
 				43BAD6EF18959EFE0016F3B2 /* gr431.tsp in Resources */,
+				43D05D511895EFF6003E7268 /* DOC.PS in Resources */,
 				43BAD71D18959EFE0016F3B2 /* pr2392.tsp in Resources */,
 				43BAD6F318959EFE0016F3B2 /* kroA100.opt.tour in Resources */,
 				43BAD72618959EFE0016F3B2 /* rl1323.tsp in Resources */,

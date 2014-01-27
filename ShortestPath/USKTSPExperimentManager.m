@@ -35,10 +35,11 @@
 {
 	USKTSP *tsp = [USKTSP TSPWithFile:[[NSBundle mainBundle] pathForResource:@"eil51" ofType:@"tsp"]];
 	
-	double sum = 0;
+	double lengthSum = 0;
 	PathInfo shortestPath = {MAXFLOAT, NULL};
 	for (int i = 0; i < tsp.dimension; i++) {
 		PathInfo shortPath = [tsp shortestPathByNNFrom:i + 1];
+		printf("NN = %d, ", shortPath.length);
 		[tsp improvePathBy2opt:&shortPath];
 		if (shortPath.length < shortestPath.length) {
 			[tsp freePath:shortestPath];
@@ -46,10 +47,11 @@
 		} else {
 			[tsp freePath:shortPath];
 		}
-		sum += shortPath.length;
-		printf("%.3f, ", shortPath.length);
+		lengthSum += shortPath.length;
+		printf("2opt = %d\n", shortPath.length);
 	}
-	printf("\nAverage = %.3f\nShortest = %.3f\n", sum / tsp.dimension, shortestPath.length);
+	printf("\nAverage = %.3f\nShortest = %d\n", lengthSum / tsp.dimension, shortestPath.length);
+	[tsp printPath:shortestPath];
 	
 	[self.visualizer drawPath:shortestPath ofTSP:tsp];
 }

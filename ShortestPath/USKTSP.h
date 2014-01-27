@@ -16,18 +16,18 @@
 #import <Foundation/Foundation.h>
 
 typedef struct TSPNode {
-	int		index;
-	CGPoint coordination;
+	int		number;
+	CGPoint coord;
 } TSPNode;
 
 typedef struct NeighborInfo {
-	int		index;
+	int		nodeNumber;
 	int 	distance;
 } NeighborInfo;
 
 
 typedef struct PathInfo {
-	double	length;
+	int 	length;
 	int		*path;
 } PathInfo;
 
@@ -59,6 +59,8 @@ typedef struct PathInfo {
 - (PathInfo)shortestPathByNNFrom:(int)start;
 
 - (void)improvePathBy2opt:(PathInfo *)path;
+
+- (void)printPath:(PathInfo)pathInfo;
 
 
 // AS ro must fix to 0.5

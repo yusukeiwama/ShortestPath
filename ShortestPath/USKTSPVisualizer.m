@@ -39,6 +39,8 @@ CGPoint correctedPoint(CGPoint point)
 	scale  = CGSizeMake((self.imageView.frame.size.width - margin.left - margin.right) / (right - left),
 						(self.imageView.frame.size.height - margin.top - margin.bottom) / (bottom - top));
 	
+	// Quartz 2D / OpenGL / Cocoa2D
+	
 	// Start drawing
 	UIGraphicsBeginImageContextWithOptions((self.imageView.frame.size), YES, 0);
 	CGContextRef context = UIGraphicsGetCurrentContext();
@@ -64,7 +66,7 @@ CGPoint correctedPoint(CGPoint point)
 		CGPoint aPoint = correctedPoint(tsp.nodes[i].coord);
 		CGContextFillEllipseInRect(context, CGRectMake(aPoint.x - r, aPoint.y - r, 2 * r, 2 * r));
 	}
-
+	
 	// Draw start node
 	CGContextSetFillColorWithColor(context, [[UIColor yellowColor] CGColor]);
 	CGContextFillEllipseInRect(context, CGRectMake(startPoint.x - r, startPoint.y - r, 2 * r, 2 * r));

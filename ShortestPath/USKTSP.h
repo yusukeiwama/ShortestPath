@@ -47,7 +47,7 @@ typedef struct PathInfo {
 
 + (id)randomTSPWithDimension:(NSInteger)dimension;
 
-- (void)freePath:(PathInfo)path;
++ (void)freePath:(PathInfo)path;
 
 /**
  *  Compute the shortest path by Nearest Neighbor method. It may not be the optimal path.

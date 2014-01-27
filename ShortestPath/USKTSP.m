@@ -76,9 +76,9 @@ void swap2opt(int *path, int dimension, int i, int j)
 
 		[self computeNeighborMatrix];
 		
-		[self printInformation];
-		[self printAdjecencyMatrix];
-		[self printNeighborMatrix];
+//		[self printInformation];
+//		[self printAdjecencyMatrix];
+//		[self printNeighborMatrix];
 	}
 	return self;
 }
@@ -481,7 +481,7 @@ void swap2opt(int *path, int dimension, int i, int j)
 
 #pragma mark - Release and Deconstruction methods
 
-- (void)freePath:(PathInfo)path
++ (void)freePath:(PathInfo)path
 {
 	if (path.path) {
 		free(path.path);

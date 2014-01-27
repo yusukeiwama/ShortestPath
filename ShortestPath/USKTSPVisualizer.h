@@ -16,7 +16,7 @@
  */
 @property UIImageView *imageView;
 
-- (BOOL)drawPath:(PathInfo)path  ofTSP:(USKTSP *)tsp;
-- (BOOL)PNGWithPath:(PathInfo)path ofTSP:(USKTSP *)tsp toFileNamed:(NSString *)fileName;
+- (BOOL)drawPath:(USKTSPTour *)path  ofTSP:(USKTSP *)tsp;
+- (BOOL)PNGWithPath:(USKTSPTour *)path ofTSP:(USKTSP *)tsp toFileNamed:(NSString *)fileName;
 
 @end

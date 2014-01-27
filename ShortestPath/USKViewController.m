@@ -17,9 +17,7 @@
 
 @end
 
-@implementation USKViewController {
-	PathInfo pathToDraw;
-}
+@implementation USKViewController
 
 - (void)viewDidLoad
 {

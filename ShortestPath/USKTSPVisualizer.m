@@ -26,10 +26,11 @@ CGPoint correctedPoint(CGPoint point)
 	// Find top, left, right, bottom nodes.
 	double top = MAXFLOAT, left = MAXFLOAT, bottom = 0, right = 0;
 	for (int i = 0; i < tsp.dimension; i++) {
-		if (tsp.nodes[i].coord.x < left)   left   = tsp.nodes[i].coord.x;
-		if (tsp.nodes[i].coord.x > right)  right  = tsp.nodes[i].coord.x;
-		if (tsp.nodes[i].coord.y < top)    top    = tsp.nodes[i].coord.y;
-		if (tsp.nodes[i].coord.y > bottom) bottom = tsp.nodes[i].coord.y;
+		CGPoint p = [tsp.nodes[i] CGPointValue];
+		if (p.x < left)   left   = p.x;
+		if (p.x > right)  right  = p.x;
+		if (p.y < top)    top    = p.y;
+		if (p.y > bottom) bottom = p.y;
 	}
 	
 	// Compute constants for size correction
@@ -39,9 +40,9 @@ CGPoint correctedPoint(CGPoint point)
 	height = self.imageView.frame.size.height;
 }
 
-- (BOOL)drawPath:(PathInfo)path ofTSP:(USKTSP *)tsp
+- (BOOL)drawPath:(USKTSPTour *)path ofTSP:(USKTSP *)tsp
 {
-	if (path.path == NULL || tsp == nil || tsp.nodes == NULL) return NO;
+	if (path.route == nil || tsp == nil || tsp.nodes == NULL) return NO;
 	
 	[self prepareForCorrectionWithTSP:tsp];
 	
@@ -50,11 +51,11 @@ CGPoint correctedPoint(CGPoint point)
 	CGContextRef context = UIGraphicsGetCurrentContext();
 	
 	// Draw path
-	CGPoint startPoint = correctedPoint(tsp.nodes[path.path[0] - 1].coord);
+	CGPoint startPoint = correctedPoint([tsp.nodes[[path.route[0] integerValue] - 1] CGPointValue]);
 	CGContextSetLineWidth(context, 10.0);
 	CGContextMoveToPoint(context, startPoint.x, startPoint.y);
 	for (int i = 1; i < tsp.dimension; i++) {
-		CGPoint aPoint = correctedPoint(tsp.nodes[path.path[i] - 1].coord);
+		CGPoint aPoint = correctedPoint([tsp.nodes[[path.route[i] integerValue] - 1] CGPointValue]);
 		CGContextAddLineToPoint(context, aPoint.x, aPoint.y);
 		CGContextSetStrokeColorWithColor(context, [[UIColor colorWithHue:((double)i / tsp.dimension) saturation:1.0 brightness:1.0 alpha:1.0] CGColor]);
 		CGContextStrokePath(context);
@@ -67,7 +68,7 @@ CGPoint correctedPoint(CGPoint point)
 	CGFloat r = 5.0;
 	CGContextSetFillColorWithColor(context, [[UIColor whiteColor] CGColor]);
 	for (int i = 0; i < tsp.dimension; i++) {
-		CGPoint aPoint = correctedPoint(tsp.nodes[i].coord);
+		CGPoint aPoint = correctedPoint([tsp.nodes[i] CGPointValue]);
 		CGContextFillEllipseInRect(context, CGRectMake(aPoint.x - r, aPoint.y - r, 2 * r, 2 * r));
 	}
 	
@@ -81,7 +82,7 @@ CGPoint correctedPoint(CGPoint point)
 	return YES;
 }
 
-- (BOOL)PNGWithPath:(PathInfo)path ofTSP:(USKTSP *)tsp toFileNamed:(NSString *)fileName
+- (BOOL)PNGWithPath:(USKTSPTour *)path ofTSP:(USKTSP *)tsp toFileNamed:(NSString *)fileName
 {
 	NSArray	 *filePaths   = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
 	NSString *documentDir = [filePaths objectAtIndex:0];

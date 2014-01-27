@@ -65,28 +65,16 @@
 		
 		// Compute average path length.
 		int	lengthSum = 0;
-		PathInfo shortPath = {INT32_MAX, NULL};
-		PathInfo longPath  = {0,         NULL};
+		USKTSPTour *shortTour = [USKTSPTour tourWithLength:INT32_MAX route:nil];
+		USKTSPTour *longTour  = [USKTSPTour tourWithLength:0         route:nil];
 		int lengths[tsp.dimension];
 		for (int i = 0; i < tsp.dimension; i++) {
-			BOOL update = NO;
-			PathInfo aPath = [tsp shortestPathByNNFrom:i + 1];
-			lengths[i] = aPath.length;
-			lengthSum += aPath.length;
-			[dataString appendString:[NSString stringWithFormat:@"%@, %d, %d, %d\n", sampleName, tsp.dimension, i + 1, aPath.length]];
-			if (aPath.length > longPath.length) {
-				free(longPath.path);
-				longPath  = aPath;
-				update = YES;
-			}
-			if (aPath.length < shortPath.length) {
-				free(shortPath.path);
-				shortPath = aPath;
-				update = YES;
-			}
-			if (update == NO) {
-				free(aPath.path);
-			}
+			USKTSPTour *aTour = [tsp shortestPathByNNFrom:i + 1];
+			lengths[i] = aTour.length;
+			lengthSum += aTour.length;
+			[dataString appendString:[NSString stringWithFormat:@"%@, %d, %d, %d\n", sampleName, tsp.dimension, i + 1, aTour.length]];
+			if (aTour.length > longTour.length)  longTour  = aTour;
+			if (aTour.length < shortTour.length) shortTour = aTour;
 		}
 		double averageLength = (double)lengthSum / tsp.dimension;
 		
@@ -96,11 +84,11 @@
 			deviationSumSquare += (lengths[i] - averageLength) * (lengths[i] - averageLength);
 		}
 		double standardDeviation = sqrt(deviationSumSquare / tsp.dimension);
-		[statisticString appendFormat:@"%@, %d, %d, %.0f, %d, %.0f\n", sampleName, [USKTSP optimalSolutionWithName:sampleName].length, shortPath.length, averageLength, longPath.length, standardDeviation];
+		[statisticString appendFormat:@"%@, %d, %d, %.0f, %d, %.0f\n", sampleName, [USKTSP optimalSolutionWithName:sampleName].length, shortTour.length, averageLength, longTour.length, standardDeviation];
 		
 		// Visualize the shortest path.
-		[self.visualizer PNGWithPath:longPath ofTSP:tsp toFileNamed:[NSString stringWithFormat:@"%@_NN_Long.png", sampleName]];
-		[self.visualizer PNGWithPath:shortPath ofTSP:tsp toFileNamed:[NSString stringWithFormat:@"%@_NN_Short.png", sampleName]];
+		[self.visualizer PNGWithPath:longTour ofTSP:tsp toFileNamed:[NSString stringWithFormat:@"%@_NN_Long.png", sampleName]];
+		[self.visualizer PNGWithPath:shortTour ofTSP:tsp toFileNamed:[NSString stringWithFormat:@"%@_NN_Short.png", sampleName]];
 	}
 	
 	// Export data
@@ -124,29 +112,17 @@
 		
 		// Compute average path length.
 		int	lengthSum = 0;
-		PathInfo shortPath = {INT32_MAX, NULL};
-		PathInfo longPath  = {0,         NULL};
+		USKTSPTour *shortTour = [USKTSPTour tourWithLength:INT32_MAX route:nil];
+		USKTSPTour *longTour  = [USKTSPTour tourWithLength:0         route:nil];
 		int lengths[tsp.dimension];
 		for (int i = 0; i < tsp.dimension; i++) {
-			BOOL update = NO;
-			PathInfo aPath = [tsp shortestPathByNNFrom:i + 1];
-			[tsp improvePathBy2opt:&aPath];
-			lengths[i] = aPath.length;
-			lengthSum += aPath.length;
-			[dataString appendString:[NSString stringWithFormat:@"%@, %d, %d, %d\n", sampleName, tsp.dimension, i + 1, aPath.length]];
-			if (aPath.length > longPath.length) {
-				if (longPath.path) free(longPath.path);
-				longPath  = aPath;
-				update = YES;
-			}
-			if (aPath.length < shortPath.length) {
-				if (shortPath.path) free(shortPath.path);
-				shortPath = aPath;
-				update = YES;
-			}
-			if (update == NO) {
-				if (aPath.path) free(aPath.path);
-			}
+			USKTSPTour *aTour = [tsp shortestPathByNNFrom:i + 1];
+			[tsp improvePathBy2opt:aTour];
+			lengths[i] = aTour.length;
+			lengthSum += aTour.length;
+			[dataString appendString:[NSString stringWithFormat:@"%@, %d, %d, %d\n", sampleName, tsp.dimension, i + 1, aTour.length]];
+			if (aTour.length > longTour.length)  longTour  = aTour;
+			if (aTour.length < shortTour.length) shortTour = aTour;
 		}
 		double averageLength = (double)lengthSum / tsp.dimension;
 		
@@ -156,11 +132,11 @@
 			deviationSumSquare += (lengths[i] - averageLength) * (lengths[i] - averageLength);
 		}
 		double standardDeviation = sqrt(deviationSumSquare / tsp.dimension);
-		[statisticString appendFormat:@"%@, %d, %d, %.0f, %d, %.0f\n", sampleName, [USKTSP optimalSolutionWithName:sampleName].length, shortPath.length, averageLength, longPath.length, standardDeviation];
+		[statisticString appendFormat:@"%@, %d, %d, %.0f, %d, %.0f\n", sampleName, [USKTSP optimalSolutionWithName:sampleName].length, shortTour.length, averageLength, longTour.length, standardDeviation];
 
 		// Visualize the shortest path.
-		[self.visualizer PNGWithPath:longPath ofTSP:tsp toFileNamed:[NSString stringWithFormat:@"%@_NN2opt_Long.png", sampleName]];
-		[self.visualizer PNGWithPath:shortPath ofTSP:tsp toFileNamed:[NSString stringWithFormat:@"%@_NN2opt_Short.png", sampleName]];
+		[self.visualizer PNGWithPath:longTour ofTSP:tsp toFileNamed:[NSString stringWithFormat:@"%@_NN2opt_Long.png", sampleName]];
+		[self.visualizer PNGWithPath:shortTour ofTSP:tsp toFileNamed:[NSString stringWithFormat:@"%@_NN2opt_Short.png", sampleName]];
 	}
 	
 	// Export data
@@ -173,9 +149,8 @@
 	[self loadAllFileNames];
 	for (NSString *sampleName in _allFileNames) {
 		USKTSP *tsp = [USKTSP TSPWithFile:[[NSBundle mainBundle] pathForResource:sampleName ofType:@"tsp"]];
-		PathInfo anOptimalPath = [USKTSP optimalSolutionWithName:sampleName];
-		[self.visualizer PNGWithPath:anOptimalPath ofTSP:tsp toFileNamed:[NSString stringWithFormat:@"%@_Optimal.png", sampleName]];
-		free(anOptimalPath.path);
+		USKTSPTour *anOptimalTour = [USKTSP optimalSolutionWithName:sampleName];
+		[self.visualizer PNGWithPath:anOptimalTour ofTSP:tsp toFileNamed:[NSString stringWithFormat:@"%@_Optimal.png", sampleName]];
 	}
 }
 

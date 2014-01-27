@@ -95,8 +95,8 @@
 		[statisticString appendFormat:@"%@, %d, %d, %.0f, %d, %.0f\n", sampleName, [TSP optimalSolutionWithName:sampleName].length, shortPath.length, averageLength, longPath.length, standardDeviation];
 		
 		// Visualize the shortest path.
-		[self.visualizer PNGWithPath:longPath ofTSP:tsp toFileNamed:[NSString stringWithFormat:@"%@_NN_Long.png", sampleName]];
-		[self.visualizer PNGWithPath:shortPath ofTSP:tsp toFileNamed:[NSString stringWithFormat:@"%@_NN_Short.png", sampleName]];
+		[self.visualizer PNGWithPath:longPath ofTSP:tsp toFileNamed:[NSString stringWithFormat:@"%@_NN_Long.png", sampleName] withStyle:TSPVisualizationStylePrinting];
+		[self.visualizer PNGWithPath:shortPath ofTSP:tsp toFileNamed:[NSString stringWithFormat:@"%@_NN_Short.png", sampleName] withStyle:TSPVisualizationStylePrinting];
 	}
 	
 	// Export data
@@ -150,8 +150,8 @@
 		[statisticString appendFormat:@"%@, %d, %d, %.0f, %d, %.0f\n", sampleName, [TSP optimalSolutionWithName:sampleName].length, shortPath.length, averageLength, longPath.length, standardDeviation];
 
 		// Visualize the shortest path.
-		[self.visualizer PNGWithPath:longPath ofTSP:tsp toFileNamed:[NSString stringWithFormat:@"%@_NN2opt_Long.png", sampleName]];
-		[self.visualizer PNGWithPath:shortPath ofTSP:tsp toFileNamed:[NSString stringWithFormat:@"%@_NN2opt_Short.png", sampleName]];
+		[self.visualizer PNGWithPath:longPath ofTSP:tsp toFileNamed:[NSString stringWithFormat:@"%@_NN2opt_Long.png", sampleName] withStyle:TSPVisualizationStylePrinting];
+		[self.visualizer PNGWithPath:shortPath ofTSP:tsp toFileNamed:[NSString stringWithFormat:@"%@_NN2opt_Short.png", sampleName] withStyle:TSPVisualizationStyleMidnight];
 	}
 	
 	// Export data
@@ -165,7 +165,7 @@
 	for (NSString *sampleName in _allFileNames) {
 		TSP *tsp = [TSP TSPWithFile:[[NSBundle mainBundle] pathForResource:sampleName ofType:@"tsp"]];
 		Tour anOptimalPath = [TSP optimalSolutionWithName:sampleName];
-		[self.visualizer PNGWithPath:anOptimalPath ofTSP:tsp toFileNamed:[NSString stringWithFormat:@"%@_Optimal.png", sampleName]];
+		[self.visualizer PNGWithPath:anOptimalPath ofTSP:tsp toFileNamed:[NSString stringWithFormat:@"%@_Optimal.png", sampleName] withStyle:TSPVisualizationStyleMidnight];
 		free(anOptimalPath.route);
 	}
 }

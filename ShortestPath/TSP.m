@@ -69,7 +69,7 @@ void swap2opt(int *route, int d, int i, int j)
 		if ([self readTSPDataFromFile:path]) {
 			[self computeNeighborMatrix];
 			
-//			[self printInformation];
+			[self printInformation];
 //			[self printAdjecencyMatrix];
 //			[self printNeighborMatrix];
 		} else {
@@ -394,15 +394,13 @@ void swap2opt(int *route, int d, int i, int j)
 
 - (void)improveTourBy2opt:(Tour *)tour
 {
-	int  newLength;
 	BOOL improved = YES;
 
 	while (improved) {
 		improved = NO;
 		for (int i = 0; i < self.dimension - 1; i++) {
 			for (int j = i + 1; j < self.dimension ; j++) {
-				if (i == j) continue;
-				newLength = length2opt(tour, self, i, j);
+				int newLength = length2opt(tour, self, i, j);
 				if (newLength < tour->length) {
 					swap2opt(tour->route, self.dimension, i, j);
 					tour->length = newLength;
@@ -411,6 +409,12 @@ void swap2opt(int *route, int d, int i, int j)
 			}
 		}
 	}
+}
+
+- (Tour)tourByASWithNumberOfAnt:(int)numberOfAnt alpha:(int)alpha beta:(int)beta ro:(double)ro
+{
+    Tour tour;
+    return tour;
 }
 
 #pragma mark - utility methods
@@ -433,12 +437,12 @@ void swap2opt(int *route, int d, int i, int j)
 		printf("%s: %s\n", [key cStringUsingEncoding:NSUTF8StringEncoding], [obj cStringUsingEncoding:NSUTF8StringEncoding]);
 	}];
 		
-	if (_nodes != NULL) {
-		printf("NODE_COORD_SECTION:\n");
-		for (int i = 0; i < self.dimension; i++) {
-			printf("%3d %13.2f %13.2f\n", self.nodes[i].number, self.nodes[i].coord.x, self.nodes[i].coord.y);
-		}
-	}
+//	if (_nodes != NULL) {
+//		printf("NODE_COORD_SECTION:\n");
+//		for (int i = 0; i < self.dimension; i++) {
+//			printf("%3d %13.2f %13.2f\n", self.nodes[i].number, self.nodes[i].coord.x, self.nodes[i].coord.y);
+//		}
+//	}
 }
 
 - (void)printAdjecencyMatrix

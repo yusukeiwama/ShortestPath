@@ -54,8 +54,8 @@ typedef struct Tour {
  *  @return Path information for the shortest path.
  */
 - (Tour)tourByNNFrom:(int)start;
-
 - (void)improveTourBy2opt:(Tour *)tour;
+- (Tour)tourByASWithNumberOfAnt:(int)numberOfAnt alpha:(int)alpha beta:(int)beta ro:(double)ro;
 
 /**
  *  Return the optimal solution by reading files.

@@ -19,7 +19,11 @@ CGPoint correctedPoint(CGPoint point)
 					   ((point.y - offset.y) * scale.height + margin.top) * (-1) + height);
 }
 
-@implementation TSPVisualizer
+@implementation TSPVisualizer {
+    CGColorRef _backgroundColor;
+    CGColorRef _nodeColor;
+    CGColorRef _edgeColor;
+}
 
 - (void)prepareForCorrectionWithTSP:(TSP *)tsp
 {
@@ -39,15 +43,41 @@ CGPoint correctedPoint(CGPoint point)
 	height = self.imageView.frame.size.height;
 }
 
-- (BOOL)drawPath:(Tour)path ofTSP:(TSP *)tsp
+- (void)prepareColorsWithStyle:(TSPVisualizationStyle)style
+{
+    switch (style) {
+        case TSPVisualizationStyleMidnight:
+            _backgroundColor = [[UIColor blackColor] CGColor];
+            _nodeColor       = [[UIColor whiteColor] CGColor];
+            _edgeColor       = [[UIColor yellowColor] CGColor];
+            break;
+        case TSPVisualizationStylePrinting:
+            _backgroundColor = [[UIColor whiteColor] CGColor];
+            _nodeColor       = [[UIColor lightGrayColor]  CGColor];
+            _edgeColor       = [[UIColor blackColor] CGColor];
+            break;
+        default:
+            _backgroundColor = [[UIColor whiteColor] CGColor];
+            _nodeColor       = [[UIColor lightGrayColor]  CGColor];
+            _edgeColor       = [[UIColor blackColor] CGColor];
+            break;
+    }
+}
+
+- (BOOL)drawPath:(Tour)path ofTSP:(TSP *)tsp withStyle:(TSPVisualizationStyle)style
 {
 	if (path.route == NULL || tsp == nil || tsp.nodes == NULL) return NO;
 	
 	[self prepareForCorrectionWithTSP:tsp];
-	
+    [self prepareColorsWithStyle:style];
+	   
 	// Start drawing
 	UIGraphicsBeginImageContextWithOptions((self.imageView.frame.size), YES, 0);
 	CGContextRef context = UIGraphicsGetCurrentContext();
+    
+    // Draw background
+    CGContextSetFillColorWithColor(context, _backgroundColor);
+    CGContextFillRect(context, CGRectMake(0.0, 0.0, self.imageView.frame.size.width, self.imageView.frame.size.height));
 	
 	// Draw path
 	CGPoint startPoint = correctedPoint(tsp.nodes[path.route[0] - 1].coord);
@@ -56,7 +86,11 @@ CGPoint correctedPoint(CGPoint point)
 	for (int i = 1; i < tsp.dimension; i++) {
 		CGPoint aPoint = correctedPoint(tsp.nodes[path.route[i] - 1].coord);
 		CGContextAddLineToPoint(context, aPoint.x, aPoint.y);
-		CGContextSetStrokeColorWithColor(context, [[UIColor colorWithHue:((double)i / tsp.dimension) saturation:1.0 brightness:1.0 alpha:1.0] CGColor]);
+        if (style == TSPVisualizationStyleMidnight) {
+            CGContextSetStrokeColorWithColor(context, [[UIColor colorWithHue:((double)i / tsp.dimension) saturation:1.0 brightness:1.0 alpha:1.0] CGColor]);
+        } else {
+            CGContextSetStrokeColorWithColor(context, _edgeColor);
+        }
 		CGContextStrokePath(context);
 		CGContextMoveToPoint(context, aPoint.x, aPoint.y);
 	}
@@ -65,7 +99,7 @@ CGPoint correctedPoint(CGPoint point)
 	
 	// Draw nodes
 	CGFloat r = 5.0;
-	CGContextSetFillColorWithColor(context, [[UIColor whiteColor] CGColor]);
+	CGContextSetFillColorWithColor(context, _nodeColor);
 	for (int i = 0; i < tsp.dimension; i++) {
 		CGPoint aPoint = correctedPoint(tsp.nodes[i].coord);
 		CGContextFillEllipseInRect(context, CGRectMake(aPoint.x - r, aPoint.y - r, 2 * r, 2 * r));
@@ -81,7 +115,7 @@ CGPoint correctedPoint(CGPoint point)
 	return YES;
 }
 
-- (BOOL)PNGWithPath:(Tour)path ofTSP:(TSP *)tsp toFileNamed:(NSString *)fileName
+- (BOOL)PNGWithPath:(Tour)path ofTSP:(TSP *)tsp toFileNamed:(NSString *)fileName withStyle:(TSPVisualizationStyle)style
 {
 	NSArray	 *filePaths   = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
 	NSString *documentDir = [filePaths objectAtIndex:0];
@@ -89,8 +123,7 @@ CGPoint correctedPoint(CGPoint point)
 	NSURL    *outputURL   = [NSURL fileURLWithPath:outputPath];
 	// Example Path: /Users/yusukeiwama/Library/Application Support/iPhone Simulator/7.0.3/Applications/85BB258F-2ED0-464C-AD92-1C5D11012E67/Documents
 	
-	
-	if ([self drawPath:path ofTSP:tsp]) {
+	if ([self drawPath:path ofTSP:tsp withStyle:style]) {
 		NSData *imageData = UIImagePNGRepresentation(self.imageView.image);
 		if ([imageData writeToURL:outputURL atomically:YES]) {
 			NSLog(@"%@ is saved", fileName);

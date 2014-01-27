@@ -9,6 +9,11 @@
 #import <Foundation/Foundation.h>
 #import "TSP.h"
 
+typedef enum TSPVisualizationStyle {
+    TSPVisualizationStyleMidnight,
+    TSPVisualizationStylePrinting
+} TSPVisualizationStyle;
+
 @interface TSPVisualizer : NSObject
 
 /**
@@ -16,7 +21,7 @@
  */
 @property UIImageView *imageView;
 
-- (BOOL)drawPath:(Tour)path  ofTSP:(TSP *)tsp;
-- (BOOL)PNGWithPath:(Tour)path ofTSP:(TSP *)tsp toFileNamed:(NSString *)fileName;
+- (BOOL)drawPath:(Tour)path  ofTSP:(TSP *)tsp withStyle:(TSPVisualizationStyle)style;
+- (BOOL)PNGWithPath:(Tour)path ofTSP:(TSP *)tsp toFileNamed:(NSString *)fileName withStyle:(TSPVisualizationStyle)style;
 
 @end

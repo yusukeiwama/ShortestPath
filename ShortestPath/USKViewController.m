@@ -7,9 +7,9 @@
 //
 
 #import "USKViewController.h"
-#import "USKTSP.h"
-#import "USKTSPExperimentManager.h"
-#import "USKTSPVisualizer.h"
+#import "TSP.h"
+#import "TSPExperimentManager.h"
+#import "TSPVisualizer.h"
 
 @interface USKViewController ()
 
@@ -23,10 +23,10 @@
 {
     [super viewDidLoad];
 	
-	USKTSPVisualizer *visualizer = [[USKTSPVisualizer alloc] init];
+	TSPVisualizer *visualizer = [[TSPVisualizer alloc] init];
 	visualizer.imageView = self.pathImageView;
 	
-	USKTSPExperimentManager *experimentManager = [[USKTSPExperimentManager alloc] init];
+	TSPExperimentManager *experimentManager = [[TSPExperimentManager alloc] init];
 	experimentManager.visualizer = visualizer;
 	
 	[experimentManager doExperiment:USKTSPExperimentNN2opt];

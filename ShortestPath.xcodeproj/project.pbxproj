@@ -22,10 +22,9 @@
 		434D6F0C185A13530068D753 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 434D6EEB185A13530068D753 /* UIKit.framework */; };
 		434D6F14185A13530068D753 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 434D6F12185A13530068D753 /* InfoPlist.strings */; };
 		434D6F16185A13530068D753 /* ShortestPathTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 434D6F15185A13530068D753 /* ShortestPathTests.m */; };
-		434D6F26185A22B10068D753 /* USKTSP.m in Sources */ = {isa = PBXBuildFile; fileRef = 434D6F25185A22B10068D753 /* USKTSP.m */; };
-		436BF3FD18969E220032E140 /* USKTSPTour.m in Sources */ = {isa = PBXBuildFile; fileRef = 436BF3FC18969E220032E140 /* USKTSPTour.m */; };
-		43BAD61D18950C430016F3B2 /* USKTSPExperimentManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 43BAD61C18950C430016F3B2 /* USKTSPExperimentManager.m */; };
-		43BAD62018951BEF0016F3B2 /* USKTSPVisualizer.m in Sources */ = {isa = PBXBuildFile; fileRef = 43BAD61F18951BEF0016F3B2 /* USKTSPVisualizer.m */; };
+		434D6F26185A22B10068D753 /* TSP.m in Sources */ = {isa = PBXBuildFile; fileRef = 434D6F25185A22B10068D753 /* TSP.m */; };
+		43BAD61D18950C430016F3B2 /* TSPExperimentManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 43BAD61C18950C430016F3B2 /* TSPExperimentManager.m */; };
+		43BAD62018951BEF0016F3B2 /* TSPVisualizer.m in Sources */ = {isa = PBXBuildFile; fileRef = 43BAD61F18951BEF0016F3B2 /* TSPVisualizer.m */; };
 		43BAD6B318959EFE0016F3B2 /* a280.opt.tour in Resources */ = {isa = PBXBuildFile; fileRef = 43BAD62218959EFE0016F3B2 /* a280.opt.tour */; };
 		43BAD6B418959EFE0016F3B2 /* a280.tsp in Resources */ = {isa = PBXBuildFile; fileRef = 43BAD62318959EFE0016F3B2 /* a280.tsp */; };
 		43BAD6B518959EFE0016F3B2 /* ali535.tsp in Resources */ = {isa = PBXBuildFile; fileRef = 43BAD62418959EFE0016F3B2 /* ali535.tsp */; };
@@ -206,14 +205,12 @@
 		434D6F11185A13530068D753 /* ShortestPathTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "ShortestPathTests-Info.plist"; sourceTree = "<group>"; };
 		434D6F13185A13530068D753 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		434D6F15185A13530068D753 /* ShortestPathTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ShortestPathTests.m; sourceTree = "<group>"; };
-		434D6F24185A22B10068D753 /* USKTSP.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = USKTSP.h; sourceTree = "<group>"; };
-		434D6F25185A22B10068D753 /* USKTSP.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = USKTSP.m; sourceTree = "<group>"; };
-		436BF3FB18969E220032E140 /* USKTSPTour.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = USKTSPTour.h; sourceTree = "<group>"; };
-		436BF3FC18969E220032E140 /* USKTSPTour.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = USKTSPTour.m; sourceTree = "<group>"; };
-		43BAD61B18950C430016F3B2 /* USKTSPExperimentManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = USKTSPExperimentManager.h; sourceTree = "<group>"; };
-		43BAD61C18950C430016F3B2 /* USKTSPExperimentManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = USKTSPExperimentManager.m; sourceTree = "<group>"; };
-		43BAD61E18951BEF0016F3B2 /* USKTSPVisualizer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = USKTSPVisualizer.h; sourceTree = "<group>"; };
-		43BAD61F18951BEF0016F3B2 /* USKTSPVisualizer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = USKTSPVisualizer.m; sourceTree = "<group>"; };
+		434D6F24185A22B10068D753 /* TSP.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TSP.h; sourceTree = "<group>"; };
+		434D6F25185A22B10068D753 /* TSP.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TSP.m; sourceTree = "<group>"; };
+		43BAD61B18950C430016F3B2 /* TSPExperimentManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TSPExperimentManager.h; sourceTree = "<group>"; };
+		43BAD61C18950C430016F3B2 /* TSPExperimentManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TSPExperimentManager.m; sourceTree = "<group>"; };
+		43BAD61E18951BEF0016F3B2 /* TSPVisualizer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TSPVisualizer.h; sourceTree = "<group>"; };
+		43BAD61F18951BEF0016F3B2 /* TSPVisualizer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TSPVisualizer.m; sourceTree = "<group>"; };
 		43BAD62218959EFE0016F3B2 /* a280.opt.tour */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = a280.opt.tour; sourceTree = "<group>"; };
 		43BAD62318959EFE0016F3B2 /* a280.tsp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = a280.tsp; sourceTree = "<group>"; };
 		43BAD62418959EFE0016F3B2 /* ali535.tsp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ali535.tsp; sourceTree = "<group>"; };
@@ -653,14 +650,12 @@
 		43BAD74B1895B2420016F3B2 /* TSP */ = {
 			isa = PBXGroup;
 			children = (
-				434D6F24185A22B10068D753 /* USKTSP.h */,
-				434D6F25185A22B10068D753 /* USKTSP.m */,
-				436BF3FB18969E220032E140 /* USKTSPTour.h */,
-				436BF3FC18969E220032E140 /* USKTSPTour.m */,
-				43BAD61B18950C430016F3B2 /* USKTSPExperimentManager.h */,
-				43BAD61C18950C430016F3B2 /* USKTSPExperimentManager.m */,
-				43BAD61E18951BEF0016F3B2 /* USKTSPVisualizer.h */,
-				43BAD61F18951BEF0016F3B2 /* USKTSPVisualizer.m */,
+				434D6F24185A22B10068D753 /* TSP.h */,
+				434D6F25185A22B10068D753 /* TSP.m */,
+				43BAD61B18950C430016F3B2 /* TSPExperimentManager.h */,
+				43BAD61C18950C430016F3B2 /* TSPExperimentManager.m */,
+				43BAD61E18951BEF0016F3B2 /* TSPVisualizer.h */,
+				43BAD61F18951BEF0016F3B2 /* TSPVisualizer.m */,
 				43BAD74A1895B22D0016F3B2 /* Support Class */,
 			);
 			name = TSP;
@@ -915,13 +910,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				434D6F01185A13530068D753 /* USKViewController.m in Sources */,
-				434D6F26185A22B10068D753 /* USKTSP.m in Sources */,
+				434D6F26185A22B10068D753 /* TSP.m in Sources */,
 				434D6EF8185A13530068D753 /* USKAppDelegate.m in Sources */,
-				436BF3FD18969E220032E140 /* USKTSPTour.m in Sources */,
 				43BAD7491895A4620016F3B2 /* USKTrimmer.m in Sources */,
-				43BAD61D18950C430016F3B2 /* USKTSPExperimentManager.m in Sources */,
+				43BAD61D18950C430016F3B2 /* TSPExperimentManager.m in Sources */,
 				434D6EF4185A13530068D753 /* main.m in Sources */,
-				43BAD62018951BEF0016F3B2 /* USKTSPVisualizer.m in Sources */,
+				43BAD62018951BEF0016F3B2 /* TSPVisualizer.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

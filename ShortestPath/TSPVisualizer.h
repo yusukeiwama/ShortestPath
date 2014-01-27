@@ -7,16 +7,16 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "USKTSP.h"
+#import "TSP.h"
 
-@interface USKTSPVisualizer : NSObject
+@interface TSPVisualizer : NSObject
 
 /**
  *  ImageView on which image is drawn
  */
 @property UIImageView *imageView;
 
-- (BOOL)drawPath:(USKTSPTour *)path  ofTSP:(USKTSP *)tsp;
-- (BOOL)PNGWithPath:(USKTSPTour *)path ofTSP:(USKTSP *)tsp toFileNamed:(NSString *)fileName;
+- (BOOL)drawPath:(Tour)path  ofTSP:(TSP *)tsp;
+- (BOOL)PNGWithPath:(Tour)path ofTSP:(TSP *)tsp toFileNamed:(NSString *)fileName;
 
 @end

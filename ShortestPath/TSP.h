@@ -14,26 +14,32 @@
  */
 
 #import <Foundation/Foundation.h>
-#import "USKTSPTour.h"
 
-typedef struct NeighborInfo {
-	int		nodeNumber;
+typedef struct Node {
+	int		number;
+	CGPoint coord;
+} Node;
+
+typedef struct Neighbor {
+	int		number;     // node number
 	int 	distance;
-} NeighborInfo;
+} Neighbor;
 
+typedef struct Tour {
+	int 	length;		// total length
+	int		*route;		// node numbers
+} Tour;
 
-@interface USKTSP : NSObject
+@interface TSP : NSObject
 
 @property (readonly) NSString	  *filePath;
 @property (readonly) NSDictionary *information;
 @property (readonly) int		  dimension;
-@property (readonly) NSArray	  *nodes;
-
-/// n by n weighted adjacency matrix
-@property (readonly) int *A;
+@property (readonly) Node      *nodes;
+@property (readonly) int		  *adjacencyMatrix;
 
 /// n by n-1 sorted neighbor maxtrix (vertical vector of sorted neighbors of each node)
-@property (readonly) NeighborInfo *neighborMatrix;
+@property (readonly) Neighbor *neighborMatrix;
 
 + (id)TSPWithFile:(NSString *)path;
 - (id)initWithFile:(NSString *)path;
@@ -47,9 +53,9 @@ typedef struct NeighborInfo {
  *
  *  @return Path information for the shortest path.
  */
-- (USKTSPTour *)shortestPathByNNFrom:(int)start;
+- (Tour)shortestPathByNNFrom:(int)start;
 
-- (void)improvePathBy2opt:(USKTSPTour *)path;
+- (void)improvePathBy2opt:(Tour *)path;
 
 /**
  *  Return the optimal solution by reading files.
@@ -58,9 +64,9 @@ typedef struct NeighborInfo {
  *
  *  @return optimal path. If there is no path information, returns NULL.
  */
-+ (USKTSPTour *)optimalSolutionWithName:(NSString *)name;
++ (Tour)optimalSolutionWithName:(NSString *)name;
 
-+ (void)printPath:(USKTSPTour *)pathInfo ofTSP:(USKTSP *)tsp;
++ (void)printPath:(Tour)pathInfo ofTSP:(TSP *)tsp;
 
 
 // AS ro must fix to 0.5

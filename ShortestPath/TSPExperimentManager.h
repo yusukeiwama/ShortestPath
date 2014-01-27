@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-@class USKTSPVisualizer;
+@class TSPVisualizer;
 
 typedef enum USKTSPExperiment {
 	USKTSPExperimentNN,
@@ -16,9 +16,9 @@ typedef enum USKTSPExperiment {
 	USKTSPExperimentOptimal
 } USKTSPExperiment;
 
-@interface USKTSPExperimentManager : NSObject
+@interface TSPExperimentManager : NSObject
 
-@property USKTSPVisualizer *visualizer;
+@property TSPVisualizer *visualizer;
 
 - (void)doExperiment:(USKTSPExperiment)experiment;
 

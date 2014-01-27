@@ -6,7 +6,7 @@
 //  Copyright (c) 2013 Yusuke Iwama. All rights reserved.
 //
 
-#import "USKTSP.h"
+#import "TSP.h"
 #import "USKTrimmer.h"
 
 // Cannot deal because of short of memory.
@@ -14,43 +14,53 @@
 
 NSDictionary *optimalLengthDictionary;
 
-int euc2D(CGPoint P, CGPoint Q)
+int euc2D(CGPoint A, CGPoint B)
 {
-	double dx = Q.x - P.x;
-	double dy = Q.y - P.y;
+	double dx = B.x - A.x;
+	double dy = B.y - A.y;
 	return rint(sqrt(dx * dx + dy * dy));
 }
 
-int compareDistances(const NeighborInfo *a, const NeighborInfo *b)
+int compareDistances(const Neighbor *a, const Neighbor *b)
 {
-	return ((NeighborInfo)(*a)).distance - ((NeighborInfo)(*b)).distance;
+	return ((Neighbor)(*a)).distance - ((Neighbor)(*b)).distance;
 }
 
-int length2opt(USKTSPTour *tour, USKTSP *tsp, int i, int j)
+int length2opt(Tour *path, TSP *tsp, int i, int j)
 {
-	return  tour.length
-	- tsp.A[tsp.dimension * ([tour.route[i] integerValue]     - 1) + ([tour.route[i + 1] integerValue] - 1)]
-	- tsp.A[tsp.dimension * ([tour.route[j] integerValue]     - 1) + ([tour.route[j + 1] integerValue] - 1)]
-	+ tsp.A[tsp.dimension * ([tour.route[i] integerValue]     - 1) + ([tour.route[j]     integerValue] - 1)]
-	+ tsp.A[tsp.dimension * ([tour.route[i + 1] integerValue] - 1) + ([tour.route[j + 1] integerValue] - 1)];
+	return  path->length
+	- tsp.adjacencyMatrix[tsp.dimension * (path->route[i]	 - 1)	+ (path->route[i + 1] - 1)]
+	- tsp.adjacencyMatrix[tsp.dimension * (path->route[j]     - 1)	+ (path->route[j + 1] - 1)]
+	+ tsp.adjacencyMatrix[tsp.dimension * (path->route[i]     - 1)	+ (path->route[j]     - 1)]
+	+ tsp.adjacencyMatrix[tsp.dimension * (path->route[i + 1] - 1)	+ (path->route[j + 1] - 1)];
 }
 
-NSArray *swap2opt(NSArray *route, int i, int j)
+void swap2opt(int *path, int dimension, int i, int j)
 {
-	NSMutableArray *newRoute = [NSMutableArray array];
-
-	int r = 0;
-	for (int k = 0;     k <= i;           k++) newRoute[r++] = route[k];
-	for (int k = j;     k >  i;           k--) newRoute[r++] = route[k];
-	for (int k = j + 1; k <  route.count; k++) newRoute[r++] = route[k];
+	int  *tmpPath = calloc(dimension, sizeof(int));
 	
-	return newRoute;
+	int l = 0;
+	for (int k = 0; k <= i; k++) {
+		tmpPath[l] = path[k];
+		l++;
+	}
+	for (int k = j; k > i; k--) {
+		tmpPath[l] = path[k];
+		l++;
+	}
+	for (int k = j + 1; k < dimension; k++) {
+		tmpPath[l] = path[k];
+		l++;
+	}
+	
+	memcpy(path, tmpPath, dimension * sizeof(int));
+	free(tmpPath);
 }
 
-@interface USKTSP ()
+@interface TSP ()
 @end
 
-@implementation USKTSP {
+@implementation TSP {
 	NSDictionary *_optimalLengthDictionary;
 }
 
@@ -58,7 +68,7 @@ NSArray *swap2opt(NSArray *route, int i, int j)
 
 + (id)TSPWithFile:(NSString *)path
 {
-	return [[USKTSP alloc] initWithFile:path];
+	return [[TSP alloc] initWithFile:path];
 }
 
 - (id)initWithFile:(NSString *)path
@@ -80,7 +90,7 @@ NSArray *swap2opt(NSArray *route, int i, int j)
 
 + (id)randomTSPWithDimension:(NSInteger)dimension
 {
-	return [[USKTSP alloc] initRandomTSPWithDimension:dimension];
+	return [[TSP alloc] initRandomTSPWithDimension:dimension];
 }
 
 - (id)initRandomTSPWithDimension:(NSInteger)dimension
@@ -90,13 +100,12 @@ NSArray *swap2opt(NSArray *route, int i, int j)
 		srand((unsigned)time(NULL));
 		
 		_dimension = dimension;
-		NSMutableArray *tmpNodes = [NSMutableArray array];
+		_nodes = calloc(dimension, sizeof(Node));
 		for (int i = 0; i < dimension; i++) {
-			CGPoint p = CGPointMake(100.0 * rand() / (RAND_MAX + 1.0),
-									100.0 * rand() / (RAND_MAX + 1.0));
-			[tmpNodes addObject:[NSValue valueWithCGPoint:p]];
+			CGPoint p = CGPointMake(100.0 * rand() / (RAND_MAX + 1.0), 100.0 * rand() / (RAND_MAX + 1.0));
+			_nodes[i].number = i + 1;
+			_nodes[i].coord  = p;
 		}
-		_nodes = tmpNodes;
 		[self computeNeighborMatrix];
 	}
 	return self;
@@ -126,27 +135,29 @@ NSArray *swap2opt(NSArray *route, int i, int j)
 				nodeCodeSection = YES;
 			}
 			l++;
-			
-			NSMutableArray *tmpNodes = [NSMutableArray array];
-			int nodeIndex = 0;
-			while (nodeIndex < _dimension) {
-				NSArray *nodeInfo = [[USKTrimmer trimmedStringWithString:lines[l]] componentsSeparatedByCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"	: "]];
-				nodeInfo = [USKTrimmer trimmedArrayWithArray:nodeInfo];
-				if (nodeInfo.count != 3) {
-					break;
+			if ([[tmpDictionary valueForKey:@"TYPE"] isEqualToString:@"TSP"]) {
+				_nodes = calloc(_dimension, sizeof(Node));
+				int nodeIndex = 0;
+				while (nodeIndex < _dimension) {
+					NSArray *nodeInfo = [[USKTrimmer trimmedStringWithString:lines[l]] componentsSeparatedByCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"	: "]];
+					nodeInfo = [USKTrimmer trimmedArrayWithArray:nodeInfo];
+					if (nodeInfo.count != 3) {
+						break;
+					}
+					_nodes[nodeIndex].number  = [nodeInfo[0] intValue];
+					_nodes[nodeIndex].coord.x = [nodeInfo[1] doubleValue];
+					_nodes[nodeIndex].coord.y = [nodeInfo[2] doubleValue];
+					l++;
+					nodeIndex++;
 				}
-				[tmpNodes addObject:[NSValue valueWithCGPoint:CGPointMake([nodeInfo[1] doubleValue], [nodeInfo[2] doubleValue])]];
-				l++;
-				nodeIndex++;
 			}
-			_nodes = tmpNodes;
 			if (nodeCodeSection) {
 				[self computeAdjacencyMatrix];
 			}
 		} else if ([lines[l] rangeOfString:@"EDGE_WEIGHT_SECTION"].location != NSNotFound) {
 			l++;
 			// Read adjacency matrix.
-			_A = calloc(_dimension * _dimension, sizeof(double));
+			_adjacencyMatrix = calloc(_dimension * _dimension, sizeof(double));
 			// Read edge weights.
 			NSMutableArray *edgeWeights = [NSMutableArray array];
 			while (TRUE) {
@@ -162,48 +173,48 @@ NSArray *swap2opt(NSArray *route, int i, int j)
 			// Parse edge weights
 			if ([[tmpDictionary valueForKey:@"EDGE_WEIGHT_FORMAT"] isEqualToString:@"FULL_MATRIX"]) {
 				for (int i = 0; i < edgeWeights.count; i++) {
-					_A[i] = [edgeWeights[i] intValue];
+					_adjacencyMatrix[i] = [edgeWeights[i] intValue];
 				}
 			} else if ([[tmpDictionary valueForKey:@"EDGE_WEIGHT_FORMAT"] isEqualToString:@"UPPER_ROW"]) {
 				int edgeWeightIndex = 0;
 				for (int nodeIndex = 0; nodeIndex < _dimension; nodeIndex++) {
 					for (int i = 0; i < _dimension - nodeIndex - 1; i++) {
-						_A[_dimension * nodeIndex + nodeIndex + 1 + i] = [edgeWeights[edgeWeightIndex] intValue];
+						_adjacencyMatrix[_dimension * nodeIndex + nodeIndex + 1 + i] = [edgeWeights[edgeWeightIndex] intValue];
 						edgeWeightIndex++;
 					}
 				}
 				// Copy upper triangle into lower triangle
 				for (int i = 1; i < _dimension; i++) {
 					for (int j = 0; j < i; j++) {
-						_A[_dimension * i + j] = _A[_dimension * j + i];
+						_adjacencyMatrix[_dimension * i + j] = _adjacencyMatrix[_dimension * j + i];
 					}
 				}
 			} else if ([[tmpDictionary valueForKey:@"EDGE_WEIGHT_FORMAT"] isEqualToString:@"UPPER_DIAG_ROW"]) {
 				int edgeWeightIndex = 0;
 				for (int nodeIndex = 0; nodeIndex < _dimension; nodeIndex++) {
 					for (int i = 0; i < _dimension - nodeIndex; i++) {
-						_A[_dimension * nodeIndex + nodeIndex + i] = [edgeWeights[edgeWeightIndex] intValue];
+						_adjacencyMatrix[_dimension * nodeIndex + nodeIndex + i] = [edgeWeights[edgeWeightIndex] intValue];
 						edgeWeightIndex++;
 					}
 				}
 				// Copy upper triangle into lower triangle
 				for (int i = 1; i < _dimension; i++) {
 					for (int j = 0; j < i; j++) {
-						_A[_dimension * i + j] = _A[_dimension * j + i];
+						_adjacencyMatrix[_dimension * i + j] = _adjacencyMatrix[_dimension * j + i];
 					}
 				}
 			} else if ([[tmpDictionary valueForKey:@"EDGE_WEIGHT_FORMAT"] isEqualToString:@"LOWER_DIAG_ROW"]) {
 				int edgeWeightIndex = 0;
 				for (int nodeIndex = 0; nodeIndex < _dimension; nodeIndex++) {
 					for (int i = 0; i < nodeIndex + 1; i++) {
-						_A[_dimension * nodeIndex + i] = [edgeWeights[edgeWeightIndex] intValue];
+						_adjacencyMatrix[_dimension * nodeIndex + i] = [edgeWeights[edgeWeightIndex] intValue];
 						edgeWeightIndex++;
 					}
 				}
 				// Copy lower triangle into upper triangle
 				for (int i = 0; i < _dimension; i++) {
 					for (int j = i + 1; j < _dimension; j++) {
-						_A[_dimension * i + j] = _A[_dimension * j + i];
+						_adjacencyMatrix[_dimension * i + j] = _adjacencyMatrix[_dimension * j + i];
 					}
 				}
 				
@@ -229,16 +240,16 @@ NSArray *swap2opt(NSArray *route, int i, int j)
 		}
 	}
 	_information = tmpDictionary;
-	
+
 	return YES;
 }
 
 
-+ (USKTSPTour *)optimalSolutionWithName:(NSString *)name
++ (Tour)optimalSolutionWithName:(NSString *)name
 {
-	USKTSPTour *optimalTour = [[USKTSPTour alloc] init];
+	Tour optimalPath = {-1, NULL};
 	
-	// Read optimal lengths from file and make optimal length dictionary.
+	// Read optimal lengths from file
 	if (optimalLengthDictionary == nil) {
 		NSMutableDictionary *tmpDictionary = [NSMutableDictionary dictionary];
 		NSString *rawString = [[NSString alloc] initWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"optimalSolutions" ofType:@"txt"] encoding:NSASCIIStringEncoding error:nil];
@@ -256,7 +267,7 @@ NSArray *swap2opt(NSArray *route, int i, int j)
 		optimalLengthDictionary = tmpDictionary;
 	}
 	// Look up optimal length dictionary for the specified name.
-	optimalTour.length = [[optimalLengthDictionary valueForKey:name] intValue];
+	optimalPath.length = [[optimalLengthDictionary valueForKey:name] intValue];
 	
 	// Read optimal path from file.
 	NSString *rawString = [[NSString alloc] initWithContentsOfFile:[[NSBundle mainBundle] pathForResource:name ofType:@"opt.tour"] encoding:NSASCIIStringEncoding error:nil];
@@ -285,38 +296,40 @@ NSArray *swap2opt(NSArray *route, int i, int j)
 					dimension = [[USKTrimmer trimmedStringWithString:components[1]] intValue];
 				
 				// Read path
-				NSMutableArray *tmpRoute = [NSMutableArray array];
+				optimalPath.route = calloc(dimension, sizeof(int));
+				// Read path
+				NSMutableArray *path = [NSMutableArray array];
 				while (TRUE) {
 					l++;
 					NSArray *aPath = [[USKTrimmer trimmedStringWithString:lines[l]] componentsSeparatedByString:@" "];
 					aPath = [USKTrimmer trimmedArrayWithArray:aPath];
-					if (tmpRoute.count == dimension) {
+					if (path.count == dimension) {
 						if ([lines[l] rangeOfString:@"-1"].location != NSNotFound) {
 							l--;
 						}
 						break;
 					}
-					[tmpRoute addObjectsFromArray:aPath];
+					[path addObjectsFromArray:aPath];
 				}
 				// Set optimal path.
-				optimalTour.route = tmpRoute;
+				optimalPath.route = [TSP intArrayFromArray:path];
 			}
 			l++;
 		}
 	}
 
-	return optimalTour;
+	return optimalPath;
 }
 
 #pragma mark - compute matrix
 
 - (void)computeAdjacencyMatrix
 {
-	if (self.A == NULL) {
-		_A = calloc(_dimension * _dimension, sizeof(int));
+	if (self.adjacencyMatrix == NULL) {
+		_adjacencyMatrix = calloc(_dimension * _dimension, sizeof(int));
 		for (int i = 0; i < _dimension; i++) {
 			for (int j = 0; j < _dimension; j++) {
-				_A[_dimension * i + j] = euc2D([_nodes[i] CGPointValue], [_nodes[j] CGPointValue]);
+				_adjacencyMatrix[_dimension * i + j] = euc2D(_nodes[i].coord, _nodes[j].coord);
 			}
 		}
 	}
@@ -325,31 +338,30 @@ NSArray *swap2opt(NSArray *route, int i, int j)
 - (void)computeNeighborMatrix
 {
 	if (self.neighborMatrix == NULL) {
-		_neighborMatrix = calloc(_dimension * _dimension, sizeof(NeighborInfo));
+		_neighborMatrix = calloc(_dimension * _dimension, sizeof(Neighbor));
 		[self computeAdjacencyMatrix];
 		
 		for (int i = 0; i < _dimension; i++) {
 			for (int j = 0; j < _dimension; j++) {
 				// Copy adjacency matrix.
-				_neighborMatrix[_dimension * i + j].nodeNumber = j + 1;
-				_neighborMatrix[_dimension * i + j].distance   = _A[_dimension * i + j];
+				_neighborMatrix[_dimension * i + j].number = j + 1;
+				_neighborMatrix[_dimension * i + j].distance   = _adjacencyMatrix[_dimension * i + j];
 			}
 			
 			// ignore i == j element because the element is not a neighbor but itself.
 			_neighborMatrix[_dimension * i + i] = _neighborMatrix[_dimension * i + _dimension - 1];
 			
 			// Sort neighbors  by distance.
-			qsort(&(_neighborMatrix[_dimension * i + 0]), _dimension - 1, sizeof(NeighborInfo), (int(*)(const void *, const void *))compareDistances);
+			qsort(&(_neighborMatrix[_dimension * i + 0]), _dimension - 1, sizeof(Neighbor), (int(*)(const void *, const void *))compareDistances);
 		}
 	}
 }
 
 #pragma mark - Algorithms
 
-- (USKTSPTour *)shortestPathByNNFrom:(int)start
+- (Tour)shortestPathByNNFrom:(int)start
 {
-	USKTSPTour *tour = [[USKTSPTour alloc] init];
-	
+	Tour shortestPath;
 	int from, to;
 	NSMutableArray *visited = [NSMutableArray array];
 	int distanceSum = 0;
@@ -360,7 +372,7 @@ NSArray *swap2opt(NSArray *route, int i, int j)
 	while (visited.count < self.dimension) {
 		for (int j = 0; j < self.dimension - 1; j++) {
 			// Look up the nearest node.
-			to = self.neighborMatrix[self.dimension * (from - 1) + j].nodeNumber;
+			to = self.neighborMatrix[self.dimension * (from - 1) + j].number;
 			
 			// Check if the node has already been visited.
 			if ([visited containsObject:[NSNumber numberWithInt:to]]) { // visited
@@ -375,15 +387,15 @@ NSArray *swap2opt(NSArray *route, int i, int j)
 	}
 	// Go back to the start node
 	[visited addObject:[NSNumber numberWithInt:start]];
-	distanceSum += self.A[self.dimension * (from - 1) + (start - 1)];
+	distanceSum += self.adjacencyMatrix[self.dimension * (from - 1) + (start - 1)];
 	
-	tour.length = distanceSum;
-	tour.route  = visited;
+	shortestPath.route	= [TSP intArrayFromArray:visited];
+	shortestPath.length	= distanceSum;
 	
-	return tour;
+	return shortestPath;
 }
 
-- (void)improvePathBy2opt:(USKTSPTour *)tour
+- (void)improvePathBy2opt:(Tour *)path
 {
 	int  newLength;
 	BOOL improved = YES;
@@ -393,10 +405,10 @@ NSArray *swap2opt(NSArray *route, int i, int j)
 		for (int i = 0; i < self.dimension - 1; i++) {
 			for (int j = i + 1; j < self.dimension ; j++) {
 				if (i == j) continue;
-				newLength = length2opt(tour, self, i, j);
-				if (newLength < tour.length) {
-					tour.route  = swap2opt(tour.route, i, j);
-					tour.length = newLength;
+				newLength = length2opt(path, self, i, j);
+				if (newLength < path->length) {
+					swap2opt(path->route, self.dimension, i, j);
+					path->length = newLength;
 					improved = YES;
 				}
 			}
@@ -427,7 +439,7 @@ NSArray *swap2opt(NSArray *route, int i, int j)
 	if (_nodes != NULL) {
 		printf("NODE_COORD_SECTION:\n");
 		for (int i = 0; i < self.dimension; i++) {
-			printf("%3d %13.2f %13.2f\n", i + 1, [self.nodes[i] CGPointValue].x, [self.nodes[i] CGPointValue].y);
+			printf("%3d %13.2f %13.2f\n", self.nodes[i].number, self.nodes[i].coord.x, self.nodes[i].coord.y);
 		}
 	}
 }
@@ -444,7 +456,7 @@ NSArray *swap2opt(NSArray *route, int i, int j)
 	for (int i = 0; i < self.dimension; i++) {
 		printf("%4d: ", i + 1);
 		for (int j = 0; j < self.dimension; j++) {
-			printf("%4d ", self.A[self.dimension * i + j]);
+			printf("%4d ", self.adjacencyMatrix[self.dimension * i + j]);
 		}
 		printf("\n");
 	}
@@ -456,7 +468,7 @@ NSArray *swap2opt(NSArray *route, int i, int j)
 	for (int i = 0; i < self.dimension; i++) {
 		printf("%4d: ", i + 1);
 		for (int j = 0; j < self.dimension - 1; j++) {
-			printf("%4d ", self.neighborMatrix[self.dimension * i + j].nodeNumber);
+			printf("%4d ", self.neighborMatrix[self.dimension * i + j].number);
 		}
 		printf("\n");
 	}
@@ -472,16 +484,16 @@ NSArray *swap2opt(NSArray *route, int i, int j)
 }
 
 
-+ (void)printPath:(USKTSPTour *)pathInfo ofTSP:(USKTSP *)tsp
++ (void)printPath:(Tour)Tour ofTSP:(TSP *)tsp
 {
 	printf("\n========== PATH ==========\n");
-	printf("Length = %d\n", pathInfo.length);
-	if (pathInfo.route == nil) {
+	printf("Length = %d\n", Tour.length);
+	if (Tour.route == NULL) {
 		return;
 	}
 	printf("Path: ");
 	for (int i = 0; i < tsp.dimension; i++) {
-		printf("%4d ", [pathInfo.route[i] integerValue]);
+		printf("%4d ", Tour.route[i]);
 	}
 }
 
@@ -489,7 +501,8 @@ NSArray *swap2opt(NSArray *route, int i, int j)
 
 - (void)dealloc
 {
-	if (_A)	free(_A);
+	if (_nodes)				free(_nodes);
+	if (_adjacencyMatrix)	free(_adjacencyMatrix);
 	if (_neighborMatrix)	free(_neighborMatrix);
 }
 

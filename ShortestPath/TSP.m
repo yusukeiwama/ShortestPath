@@ -360,24 +360,26 @@ void swap2opt(int *route, int d, int i, int j)
     visited[0] = from;
 
     int i = 1;
-	while (i < self.dimension) { // visited count loop
-		for (int j = 0; j < self.dimension - 1; j++) { // neighbor loop
-        loop:
-			// Look up the nearest node.
+    int k = 0;
+	while (i < self.dimension) {
+		for (int j = 0; j < self.dimension - 1; j++) {
+			// Look up the nearest node where has not been visited yet.
 			to = self.neighborMatrix[self.dimension * (from - 1) + j].number;
 			
 			// Check if the node has already been visited.
-            for (int k = 0; k < i; k++) { // visited check loop
+            for (k = 0; k < i; k++) {
                 if (to == visited[k]) {
-                    j++;
-                    goto loop;
+                    break;
                 }
             }
-            // if not visited yet
-            visited[i++] = to;
-            distanceSum += self.neighborMatrix[self.dimension * (from - 1) + j].distance;
-            from = to;
-            break;
+            
+            // If new node has not been visited, add it to visited.
+            if (k == i) {
+                visited[i++] = to;
+                distanceSum += self.neighborMatrix[self.dimension * (from - 1) + j].distance;
+                from = to;
+                break;
+            }
         }
 	}
 	// Go back to the start node

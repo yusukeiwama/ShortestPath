@@ -28,9 +28,13 @@
 	
 	TSPExperimentManager *experimentManager = [[TSPExperimentManager alloc] init];
 	experimentManager.visualizer = visualizer;
-	
-	[experimentManager doExperiment:USKTSPExperimentNN2opt];
-//    [experimentManager doExperiment:USKTSPExperimentOptimal];
+
+	[experimentManager doExperiment:USKTSPExperimentASTuning];
+    
+//    TSP *tsp  = [TSP randomTSPWithDimension:1000];
+//    Tour tour = [tsp tourByNNFrom:100];
+//    [tsp improveTourBy2opt:&tour];
+//    [visualizer drawPath:tour ofTSP:tsp withStyle:TSPVisualizationStyleDark];
 }
 
 - (void)didReceiveMemoryWarning

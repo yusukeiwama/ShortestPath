@@ -9,10 +9,12 @@
 #import "TSP.h"
 #import "USKTrimmer.h"
 
-// Cannot deal because of short of memory.
-#define MAX_DIMENSION 10000
-
 NSDictionary *optimalLengthDictionary;
+
+typedef struct _Neighbor {
+	int	number;
+	int distance;
+} Neighbor;
 
 int euc2D(CGPoint A, CGPoint B)
 {
@@ -26,13 +28,16 @@ int compareDistances(const Neighbor *a, const Neighbor *b)
 	return ((Neighbor)(*a)).distance - ((Neighbor)(*b)).distance;
 }
 
-int length2opt(Tour *path, TSP *tsp, int i, int j)
+/// return (distance - A[i][i+1] - A[j][j+1] + A[i][j] + A[i+1][j+1])
+int length2opt(Tour *tour, int *A, int n, int i, int j)
 {
-	return  path->length
-	- tsp.adjacencyMatrix[tsp.dimension * (path->route[i]	  - 1)	+ (path->route[i + 1] - 1)]
-	- tsp.adjacencyMatrix[tsp.dimension * (path->route[j]     - 1)	+ (path->route[j + 1] - 1)]
-	+ tsp.adjacencyMatrix[tsp.dimension * (path->route[i]     - 1)	+ (path->route[j]     - 1)]
-	+ tsp.adjacencyMatrix[tsp.dimension * (path->route[i + 1] - 1)	+ (path->route[j + 1] - 1)];
+    int *r = tour->route;
+    
+	return tour->distance
+    - A[(r[i]	- 1) * n + (r[i+1] - 1)]  // A[i  ][i+1]
+	- A[(r[j]   - 1) * n + (r[j+1] - 1)]  // A[j  ][j+1]
+	+ A[(r[i]   - 1) * n + (r[j]   - 1)]  // A[i  ][j  ]
+	+ A[(r[i+1] - 1) * n + (r[j+1] - 1)]; // A[i+1][j+1]
 }
 
 void swap2opt(int *route, int d, int i, int j)
@@ -40,15 +45,19 @@ void swap2opt(int *route, int d, int i, int j)
 	int  *newRoute = calloc(d, sizeof(int));
 	
 	int l = 0;
-	for (int k = 0;     k <= i; k++) newRoute[l++] = route[k];
-	for (int k = j;     k >  i; k--) newRoute[l++] = route[k];
-	for (int k = j + 1; k <  d; k++) newRoute[l++] = route[k];
+	for (int k = 0;     k <= i; k++) newRoute[l++] = route[k]; // add node in order
+	for (int k = j;     k >  i; k--) newRoute[l++] = route[k]; // add node in reverse order
+	for (int k = j + 1; k <  d; k++) newRoute[l++] = route[k]; // add node in order
 	
 	memcpy(route, newRoute, d * sizeof(int));
 	free(newRoute);
 }
 
 @interface TSP ()
+
+@property (readonly) int	  *adjacencyMatrix;
+@property (readonly) Neighbor *neighborMatrix;
+
 @end
 
 @implementation TSP {
@@ -69,18 +78,25 @@ void swap2opt(int *route, int d, int i, int j)
 		if ([self readTSPDataFromFile:path]) {
 			[self computeNeighborMatrix];
 			
-			[self printInformation];
+//			[self printInformation];
+//          [self printNodes];
 //			[self printAdjecencyMatrix];
 //			[self printNeighborMatrix];
 		} else {
 			return nil;
 		}
 	}
+        
 	return self;
 }
 
 + (id)randomTSPWithDimension:(NSInteger)dimension
 {
+    if (dimension > MAX_DIMENSION) {
+        dimension = MAX_DIMENSION;
+    } else if (dimension < 3) {
+        return nil;
+    }
 	return [[TSP alloc] initRandomTSPWithDimension:dimension];
 }
 
@@ -93,7 +109,8 @@ void swap2opt(int *route, int d, int i, int j)
 		_dimension = dimension;
 		_nodes = calloc(dimension, sizeof(Node));
 		for (int i = 0; i < dimension; i++) {
-			CGPoint p = CGPointMake(100.0 * rand() / (RAND_MAX + 1.0), 100.0 * rand() / (RAND_MAX + 1.0));
+			CGPoint p = CGPointMake(100.0 * rand() / (RAND_MAX + 1.0),
+                                    100.0 * rand() / (RAND_MAX + 1.0));
 			_nodes[i].number = i + 1;
 			_nodes[i].coord  = p;
 		}
@@ -109,7 +126,6 @@ void swap2opt(int *route, int d, int i, int j)
 - (BOOL)readTSPDataFromFile:(NSString *)path
 {
 	// Split contents of file into lines.
-	_filePath = path;
 	NSString *rawString = [[NSString alloc] initWithContentsOfFile:path encoding:NSASCIIStringEncoding error:nil];
 	NSArray *lines = [rawString componentsSeparatedByString:@"\n"];
 	lines = [USKTrimmer trimmedArrayWithArray:lines];
@@ -118,11 +134,11 @@ void swap2opt(int *route, int d, int i, int j)
 	NSMutableDictionary *tmpDictionary = [NSMutableDictionary dictionary];
 	int l = 0;
 	while (l < lines.count && [lines[l] rangeOfString:@"EOF"].location == NSNotFound) {
-		if ([lines[l] rangeOfString:@"NODE_COORD_SECTION"].location != NSNotFound
-			|| [lines[l] rangeOfString:@"DISPLAY_DATA_SECTION"].location != NSNotFound) {
+		if ([lines[l] rangeOfString:@"NODE_COORD_SECTION"].location != NSNotFound // Found
+			|| [lines[l] rangeOfString:@"DISPLAY_DATA_SECTION"].location != NSNotFound) { // Found
 			// Read node coordinations.
 			BOOL nodeCodeSection = NO;
-			if ([lines[l] rangeOfString:@"NODE_COORD_SECTION"].location != NSNotFound) {
+			if ([lines[l] rangeOfString:@"NODE_COORD_SECTION"].location != NSNotFound) { // Found
 				nodeCodeSection = YES;
 			}
 			l++;
@@ -145,7 +161,7 @@ void swap2opt(int *route, int d, int i, int j)
 			if (nodeCodeSection) {
 				[self computeAdjacencyMatrix];
 			}
-		} else if ([lines[l] rangeOfString:@"EDGE_WEIGHT_SECTION"].location != NSNotFound) {
+		} else if ([lines[l] rangeOfString:@"EDGE_WEIGHT_SECTION"].location != NSNotFound) { // Found
 			l++;
 			// Read adjacency matrix.
 			_adjacencyMatrix = calloc(_dimension * _dimension, sizeof(double));
@@ -210,7 +226,7 @@ void swap2opt(int *route, int d, int i, int j)
 				}
 				
 			}
-		} else if ([lines[l] rangeOfString:@"FIXED_EDGES_SECTION"].location != NSNotFound) {
+		} else if ([lines[l] rangeOfString:@"FIXED_EDGES_SECTION"].location != NSNotFound) { // Found
 			// !!!: Ignoring...
 			while ([lines[l] rangeOfString:@"-1"].location == NSNotFound) {
 				l++;
@@ -258,7 +274,7 @@ void swap2opt(int *route, int d, int i, int j)
 		optimalLengthDictionary = tmpDictionary;
 	}
 	// Look up optimal length dictionary for the specified name.
-	optimalPath.length = [[optimalLengthDictionary valueForKey:name] intValue];
+	optimalPath.distance = [[optimalLengthDictionary valueForKey:name] intValue];
 	
 	// Read optimal path from file.
 	NSString *rawString = [[NSString alloc] initWithContentsOfFile:[[NSBundle mainBundle] pathForResource:name ofType:@"opt.tour"] encoding:NSASCIIStringEncoding error:nil];
@@ -272,7 +288,7 @@ void swap2opt(int *route, int d, int i, int j)
 		while ([lines[l] rangeOfString:@"EOF"].location == NSNotFound
 			   && [lines[l] rangeOfString:@"-1"].location == NSNotFound
 			   && l < lines.count) {
-			if ([lines[l] rangeOfString:@"TOUR_SECTION"].location != NSNotFound) {
+			if ([lines[l] rangeOfString:@"TOUR_SECTION"].location != NSNotFound) { // Found
 
 					// Read .tsp file to get dimenison.
 					NSString *tspString = [[NSString alloc] initWithContentsOfFile:[[NSBundle mainBundle] pathForResource:name ofType:@"tsp"] encoding:NSASCIIStringEncoding error:nil];
@@ -294,7 +310,7 @@ void swap2opt(int *route, int d, int i, int j)
 					NSArray *aPath = [[USKTrimmer trimmedStringWithString:lines[l]] componentsSeparatedByString:@" "];
 					aPath = [USKTrimmer trimmedArrayWithArray:aPath];
 					if (path.count == dimension) {
-						if ([lines[l] rangeOfString:@"-1"].location != NSNotFound) {
+						if ([lines[l] rangeOfString:@"-1"].location != NSNotFound) { // Found
 							l--;
 						}
 						break;
@@ -351,7 +367,6 @@ void swap2opt(int *route, int d, int i, int j)
 
 - (Tour)tourByNNFrom:(int)start
 {
-	Tour tour;
 	int from, to;
     int *visited = calloc(self.dimension + 1, sizeof(int));
 	int distanceSum = 0;
@@ -385,9 +400,8 @@ void swap2opt(int *route, int d, int i, int j)
 	// Go back to the start node
     visited[i] = start;
 	distanceSum += self.adjacencyMatrix[self.dimension * (from - 1) + (start - 1)];
-	
-	tour.route	= visited;
-	tour.length	= distanceSum;
+
+    Tour tour = {distanceSum, visited};
 	
 	return tour;
 }
@@ -400,10 +414,10 @@ void swap2opt(int *route, int d, int i, int j)
 		improved = NO;
 		for (int i = 0; i < self.dimension - 1; i++) {
 			for (int j = i + 1; j < self.dimension ; j++) {
-				int newLength = length2opt(tour, self, i, j);
-				if (newLength < tour->length) {
+				int newLength = length2opt(tour, self.adjacencyMatrix, self.dimension, i, j);
+				if (newLength < tour->distance) {
 					swap2opt(tour->route, self.dimension, i, j);
-					tour->length = newLength;
+					tour->distance = newLength;
 					improved = YES;
 				}
 			}
@@ -411,10 +425,126 @@ void swap2opt(int *route, int d, int i, int j)
 	}
 }
 
-- (Tour)tourByASWithNumberOfAnt:(int)numberOfAnt alpha:(int)alpha beta:(int)beta ro:(double)ro
+double iPow(double val, int pow)
 {
-    Tour tour;
-    return tour;
+    double powered = 1.0;
+    for (int i = 0; i < pow; i++) {
+        powered *= val;
+    }
+    return powered;
+}
+
+int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int *A)
+{
+    double sumWeight = 0.0;
+    for (int j = 0; j < n; j++) {
+        if (visited[j] == NO) {
+            sumWeight += iPow(P[(from - 1) * n + j], a) * iPow(1.0 / A[(from - 1) * n + j], b);
+        }
+    }
+    double weight = sumWeight * (rand() / (RAND_MAX + 1.0));
+    sumWeight = 0.0;
+
+    // select next node
+    int j = 0;
+    while (sumWeight < weight) {
+        if (visited[j] == NO) {
+            sumWeight += iPow(P[(from - 1) * n + j], a) * iPow(1.0 / A[(from - 1) * n + j], b);
+        }
+        j++;
+    }
+    return j;
+}
+
+- (Tour)tourByASWithNumberOfAnt:(int)m
+             pheromoneInfluence:(int)a
+            transitionInfluence:(int)b
+           pheromoneEvaporation:(double)r
+{
+    srand((unsigned)383);
+    
+    int     n = self.dimension;
+    int    *A = self.adjacencyMatrix;
+    double *P = calloc(n * n, sizeof(double)); // Pheromone matrix
+    
+    // Initialize pheromone with average tour distance.
+    int	totalDistance = 0;
+    for (int i = 0; i < n; i++) {
+        Tour aTour = [self tourByNNFrom:i + 1];
+        totalDistance += aTour.distance;
+        free(aTour.route);
+    }
+    double averateDistance = (double)totalDistance / n;
+    double initialPheromone = m / averateDistance;
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            P[i * n + j] = initialPheromone;
+        }
+    }
+    
+    // Generate solutions.
+    Tour theShortestTour = {INT32_MAX, calloc(n, sizeof(int))};
+    int noImproveCount = 0;
+    while (noImproveCount < 1000) { // improve loop
+        
+        // Do ant tours.
+        Tour tours[m];
+        for (int k = 0; k < m; k++) { // ant loop
+            tours[k].distance = 0;
+            tours[k].route = calloc(n + 1, sizeof(int));
+            bool *visited = calloc(n, sizeof(bool));
+            int start = k % n + 1;
+            tours[k].route[0] = start;
+            visited[start - 1] = YES;
+            for (int i = 1; i < n; i++) { // node loop
+                tours[k].route[i] = nextNodeNumber(visited, tours[k].route[i-1], n, a, b, P, A);
+                visited[tours[k].route[i] - 1] = YES;
+                tours[k].distance += A[(tours[k].route[i-1] - 1) * n + (tours[k].route[i] - 1)];
+            }
+            tours[k].route[n] = start;
+            tours[k].distance += A[(tours[k].route[n-1] - 1) * n + (tours[k].route[n] - 1)];
+            free(visited);
+        }
+        
+        // Pheromone evaporation
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                P[i * n + j] *= (1.0 - r);
+            }
+        }
+        
+        // Pheromone update
+        for (int k = 0; k < m; k++) {
+            double pheromone = 1.0 / tours[k].distance;
+            for (int i = 0; i < n; i++) {
+                P[(tours[k].route[i] - 1) * n + (tours[k].route[i+1] - 1)] += pheromone;
+            }
+        }
+        
+        // Find shortest path.
+        Tour shortestTour = {INT32_MAX, NULL};
+        for (int k = 0; k < m; k++) {
+            if (tours[k].distance < shortestTour.distance) {
+                free(shortestTour.route);
+                shortestTour = tours[k];
+            } else {
+                free(tours[k].route);
+            }
+        }
+        
+        // Improve path.
+        if (shortestTour.distance < theShortestTour.distance) {
+            free(theShortestTour.route);
+            theShortestTour = shortestTour;
+            noImproveCount = 0;
+        } else {
+            free(shortestTour.route);
+            noImproveCount++;
+        }
+    }
+    
+    printf("theShortestTour.distance = %d\n", theShortestTour.distance);
+    return theShortestTour;
 }
 
 #pragma mark - utility methods
@@ -432,17 +562,21 @@ void swap2opt(int *route, int d, int i, int j)
 
 - (void)printInformation
 {
-	printf("\n========== FILE INFORMATION ==========\n");
+	printf("\n========== TSP INFORMATION ==========\n");
 	[self.information enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop){
 		printf("%s: %s\n", [key cStringUsingEncoding:NSUTF8StringEncoding], [obj cStringUsingEncoding:NSUTF8StringEncoding]);
 	}];
 		
-//	if (_nodes != NULL) {
-//		printf("NODE_COORD_SECTION:\n");
-//		for (int i = 0; i < self.dimension; i++) {
-//			printf("%3d %13.2f %13.2f\n", self.nodes[i].number, self.nodes[i].coord.x, self.nodes[i].coord.y);
-//		}
-//	}
+}
+
+- (void)printNodes
+{
+	if (_nodes != NULL) {
+		printf("\n========== NODE COORDINATIONS ==========\n");
+		for (int i = 0; i < self.dimension; i++) {
+			printf("%5d: (%10.2f, %10.2f)\n", self.nodes[i].number, self.nodes[i].coord.x, self.nodes[i].coord.y);
+		}
+	}
 }
 
 - (void)printAdjecencyMatrix
@@ -488,7 +622,7 @@ void swap2opt(int *route, int d, int i, int j)
 + (void)printPath:(Tour)Tour ofTSP:(TSP *)tsp
 {
 	printf("\n========== PATH ==========\n");
-	printf("Length = %d\n", Tour.length);
+	printf("Length = %d\n", Tour.distance);
 	if (Tour.route == NULL) {
 		return;
 	}

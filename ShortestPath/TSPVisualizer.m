@@ -46,16 +46,17 @@ CGPoint correctedPoint(CGPoint point)
 - (void)prepareColorsWithStyle:(TSPVisualizationStyle)style
 {
     switch (style) {
-        case TSPVisualizationStyleMidnight:
+        case TSPVisualizationStyleDark:
             _backgroundColor = [[UIColor blackColor] CGColor];
             _nodeColor       = [[UIColor whiteColor] CGColor];
             _edgeColor       = [[UIColor yellowColor] CGColor];
             break;
-        case TSPVisualizationStylePrinting:
-            _backgroundColor = [[UIColor whiteColor] CGColor];
-            _nodeColor       = [[UIColor lightGrayColor]  CGColor];
-            _edgeColor       = [[UIColor blackColor] CGColor];
+        case TSPVisualizationStyleLight:
+            _backgroundColor = [[UIColor colorWithWhite:0.98 alpha:1.0] CGColor];
+            _nodeColor       = [[UIColor blackColor]  CGColor];
+            _edgeColor       = [[UIColor blueColor] CGColor];
             break;
+        case TSPVisualizationStyleGrayScale:
         default:
             _backgroundColor = [[UIColor whiteColor] CGColor];
             _nodeColor       = [[UIColor lightGrayColor]  CGColor];
@@ -86,7 +87,7 @@ CGPoint correctedPoint(CGPoint point)
 	for (int i = 1; i < tsp.dimension; i++) {
 		CGPoint aPoint = correctedPoint(tsp.nodes[path.route[i] - 1].coord);
 		CGContextAddLineToPoint(context, aPoint.x, aPoint.y);
-        if (style == TSPVisualizationStyleMidnight) {
+        if (style == TSPVisualizationStyleDark || style == TSPVisualizationStyleLight) {
             CGContextSetStrokeColorWithColor(context, [[UIColor colorWithHue:((double)i / tsp.dimension) saturation:1.0 brightness:1.0 alpha:1.0] CGColor]);
         } else {
             CGContextSetStrokeColorWithColor(context, _edgeColor);
@@ -106,8 +107,12 @@ CGPoint correctedPoint(CGPoint point)
 	}
 	
 	// Draw start node
+    r = 10.0;
 	CGContextSetFillColorWithColor(context, [[UIColor yellowColor] CGColor]);
 	CGContextFillEllipseInRect(context, CGRectMake(startPoint.x - r, startPoint.y - r, 2 * r, 2 * r));
+    CGContextSetStrokeColorWithColor(context, [[UIColor blackColor] CGColor]);
+    CGContextSetLineWidth(context, 1.0);
+    CGContextStrokeEllipseInRect(context, CGRectMake(startPoint.x - r, startPoint.y - r, 2 * r, 2 * r));
 	
 	self.imageView.image = UIGraphicsGetImageFromCurrentImageContext();
 	UIGraphicsEndImageContext();

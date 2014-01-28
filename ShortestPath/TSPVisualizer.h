@@ -10,8 +10,10 @@
 #import "TSP.h"
 
 typedef enum TSPVisualizationStyle {
-    TSPVisualizationStyleMidnight,
-    TSPVisualizationStylePrinting
+    TSPVisualizationStyleDark,
+    TSPVisualizationStyleLight,
+    TSPVisualizationStyleGrayScale,
+    TSPVisualizationStyleDefault = TSPVisualizationStyleGrayScale
 } TSPVisualizationStyle;
 
 @interface TSPVisualizer : NSObject

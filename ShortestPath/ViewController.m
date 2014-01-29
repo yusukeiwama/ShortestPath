@@ -29,7 +29,7 @@
 	TSPExperimentManager *experimentManager = [[TSPExperimentManager alloc] init];
 	experimentManager.visualizer = visualizer;
 
-	[experimentManager doExperiment:USKTSPExperimentMMAS];
+//	[experimentManager doExperiment:USKTSPExperimentMMASTuning];
     
 //    TSP *tsp  = [TSP randomTSPWithDimension:1000];
 //    Tour tour = [tsp tourByNNFrom:100];

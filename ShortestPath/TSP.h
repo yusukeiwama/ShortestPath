@@ -54,7 +54,7 @@ typedef struct _Tour {
 - (void)improveTourBy2opt:(Tour *)tour;
 
 /**
- Compute the shortest path by Ant System. The global best solution deposits pheromone on every iteration along with all the other ants. It may not be the optimal path. The recommended values are as follows. numberOfAnt = tsp.dimension, alpha = 1, beta = 2 ~ 5, ro = 0.5.
+ Compute the shortest path by Ant System. The global best solution deposits pheromone on every iteration along with all the other ants. It may not be the optimal path. The recommended values are as follows. numberOfAnt = tsp.dimension, alpha = 1, beta = 2 ~ 5, rho = 0.5.
  @param numberOfAnt The number of ants.
  @param alpha       A parameter to control the influence of pheromone.
  @param beta        A parameter to control the influence of the desirability of state transition. (a priori knowledge, typically 1/dxy, where dxy is the distance between node x and node y)
@@ -92,6 +92,29 @@ typedef struct _Tour {
                              seed:(unsigned)seed
                    noImproveLimit:(int)limit
                      CSVLogString:(NSString *__autoreleasing *)log;
+
+
+/**
+ Compute the shortest path by Max-Min Ant System with 2-opt. The global best solution deposits pheromone on every iteration along with all the other ants. It may not be the optimal path.
+ @param numberOfAnt The number of ants.
+ @param alpha       A parameter to control the influence of pheromone.
+ @param beta        A parameter to control the influence of the desirability of state transition. (a priori knowledge, typically 1/dxy, where dxy is the distance between node x and node y)
+ @param rho         The pheromone evaporatin coefficient. The rate of pheromone evaporation.
+ @param pBest       The parameter to compute minimum pheromone.
+ @param seed        Seed to generate random number.
+ @param limit       The number of iteration without improvement to break.
+ @param log         Iteration best tour distances in CSV format.
+ @return The result tour.
+ */
+- (Tour)tourByMMAS2optWithNumberOfAnt:(int)numberOfAnt
+                   pheromoneInfluence:(int)alpha
+                  transitionInfluence:(int)beta
+                 pheromoneEvaporation:(double)rho
+                      probabilityBest:(double)pBest
+                                 seed:(unsigned)seed
+                       noImproveLimit:(int)limit
+                         CSVLogString:(NSString *__autoreleasing *)log;
+
 
 
 /**

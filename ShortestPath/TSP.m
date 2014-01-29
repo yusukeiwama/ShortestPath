@@ -64,6 +64,11 @@ void swap2opt(int *route, int d, int i, int j)
 	NSDictionary *_optimalLengthDictionary;
 }
 
+@synthesize dimension       = n;
+@synthesize nodes           = N;
+@synthesize adjacencyMatrix = A;
+@synthesize neighborMatrix  = NN;
+
 #pragma mark - Constructors
 
 + (id)TSPWithFile:(NSString *)path
@@ -106,13 +111,13 @@ void swap2opt(int *route, int d, int i, int j)
 	if (self) {
 		srand(seed);
 		
-		_dimension = dimension;
-		_nodes = calloc(dimension, sizeof(Node));
-		for (int i = 0; i < dimension; i++) {
+		n = dimension;
+		N = calloc(n, sizeof(Node));
+		for (int i = 0; i < n; i++) {
 			CGPoint p = CGPointMake(100.0 * rand() / (RAND_MAX + 1.0),
                                     100.0 * rand() / (RAND_MAX + 1.0));
-			_nodes[i].number = i + 1;
-			_nodes[i].coord  = p;
+			N[i].number = i + 1;
+			N[i].coord  = p;
 		}
 		[self computeNeighborMatrix];
 	}
@@ -123,7 +128,7 @@ void swap2opt(int *route, int d, int i, int j)
 
 // FIXME: FIX_EDGE_SECTION is not parsed (linhp318.tsp)
 // FIXME: unsupported EDGE_WEIGHT_FORMAT
-- (BOOL)readTSPDataFromFile:(NSString *)path
+- (bool)readTSPDataFromFile:(NSString *)path
 {
 	// Split contents of file into lines.
 	NSString *rawString = [[NSString alloc] initWithContentsOfFile:path encoding:NSASCIIStringEncoding error:nil];
@@ -137,23 +142,23 @@ void swap2opt(int *route, int d, int i, int j)
 		if ([lines[l] rangeOfString:@"NODE_COORD_SECTION"].location != NSNotFound // Found
 			|| [lines[l] rangeOfString:@"DISPLAY_DATA_SECTION"].location != NSNotFound) { // Found
 			// Read node coordinations.
-			BOOL nodeCodeSection = NO;
+			bool nodeCodeSection = false;
 			if ([lines[l] rangeOfString:@"NODE_COORD_SECTION"].location != NSNotFound) { // Found
-				nodeCodeSection = YES;
+				nodeCodeSection = true;
 			}
 			l++;
 			if ([[tmpDictionary valueForKey:@"TYPE"] isEqualToString:@"TSP"]) {
-				_nodes = calloc(_dimension, sizeof(Node));
+				N = calloc(n, sizeof(Node));
 				int nodeIndex = 0;
-				while (nodeIndex < _dimension) {
+				while (nodeIndex < n) {
 					NSArray *nodeInfo = [[USKTrimmer trimmedStringWithString:lines[l]] componentsSeparatedByCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"	: "]];
 					nodeInfo = [USKTrimmer trimmedArrayWithArray:nodeInfo];
 					if (nodeInfo.count != 3) {
 						break;
 					}
-					_nodes[nodeIndex].number  = [nodeInfo[0] intValue];
-					_nodes[nodeIndex].coord.x = [nodeInfo[1] doubleValue];
-					_nodes[nodeIndex].coord.y = [nodeInfo[2] doubleValue];
+					N[nodeIndex].number  = [nodeInfo[0] intValue];
+					N[nodeIndex].coord.x = [nodeInfo[1] doubleValue];
+					N[nodeIndex].coord.y = [nodeInfo[2] doubleValue];
 					l++;
 					nodeIndex++;
 				}
@@ -164,7 +169,7 @@ void swap2opt(int *route, int d, int i, int j)
 		} else if ([lines[l] rangeOfString:@"EDGE_WEIGHT_SECTION"].location != NSNotFound) { // Found
 			l++;
 			// Read adjacency matrix.
-			_adjacencyMatrix = calloc(_dimension * _dimension, sizeof(double));
+			A = calloc(n * n, sizeof(double));
 			// Read edge weights.
 			NSMutableArray *edgeWeights = [NSMutableArray array];
 			while (TRUE) {
@@ -180,48 +185,48 @@ void swap2opt(int *route, int d, int i, int j)
 			// Parse edge weights
 			if ([[tmpDictionary valueForKey:@"EDGE_WEIGHT_FORMAT"] isEqualToString:@"FULL_MATRIX"]) {
 				for (int i = 0; i < edgeWeights.count; i++) {
-					_adjacencyMatrix[i] = [edgeWeights[i] intValue];
+					A[i] = [edgeWeights[i] intValue];
 				}
 			} else if ([[tmpDictionary valueForKey:@"EDGE_WEIGHT_FORMAT"] isEqualToString:@"UPPER_ROW"]) {
 				int edgeWeightIndex = 0;
-				for (int nodeIndex = 0; nodeIndex < _dimension; nodeIndex++) {
-					for (int i = 0; i < _dimension - nodeIndex - 1; i++) {
-						_adjacencyMatrix[_dimension * nodeIndex + nodeIndex + 1 + i] = [edgeWeights[edgeWeightIndex] intValue];
+				for (int nodeIndex = 0; nodeIndex < n; nodeIndex++) {
+					for (int i = 0; i < n - nodeIndex - 1; i++) {
+						A[n * nodeIndex + nodeIndex + 1 + i] = [edgeWeights[edgeWeightIndex] intValue];
 						edgeWeightIndex++;
 					}
 				}
 				// Copy upper triangle into lower triangle
-				for (int i = 1; i < _dimension; i++) {
+				for (int i = 1; i < n; i++) {
 					for (int j = 0; j < i; j++) {
-						_adjacencyMatrix[_dimension * i + j] = _adjacencyMatrix[_dimension * j + i];
+						A[i * n + j] = A[j * n + i];
 					}
 				}
 			} else if ([[tmpDictionary valueForKey:@"EDGE_WEIGHT_FORMAT"] isEqualToString:@"UPPER_DIAG_ROW"]) {
 				int edgeWeightIndex = 0;
-				for (int nodeIndex = 0; nodeIndex < _dimension; nodeIndex++) {
-					for (int i = 0; i < _dimension - nodeIndex; i++) {
-						_adjacencyMatrix[_dimension * nodeIndex + nodeIndex + i] = [edgeWeights[edgeWeightIndex] intValue];
+				for (int nodeIndex = 0; nodeIndex < n; nodeIndex++) {
+					for (int i = 0; i < n - nodeIndex; i++) {
+						A[n * nodeIndex + nodeIndex + i] = [edgeWeights[edgeWeightIndex] intValue];
 						edgeWeightIndex++;
 					}
 				}
 				// Copy upper triangle into lower triangle
-				for (int i = 1; i < _dimension; i++) {
+				for (int i = 1; i < n; i++) {
 					for (int j = 0; j < i; j++) {
-						_adjacencyMatrix[_dimension * i + j] = _adjacencyMatrix[_dimension * j + i];
+						A[i * n + j] = A[j * n + i];
 					}
 				}
 			} else if ([[tmpDictionary valueForKey:@"EDGE_WEIGHT_FORMAT"] isEqualToString:@"LOWER_DIAG_ROW"]) {
 				int edgeWeightIndex = 0;
-				for (int nodeIndex = 0; nodeIndex < _dimension; nodeIndex++) {
+				for (int nodeIndex = 0; nodeIndex < n; nodeIndex++) {
 					for (int i = 0; i < nodeIndex + 1; i++) {
-						_adjacencyMatrix[_dimension * nodeIndex + i] = [edgeWeights[edgeWeightIndex] intValue];
+						A[n * nodeIndex + i] = [edgeWeights[edgeWeightIndex] intValue];
 						edgeWeightIndex++;
 					}
 				}
 				// Copy lower triangle into upper triangle
-				for (int i = 0; i < _dimension; i++) {
-					for (int j = i + 1; j < _dimension; j++) {
-						_adjacencyMatrix[_dimension * i + j] = _adjacencyMatrix[_dimension * j + i];
+				for (int i = 0; i < n; i++) {
+					for (int j = i + 1; j < n; j++) {
+						A[i * n + j] = A[j * n + i];
 					}
 				}
 				
@@ -238,9 +243,9 @@ void swap2opt(int *route, int d, int i, int j)
 			NSString *val = [USKTrimmer trimmedStringWithString:components[1]];
 			[tmpDictionary setValue:val forKey:key];
 			if ([key isEqualToString:@"DIMENSION"]) {
-				_dimension = [val intValue];
-				if (_dimension > MAX_DIMENSION) {
-					return NO;
+				n = [val intValue];
+				if (n > MAX_DIMENSION) {
+					return false;
 				}
 			}
 			l++;
@@ -248,7 +253,7 @@ void swap2opt(int *route, int d, int i, int j)
 	}
 	_information = tmpDictionary;
 
-	return YES;
+	return true;
 }
 
 
@@ -331,11 +336,11 @@ void swap2opt(int *route, int d, int i, int j)
 
 - (void)computeAdjacencyMatrix
 {
-	if (self.adjacencyMatrix == NULL) {
-		_adjacencyMatrix = calloc(_dimension * _dimension, sizeof(int));
-		for (int i = 0; i < _dimension; i++) {
-			for (int j = 0; j < _dimension; j++) {
-				_adjacencyMatrix[_dimension * i + j] = euc2D(_nodes[i].coord, _nodes[j].coord);
+	if (A == NULL) {
+		A = calloc(n * n, sizeof(int));
+		for (int i = 0; i < n; i++) {
+			for (int j = 0; j < n; j++) {
+				A[i * n + j] = euc2D(N[i].coord, N[j].coord);
 			}
 		}
 	}
@@ -343,85 +348,78 @@ void swap2opt(int *route, int d, int i, int j)
 
 - (void)computeNeighborMatrix
 {
-	if (self.neighborMatrix == NULL) {
-		_neighborMatrix = calloc(_dimension * _dimension, sizeof(Neighbor));
+	if (NN == NULL) {
+		NN = calloc(n * n, sizeof(Neighbor));
 		[self computeAdjacencyMatrix];
 		
-		for (int i = 0; i < _dimension; i++) {
-			for (int j = 0; j < _dimension; j++) {
+		for (int i = 0; i < n; i++) {
+			for (int j = 0; j < n; j++) {
 				// Copy adjacency matrix.
-				_neighborMatrix[_dimension * i + j].number = j + 1;
-				_neighborMatrix[_dimension * i + j].distance   = _adjacencyMatrix[_dimension * i + j];
+				NN[i * n + j].number = j + 1;
+				NN[i * n + j].distance   = A[i * n + j];
 			}
 			
-			// ignore i == j element because the element is not a neighbor but itself.
-			_neighborMatrix[_dimension * i + i] = _neighborMatrix[_dimension * i + _dimension - 1];
+			// Ignore i == j element because the element is not a neighbor but itself.
+			NN[i * n + i] = NN[i * n + n - 1];
 			
-			// Sort neighbors  by distance.
-			qsort(&(_neighborMatrix[_dimension * i + 0]), _dimension - 1, sizeof(Neighbor), (int(*)(const void *, const void *))compareDistances);
+			// Sort neighbors by distance, ignoring i == j element.
+			qsort(&(NN[n * i + 0]), n - 1, sizeof(Neighbor), (int(*)(const void *, const void *))compareDistances);
 		}
 	}
 }
 
 #pragma mark - Algorithms
 
-- (Tour)tourByNNFrom:(int)start
+int nearestNodeNumber(bool *visited, int from, int n, int *A)
 {
-    Neighbor *N       = self.neighborMatrix;
-    int      n        = self.dimension;
-    int      *visited = calloc(self.dimension + 1, sizeof(int));
-
-	int from   = start;
-    visited[0] = from;
-
-    int i = 1;
-    int k = 0;
-    int distanceSum = 0;
-	while (i < n) {
-		for (int j = 0; j < n - 1; j++) {
-			// Look up the nearest node where has not been visited yet.
-			int to = N[(from - 1) * n + j].number;
-			
-			// Check if the node has already been visited.
-            for (k = 0; k < i; k++) {
-                if (to == visited[k]) {
-                    break;
-                }
-            }
-            
-            // If new node has not been visited, add it to visited.
-            if (k == i) {
-                visited[i++] = to;
-                distanceSum += N[(from - 1) * n + j].distance;
-                from = to;
-                break;
+    int number;
+    int shortestDistance = INT32_MAX;
+    for (int i = 0; i < n; i++) {
+        if (visited[i] == false) {
+            int distance = A[(from - 1) * n + i];
+            if (distance < shortestDistance) {
+                number           = i + 1;
+                shortestDistance = distance;
             }
         }
-	}
-	// Go back to the start node
-    visited[i] = start;
-	distanceSum += self.adjacencyMatrix[self.dimension * (from - 1) + (start - 1)];
+    }
+    return number;
+}
 
-    Tour tour = {distanceSum, visited};
-	
-	return tour;
+- (Tour)tourByNNFrom:(int)start
+{
+    Tour tour     = {0, calloc(n + 1, sizeof(int))};
+    bool *visited = calloc(n, sizeof(bool));
+
+    tour.route[0]      = start;
+    visited[start - 1] = true;
+    
+    int from = start;
+    for (int i = 1; i < n; i++) {
+        int to = nearestNodeNumber(visited, from, n, A);
+        tour.distance   += A[(from - 1) * n + (to - 1)];
+        tour.route[i]   =  to;
+        visited[to - 1] =  true;
+        from = to;
+    }
+    tour.distance += A[(from - 1) * n + (start - 1)];
+    tour.route[n] =  start;
+
+    return tour;
 }
 
 - (void)improveTourBy2opt:(Tour *)tour
 {
-    int *A = self.adjacencyMatrix;
-    int  n = self.dimension;
-    
-	BOOL improved = YES;
+	bool improved = true;
 	while (improved) {
-		improved = NO;
+		improved = false;
 		for (int i = 0; i < n - 1; i++) {
 			for (int j = i + 1; j < n ; j++) {
 				int newLength = length2opt(tour, A, n, i, j);
 				if (newLength < tour->distance) {
 					swap2opt(tour->route, n, i, j);
 					tour->distance = newLength;
-					improved = YES;
+					improved = true;
 				}
 			}
 		}
@@ -442,7 +440,7 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
     // Compute the denominator of the probability.
     double sumWeight = 0.0;
     for (int j = 0; j < n; j++) {
-        if (visited[j] == NO) {
+        if (visited[j] == false) {
             sumWeight += iPow(P[(from - 1) * n + j], a) * iPow(1.0 / A[(from - 1) * n + j], b);
         }
     }
@@ -452,7 +450,7 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
         // Select node randomly.
         int numberOfPossibleNode = 0;
         for (int j = 0; j < n; j++) {
-            if (visited[j] == NO) {
+            if (visited[j] == false) {
                 numberOfPossibleNode++;
             }
         }
@@ -460,7 +458,7 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
         int order = 0;
         int j = 0;
         while (order < targetOrder) {
-            if (visited[j] == NO) {
+            if (visited[j] == false) {
                 order++;
             }
             j++;
@@ -473,7 +471,7 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
         double weight = 0.0;
         int j = 0;
         while (weight < targetWeight) {
-            if (visited[j] == NO) {
+            if (visited[j] == false) {
                 weight += iPow(P[(from - 1) * n + j], a) * iPow(1.0 / A[(from - 1) * n + j], b);
             }
             j++;
@@ -493,8 +491,6 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
 {
     srand(seed);
     
-    int     n = self.dimension;
-    int    *A = self.adjacencyMatrix;
     double *P = calloc(n * n, sizeof(double)); // Pheromone matrix
     
     // Initialize pheromone with average tour distance.
@@ -513,7 +509,7 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
     }
     
     // Generate solutions.
-    Tour globalBest      = {INT32_MAX, calloc(n, sizeof(int))};
+    Tour globalBest      = {INT32_MAX, calloc(n + 1, sizeof(int))};
     int  noImproveCount  = 0;
     int  loop            = 0;
     NSMutableString *csv = [@"LOOP, DISTANCE\n" mutableCopy];
@@ -528,13 +524,13 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
             tours[k].distance = 0;
             tours[k].route    = calloc(n + 1, sizeof(int));
             
-            // visited[i] is YES when node numbered i+1 was visited.
+            // visited[i] is true when node numbered i+1 was visited.
             bool *visited = calloc(n, sizeof(bool));
             
             // Set ant on start node.
             int start = k % n + 1;
             tours[k].route[0]  = start;
-            visited[start - 1] = YES;
+            visited[start - 1] = true;
             
             // Do transition with probability.
             int from = start;
@@ -542,7 +538,7 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
                 int to = nextNodeNumber(visited, from, n, a, b, P, A);
                 tours[k].distance += A[(from - 1) * n + (to - 1)];
                 tours[k].route[i] =  to;
-                visited[to - 1]   =  YES;
+                visited[to - 1]   =  true;
                 from = to;
             }
             // Go back to the start node.
@@ -563,7 +559,9 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
         for (int k = 0; k < m; k++) {
             double pheromone = 1.0 / tours[k].distance;
             for (int i = 0; i < n; i++) {
-                    P[(tours[k].route[i] - 1) * n + (tours[k].route[i+1] - 1)] += pheromone;
+                int from = tours[k].route[i];
+                int to   = tours[k].route[i + 1];
+                P[(from - 1) * n + (to - 1)] += pheromone;
             }
         }
         
@@ -621,9 +619,9 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
 
 - (void)printNodes
 {
-	if (_nodes != NULL) {
+	if (N != NULL) {
 		printf("\n========== NODE COORDINATIONS ==========\n");
-		for (int i = 0; i < self.dimension; i++) {
+		for (int i = 0; i < n; i++) {
 			printf("%5d: (%10.2f, %10.2f)\n", self.nodes[i].number, self.nodes[i].coord.x, self.nodes[i].coord.y);
 		}
 	}
@@ -633,15 +631,15 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
 {
 	printf("\n========== WEIGHTED ADJECENCY MATRIX ==========\n");
 	printf("      ");
-	for (int i = 0; i < self.dimension; i++) {
+	for (int i = 0; i < n; i++) {
 		printf("%4d ", i + 1);
 	}
 	printf("\n");
 	
-	for (int i = 0; i < self.dimension; i++) {
+	for (int i = 0; i < n; i++) {
 		printf("%4d: ", i + 1);
-		for (int j = 0; j < self.dimension; j++) {
-			printf("%4d ", self.adjacencyMatrix[self.dimension * i + j]);
+		for (int j = 0; j < n; j++) {
+			printf("%4d ", self.adjacencyMatrix[i * n + j]);
 		}
 		printf("\n");
 	}
@@ -650,19 +648,19 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
 - (void)printNeighborMatrix
 {
 	printf("\n========== NEIGHBOR INDEX MATRIX ==========\n");
-	for (int i = 0; i < self.dimension; i++) {
+	for (int i = 0; i < n; i++) {
 		printf("%4d: ", i + 1);
-		for (int j = 0; j < self.dimension - 1; j++) {
-			printf("%4d ", self.neighborMatrix[self.dimension * i + j].number);
+		for (int j = 0; j < n - 1; j++) {
+			printf("%4d ", NN[i * n + j].number);
 		}
 		printf("\n");
 	}
 	
 	printf("\n========== NEIGHBOR DISTANCE MATRIX ==========\n");
-	for (int i = 0; i < self.dimension; i++) {
+	for (int i = 0; i < n; i++) {
 		printf("%4d: ", i + 1);
-		for (int j = 0; j < self.dimension - 1; j++) {
-			printf("%4d ", (int)(self.neighborMatrix[self.dimension * i + j].distance));
+		for (int j = 0; j < n - 1; j++) {
+			printf("%4d ", (int)(NN[i * n + j].distance));
 		}
 		printf("\n");
 	}
@@ -686,9 +684,9 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
 
 - (void)dealloc
 {
-	if (_nodes)				free(_nodes);
-	if (_adjacencyMatrix)	free(_adjacencyMatrix);
-	if (_neighborMatrix)	free(_neighborMatrix);
+	if (N)  free(N);
+	if (A)	free(A);
+	if (NN)	free(NN);
 }
 
 @end

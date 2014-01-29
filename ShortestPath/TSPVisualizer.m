@@ -8,15 +8,16 @@
 
 #import "TSPVisualizer.h"
 
-static const UIEdgeInsets margin = {20.0, 20.0, 20.0, 20.0};
+static UIEdgeInsets margin  = {20.0, 20.0, 20.0, 20.0};
+static UIEdgeInsets padding = {20.0, 20.0, 20.0, 20.0};
 static CGPoint offset = {0.0, 0.0};
 static CGSize  scale  = {1.0, 1.0};
 static CGFloat height;
 
 CGPoint correctedPoint(CGPoint point)
 {
-	return CGPointMake((point.x - offset.x) * scale.width  + margin.left,
-					   ((point.y - offset.y) * scale.height + margin.top) * (-1) + height);
+	return CGPointMake((point.x - offset.x) * scale.width  + margin.left + padding.left,
+					   ((point.y - offset.y) * scale.height + margin.top + padding.top) * (-1) + height); // Flip verically
 }
 
 @implementation TSPVisualizer {
@@ -40,7 +41,22 @@ CGPoint correctedPoint(CGPoint point)
 	offset = CGPointMake(left, top);
 	scale  = CGSizeMake((self.imageView.frame.size.width - margin.left - margin.right) / (right - left),
 						(self.imageView.frame.size.height - margin.top - margin.bottom) / (bottom - top));
-	height = self.imageView.frame.size.height;
+
+    // Keep aspect ratio and centering.
+    if (scale.width > scale.height) { // Vertically long
+        scale.width = scale.height;
+        CGFloat displayWidth = (right - left) * scale.width;
+        padding.left = padding.right = (self.imageView.frame.size.width - (margin.left + margin.right) - displayWidth) / 2.0;
+        padding.top = padding.bottom = 0.0;
+    } else { // Horizontally long
+        scale.height = scale.width;
+        CGFloat displayHeight = (bottom - top) * scale.height;
+        padding.top = padding.bottom = (self.imageView.frame.size.height - (margin.top + margin.bottom) - displayHeight) / 2.0;
+        padding.left = padding.right = 0.0;
+    }
+
+    // Prepare height to use in C function.
+    height = self.imageView.frame.size.height;
 }
 
 - (void)prepareColorsWithStyle:(TSPVisualizationStyle)style

@@ -44,13 +44,18 @@ static const int seeds[NUMBER_OF_SEEDS] = {101, 103, 107, 109, 113, 127, 131, 13
 	NSURL    *outputURL   = [NSURL fileURLWithPath:outputPath];
 	// Example Path: /Users/yusukeiwama/Library/Application Support/iPhone Simulator/7.0.3/Applications/85BB258F-2ED0-464C-AD92-1C5D11012E67/Documents
 
-	if ([string writeToURL:outputURL atomically:YES encoding:NSUTF8StringEncoding error:nil]) {
-		NSLog(@"%@ is saved", fileName);
-		return YES;
-	} else {
-		NSLog(@"Failed to save %@", fileName);
-		return NO;
-	}
+    if (string) {
+        if ([string writeToURL:outputURL atomically:YES encoding:NSUTF8StringEncoding error:nil]) {
+            NSLog(@"%@ is saved", fileName);
+            return YES;
+        } else {
+            NSLog(@"Failed to save %@", fileName);
+            return NO;
+        }
+    } else {
+        NSLog(@"Failed to save %@. The string is nil.", fileName);
+        return NO;
+    }
 }
 
 #pragma mark - USKTSPExperiments
@@ -60,7 +65,7 @@ static const int seeds[NUMBER_OF_SEEDS] = {101, 103, 107, 109, 113, 127, 131, 13
 	NSMutableString *dataString		 = [@"NAME, DIMENSION, START_NODE, LENGTH\n" mutableCopy];
 	NSMutableString *statisticString = [@"NAME, OPTIMAL, SHORTEST, AVE, LONGEST, SIGMA\n" mutableCopy];
 
-    NSArray *sampleNames = @[@"eil51", @"pr76", @"rat99", @"kroA100", @"ch130"];
+    NSArray *sampleNames = @[@"eil51", @"pr76", @"rat99", @"kroA100", @"ch130", @"tsp225", @"gr666"];
 	for (NSString *sampleName in sampleNames) {
 		TSP *tsp = [TSP TSPWithFile:[[NSBundle mainBundle] pathForResource:sampleName ofType:@"tsp"]];
 		
@@ -114,7 +119,7 @@ static const int seeds[NUMBER_OF_SEEDS] = {101, 103, 107, 109, 113, 127, 131, 13
 	NSMutableString *dataString		 = [@"NAME, DIMENSION, START_NODE, LENGTH\n" mutableCopy];
 	NSMutableString *statisticString = [@"NAME, OPTIMAL, SHORTEST, AVE, LONGEST, SIGMA\n" mutableCopy];
 
-    NSArray *sampleNames = @[@"eil51", @"pr76", @"rat99", @"kroA100", @"ch130"];
+    NSArray *sampleNames = @[@"eil51", @"pr76", @"rat99", @"kroA100", @"ch130", @"tsp225", @"gr666"];
 	for (NSString *sampleName in sampleNames) {
 		TSP *tsp = [TSP TSPWithFile:[[NSBundle mainBundle] pathForResource:sampleName ofType:@"tsp"]];
 		
@@ -279,7 +284,6 @@ static const int seeds[NUMBER_OF_SEEDS] = {101, 103, 107, 109, 113, 127, 131, 13
 	// Export data
 	[TSPExperimentManager writeString:dataString      toFileNamed:@"ASData.csv"];
     [TSPExperimentManager writeString:statisticString toFileNamed:@"ASStatistics.csv"];
-
 }
 
 - (void)experimentOptimal
@@ -292,6 +296,5 @@ static const int seeds[NUMBER_OF_SEEDS] = {101, 103, 107, 109, 113, 127, 131, 13
 		free(anOptimalPath.route);
 	}
 }
-
 
 @end

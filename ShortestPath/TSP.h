@@ -72,6 +72,9 @@ typedef struct _Tour {
                            seed:(unsigned)seed
                    CSVLogString:(NSString **)log;
 
+
+
+
 /**
  Return the optimal solution by reading files.
  @param  name problem name of the TSP.

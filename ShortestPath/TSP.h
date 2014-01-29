@@ -29,9 +29,7 @@ typedef struct _Tour {
 #pragma mark - Constructors
 
 + (id)TSPWithFile:(NSString *)path;
-- (id)initWithFile:(NSString *)path;
 + (id)randomTSPWithDimension:(NSInteger)dimension seed:(unsigned)seed;
-- (id)initRandomTSPWithDimension:(NSInteger)dimension seed:(unsigned)seed;
 
 #pragma mark - TSP Solver Algorithms
 
@@ -60,19 +58,40 @@ typedef struct _Tour {
  @param numberOfAnt The number of ants.
  @param alpha       A parameter to control the influence of pheromone.
  @param beta        A parameter to control the influence of the desirability of state transition. (a priori knowledge, typically 1/dxy, where dxy is the distance between node x and node y)
- @param ro          The pheromone evaporatin coefficient. The rate of pheromone evaporation.
+ @param rho         The pheromone evaporatin coefficient. The rate of pheromone evaporation.
  @param seed        Seed to generate random number.
+ @param limit       The number of iteration without improvement to break.
  @param log         Iteration best tour distances in CSV format.
  @return The result tour.
  */
 - (Tour)tourByASWithNumberOfAnt:(int)numberOfAnt
              pheromoneInfluence:(int)alpha
             transitionInfluence:(int)beta
-           pheromoneEvaporation:(double)ro
+           pheromoneEvaporation:(double)rho
                            seed:(unsigned)seed
-                   CSVLogString:(NSString **)log;
+                 noImproveLimit:(int)limit
+                   CSVLogString:(NSString *__autoreleasing *)log;
 
-
+/**
+ Compute the shortest path by Max-Min Ant System. The global best solution deposits pheromone on every iteration along with all the other ants. It may not be the optimal path. The recommended values are as follows. numberOfAnt = tsp.dimension, alpha = 1, beta = 2 ~ 5, rho = 0.02, pBest = 0.05.
+ @param numberOfAnt The number of ants.
+ @param alpha       A parameter to control the influence of pheromone.
+ @param beta        A parameter to control the influence of the desirability of state transition. (a priori knowledge, typically 1/dxy, where dxy is the distance between node x and node y)
+ @param rho         The pheromone evaporatin coefficient. The rate of pheromone evaporation.
+ @param pBest       The parameter to compute minimum pheromone.
+ @param seed        Seed to generate random number.
+ @param limit       The number of iteration without improvement to break.
+ @param log         Iteration best tour distances in CSV format.
+ @return The result tour.
+ */
+- (Tour)tourByMMASWithNumberOfAnt:(int)numberOfAnt
+               pheromoneInfluence:(int)alpha
+              transitionInfluence:(int)beta
+             pheromoneEvaporation:(double)rho
+                  probabilityBest:(double)pBest
+                             seed:(unsigned)seed
+                   noImproveLimit:(int)limit
+                     CSVLogString:(NSString *__autoreleasing *)log;
 
 
 /**

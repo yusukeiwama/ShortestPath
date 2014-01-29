@@ -9,23 +9,11 @@
 #import "TSP.h"
 #import "USKTrimmer.h"
 
-NSDictionary *optimalLengthDictionary;
-
-typedef struct _Neighbor {
-	int	number;
-	int distance;
-} Neighbor;
-
-int euc2D(CGPoint A, CGPoint B)
+int euc2D(CGPoint P, CGPoint Q)
 {
-	double dx = B.x - A.x;
-	double dy = B.y - A.y;
+	double dx = Q.x - P.x;
+	double dy = Q.y - P.y;
 	return rint(sqrt(dx * dx + dy * dy));
-}
-
-int compareDistances(const Neighbor *a, const Neighbor *b)
-{
-	return ((Neighbor)(*a)).distance - ((Neighbor)(*b)).distance;
 }
 
 /// return (distance - A[i][i+1] - A[j][j+1] + A[i][j] + A[i+1][j+1])
@@ -55,19 +43,15 @@ void swap2opt(int *route, int d, int i, int j)
 
 @interface TSP ()
 
-@property (readonly) int	  *adjacencyMatrix;
-@property (readonly) Neighbor *neighborMatrix;
+@property (readonly) int *adjacencyMatrix;
 
 @end
 
-@implementation TSP {
-	NSDictionary *_optimalLengthDictionary;
-}
+@implementation TSP
 
 @synthesize dimension       = n;
 @synthesize nodes           = N;
 @synthesize adjacencyMatrix = A;
-@synthesize neighborMatrix  = NN;
 
 #pragma mark - Constructors
 
@@ -81,14 +65,9 @@ void swap2opt(int *route, int d, int i, int j)
 	self = [super init];
 	if (self) {
 		if ([self readTSPDataFromFile:path]) {
-			[self computeNeighborMatrix];
-			
 //			[self printInformation];
 //          [self printNodes];
 //			[self printAdjecencyMatrix];
-//			[self printNeighborMatrix];
-		} else {
-			return nil;
 		}
 	}
         
@@ -119,7 +98,6 @@ void swap2opt(int *route, int d, int i, int j)
 			N[i].number = i + 1;
 			N[i].coord  = p;
 		}
-		[self computeNeighborMatrix];
 	}
 	return self;
 }
@@ -262,7 +240,6 @@ void swap2opt(int *route, int d, int i, int j)
 	Tour optimalPath = {-1, NULL};
 	
 	// Read optimal lengths from file
-	if (optimalLengthDictionary == nil) {
 		NSMutableDictionary *tmpDictionary = [NSMutableDictionary dictionary];
 		NSString *rawString = [[NSString alloc] initWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"optimalSolutions" ofType:@"txt"] encoding:NSASCIIStringEncoding error:nil];
 		NSArray *lines = [rawString componentsSeparatedByString:@"\n"];
@@ -276,13 +253,14 @@ void swap2opt(int *route, int d, int i, int j)
 			[tmpDictionary setValue:val forKey:key];
 			l++;
 		}
-		optimalLengthDictionary = tmpDictionary;
-	}
+
+    NSDictionary *optimalLengthDictionary = tmpDictionary;
+    
 	// Look up optimal length dictionary for the specified name.
 	optimalPath.distance = [[optimalLengthDictionary valueForKey:name] intValue];
 	
 	// Read optimal path from file.
-	NSString *rawString = [[NSString alloc] initWithContentsOfFile:[[NSBundle mainBundle] pathForResource:name ofType:@"opt.tour"] encoding:NSASCIIStringEncoding error:nil];
+	rawString = [[NSString alloc] initWithContentsOfFile:[[NSBundle mainBundle] pathForResource:name ofType:@"opt.tour"] encoding:NSASCIIStringEncoding error:nil];
 	if (rawString) {
 		NSArray *lines = [rawString componentsSeparatedByString:@"\n"];
 		
@@ -342,28 +320,6 @@ void swap2opt(int *route, int d, int i, int j)
 			for (int j = 0; j < n; j++) {
 				A[i * n + j] = euc2D(N[i].coord, N[j].coord);
 			}
-		}
-	}
-}
-
-- (void)computeNeighborMatrix
-{
-	if (NN == NULL) {
-		NN = calloc(n * n, sizeof(Neighbor));
-		[self computeAdjacencyMatrix];
-		
-		for (int i = 0; i < n; i++) {
-			for (int j = 0; j < n; j++) {
-				// Copy adjacency matrix.
-				NN[i * n + j].number = j + 1;
-				NN[i * n + j].distance   = A[i * n + j];
-			}
-			
-			// Ignore i == j element because the element is not a neighbor but itself.
-			NN[i * n + i] = NN[i * n + n - 1];
-			
-			// Sort neighbors by distance, ignoring i == j element.
-			qsort(&(NN[n * i + 0]), n - 1, sizeof(Neighbor), (int(*)(const void *, const void *))compareDistances);
 		}
 	}
 }
@@ -487,7 +443,8 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
             transitionInfluence:(int)b
            pheromoneEvaporation:(double)r
                            seed:(unsigned int)seed
-                   CSVLogString:(NSString **)log
+                 noImproveLimit:(int)limit
+                   CSVLogString:(NSString *__autoreleasing *)log
 {
     srand(seed);
     
@@ -513,7 +470,7 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
     int  noImproveCount  = 0;
     int  loop            = 0;
     NSMutableString *csv = [@"LOOP, DISTANCE\n" mutableCopy];
-    while (noImproveCount < 1000) { // improve loop
+    while (noImproveCount < limit) { // improve loop
         loop++;
         
         // Do ant tours.
@@ -596,6 +553,149 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
     return globalBest;
 }
 
+- (Tour)tourByMMASWithNumberOfAnt:(int)m
+               pheromoneInfluence:(int)a
+              transitionInfluence:(int)b
+             pheromoneEvaporation:(double)r
+                  probabilityBest:(double)pB
+                             seed:(unsigned int)seed
+                   noImproveLimit:(int)limit
+                     CSVLogString:(NSString *__autoreleasing *)log
+{
+    srand(seed);
+    
+    double *P = calloc(n * n, sizeof(double)); // Pheromone matrix
+    
+    // Compute initial best.
+    Tour initialBest = {INT32_MAX, calloc(n + 1, sizeof(int))};
+    for (int i = 0; i < n; i++) {
+        Tour aTour = [self tourByNNFrom:i + 1];
+        if (aTour.distance < initialBest.distance) {
+            free(initialBest.route);
+            initialBest = aTour;
+        }
+    }
+
+    // Initialize pheromone with pBest.
+    double pheromoneMax = 1.0 / (r * initialBest.distance);
+    double pheromoneMin = ((1 - pow(pB, -n)) / (n / 2.0 * pow(pB, -n))) * pheromoneMax;
+
+    // Set min
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            P[i * n + j] = pheromoneMin;
+        }
+    }
+    
+    // Set max
+    for (int i = 0; i < n; i++) {
+        int from = initialBest.route[i];
+        int to   = initialBest.route[i + 1];
+        P[(from - 1) * n + (to - 1)] = pheromoneMax;
+    }
+    free(initialBest.route);
+    
+    // Generate solutions.
+    Tour globalBest      = {INT32_MAX, calloc(n + 1, sizeof(int))};
+    int  noImproveCount  = 0;
+    int  loop            = 0;
+    NSMutableString *csv = [@"LOOP, DISTANCE\n" mutableCopy];
+    while (noImproveCount < limit) { // improve loop
+        loop++;
+        
+        // Do ant tours.
+        Tour tours[m];
+        for (int k = 0; k < m; k++) { // ant loop
+            
+            // Initialize a tour.
+            tours[k].distance = 0;
+            tours[k].route    = calloc(n + 1, sizeof(int));
+            
+            // visited[i] is true when node numbered i+1 was visited.
+            bool *visited = calloc(n, sizeof(bool));
+            
+            // Set ant on start node.
+            int start = k % n + 1;
+            tours[k].route[0]  = start;
+            visited[start - 1] = true;
+            
+            // Do transition with probability.
+            int from = start;
+            for (int i = 1; i < n; i++) { // node loop
+                int to = nextNodeNumber(visited, from, n, a, b, P, A);
+                tours[k].distance += A[(from - 1) * n + (to - 1)];
+                tours[k].route[i] =  to;
+                visited[to - 1]   =  true;
+                from = to;
+            }
+            // Go back to the start node.
+            tours[k].distance += A[(from - 1) * n + (start - 1)];
+            tours[k].route[n] =  start;
+            
+            free(visited);
+        }
+        
+        // Find iteration best tour.
+        Tour iterationBest = {INT32_MAX, NULL};
+        for (int k = 0; k < m; k++) {
+            if (tours[k].distance < iterationBest.distance) {
+                free(iterationBest.route);
+                iterationBest = tours[k];
+            } else {
+                free(tours[k].route);
+            }
+        }
+        
+        // Update global best tour.
+        if (iterationBest.distance < globalBest.distance) {
+            free(globalBest.route);
+            globalBest = iterationBest;
+            noImproveCount = 0;
+        } else {
+            free(iterationBest.route);
+            noImproveCount++;
+        }
+        [csv appendFormat:@"%d, %d\n", loop, globalBest.distance];
+        
+        // Pheromone evaporation
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                P[i * n + j] *= (1.0 - r);
+            }
+        }
+        
+        // Pheromone deposit by global best tour.
+        double pheromone = 1.0 / globalBest.distance;
+        for (int i = 0; i < n; i++) {
+            int from = globalBest.route[i];
+            int to   = globalBest.route[i + 1];
+            P[(from - 1) * n + (to - 1)] += pheromone;
+        }
+        
+        // Update max and min of pheromone.
+        pheromoneMax = 1.0 / (r * globalBest.distance);
+        pheromoneMin = ((1 - pow(pB, -n)) / (n / 2.0 * pow(pB, -n))) * pheromoneMax;
+        
+        // Fix pheromone amount between min and max.
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                if (P[i * n + j] < pheromoneMin) {
+                    P[i * n + j] = pheromoneMin;
+                } else if (P[i * n + j] > pheromoneMax) {
+                    P[i * n + j] = pheromoneMax;
+                }
+            }
+        }
+    }
+    
+    // Export iteration best tour distances in CSV format.
+    if (log) {
+        *log = csv;
+    }
+    
+    return globalBest;
+}
+
 #pragma mark - utility methods
 
 + (int *)intArrayFromArray:(NSArray *)array
@@ -645,28 +745,6 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
 	}
 }
 
-- (void)printNeighborMatrix
-{
-	printf("\n========== NEIGHBOR INDEX MATRIX ==========\n");
-	for (int i = 0; i < n; i++) {
-		printf("%4d: ", i + 1);
-		for (int j = 0; j < n - 1; j++) {
-			printf("%4d ", NN[i * n + j].number);
-		}
-		printf("\n");
-	}
-	
-	printf("\n========== NEIGHBOR DISTANCE MATRIX ==========\n");
-	for (int i = 0; i < n; i++) {
-		printf("%4d: ", i + 1);
-		for (int j = 0; j < n - 1; j++) {
-			printf("%4d ", (int)(NN[i * n + j].distance));
-		}
-		printf("\n");
-	}
-}
-
-
 + (void)printPath:(Tour)Tour ofTSP:(TSP *)tsp
 {
 	printf("\n========== PATH ==========\n");
@@ -686,7 +764,6 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
 {
 	if (N)  free(N);
 	if (A)	free(A);
-	if (NN)	free(NN);
 }
 
 @end

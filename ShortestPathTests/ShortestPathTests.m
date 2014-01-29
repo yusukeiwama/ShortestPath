@@ -13,17 +13,12 @@
 
 @end
 
-@implementation ShortestPathTests {
-    NSArray *_sampleFileNames;
-}
+@implementation ShortestPathTests
 
 - (void)setUp
 {
     [super setUp];
     // Put setup code here. This method is called before the invocation of each test method in the class.
-    _sampleFileNames = @[@"eil51", @"pr76", @"rat99"];
-//    _sampleFileNames = @[@"eil51", @"pr76", @"rat99", @"kroA100", @"ch130"];
-//    _sampleFileNames = @[@"eil51", @"pr76", @"rat99", @"kroA100", @"ch130", @"tsp225"];
 }
 
 - (void)tearDown
@@ -36,62 +31,60 @@
 /// Check if the shortest path length is longer than the optimal path.
 - (void)testNN
 {
-    for (NSString *sampleName in _sampleFileNames) {
-        TSP *tsp = [TSP TSPWithFile:[[NSBundle mainBundle] pathForResource:sampleName ofType:@"tsp"]];
-        
-        // Compute the shortest path.
-        Tour shortestTour = {INT32_MAX, calloc(tsp.dimension, sizeof(int))};
-        for (int i = 0; i < tsp.dimension; i++) {
-            Tour aTour = [tsp tourByNNFrom:i + 1];
-            if (aTour.distance < shortestTour.distance) {
-                memcpy(shortestTour.route, aTour.route, tsp.dimension * sizeof(int));
-                shortestTour.distance = aTour.distance;
-            }
-            free(aTour.route);
+    NSString *sampleName = @"eil51";
+    TSP *tsp = [TSP TSPWithFile:[[NSBundle mainBundle] pathForResource:sampleName ofType:@"tsp"]];
+    
+    // Compute the shortest path.
+    Tour shortestTour = {INT32_MAX, calloc(tsp.dimension, sizeof(int))};
+    for (int i = 0; i < tsp.dimension; i++) {
+        Tour aTour = [tsp tourByNNFrom:i + 1];
+        if (aTour.distance < shortestTour.distance) {
+            memcpy(shortestTour.route, aTour.route, tsp.dimension * sizeof(int));
+            shortestTour.distance = aTour.distance;
         }
-        
-        XCTAssertTrue([TSP optimalSolutionWithName:sampleName].distance < shortestTour.distance, @"Shorter than the optimal solution.");
+        free(aTour.route);
     }
+    
+    XCTAssertTrue([TSP optimalSolutionWithName:sampleName].distance < shortestTour.distance, @"Shorter than the optimal solution.");
 }
 
 /// Check if the shortest path length is longer than the optimal path.
 - (void)testNN2opt
 {
-    for (NSString *sampleName in _sampleFileNames) {
-        TSP *tsp = [TSP TSPWithFile:[[NSBundle mainBundle] pathForResource:sampleName ofType:@"tsp"]];
-        
-        // Compute the shortest path.
-        Tour shortestTour = {INT32_MAX, calloc(tsp.dimension, sizeof(int))};
-        for (int i = 0; i < tsp.dimension; i++) {
-            Tour aTour = [tsp tourByNNFrom:i + 1];
-            [tsp improveTourBy2opt:&aTour];
-            if (aTour.distance < shortestTour.distance) {
-                memcpy(shortestTour.route, aTour.route, tsp.dimension * sizeof(int));
-                shortestTour.distance = aTour.distance;
-            }
-            free(aTour.route);
+    NSString *sampleName = @"eil51";
+    TSP *tsp = [TSP TSPWithFile:[[NSBundle mainBundle] pathForResource:sampleName ofType:@"tsp"]];
+    
+    // Compute the shortest path.
+    Tour shortestTour = {INT32_MAX, calloc(tsp.dimension, sizeof(int))};
+    for (int i = 0; i < tsp.dimension; i++) {
+        Tour aTour = [tsp tourByNNFrom:i + 1];
+        [tsp improveTourBy2opt:&aTour];
+        if (aTour.distance < shortestTour.distance) {
+            memcpy(shortestTour.route, aTour.route, tsp.dimension * sizeof(int));
+            shortestTour.distance = aTour.distance;
         }
-        
-        XCTAssertTrue([TSP optimalSolutionWithName:sampleName].distance < shortestTour.distance, @"Shorter than the optimal solution.");
+        free(aTour.route);
     }
+    
+    XCTAssertTrue([TSP optimalSolutionWithName:sampleName].distance < shortestTour.distance, @"Shorter than the optimal solution.");
 }
 
 /// Check if the shortest path length is longer than the optimal path.
 - (void)testAS
 {
-    for (NSString *sampleName in _sampleFileNames) {
-        TSP *tsp = [TSP TSPWithFile:[[NSBundle mainBundle] pathForResource:sampleName ofType:@"tsp"]];
-        
-        // Compute the shortest path.
-        Tour tour = [tsp tourByASWithNumberOfAnt:tsp.dimension
-                              pheromoneInfluence:1
-                             transitionInfluence:2
-                            pheromoneEvaporation:0.5
-                                            seed:101];
-        
-        // Check if the shortest path length is longer than the optimal path.
-        XCTAssertTrue([TSP optimalSolutionWithName:sampleName].distance < tour.distance, @"Shorter than the optimal solution.");
-    }
+    NSString *sampleName = @"eil51";
+    TSP *tsp = [TSP TSPWithFile:[[NSBundle mainBundle] pathForResource:sampleName ofType:@"tsp"]];
+    
+    // Compute the shortest path.
+    Tour tour = [tsp tourByASWithNumberOfAnt:tsp.dimension
+                          pheromoneInfluence:1
+                         transitionInfluence:2
+                        pheromoneEvaporation:0.5
+                                        seed:101
+                                CSVLogString:NULL];
+    
+    // Check if the shortest path length is longer than the optimal path.
+    XCTAssertTrue([TSP optimalSolutionWithName:sampleName].distance < tour.distance, @"Shorter than the optimal solution.");
 }
 
 @end

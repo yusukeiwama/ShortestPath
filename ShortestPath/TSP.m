@@ -367,19 +367,20 @@ void swap2opt(int *route, int d, int i, int j)
 
 - (Tour)tourByNNFrom:(int)start
 {
-	int from, to;
-    int *visited = calloc(self.dimension + 1, sizeof(int));
-	int distanceSum = 0;
+    Neighbor *N       = self.neighborMatrix;
+    int      n        = self.dimension;
+    int      *visited = calloc(self.dimension + 1, sizeof(int));
 
-	from = start;
+	int from   = start;
     visited[0] = from;
 
     int i = 1;
     int k = 0;
-	while (i < self.dimension) {
-		for (int j = 0; j < self.dimension - 1; j++) {
+    int distanceSum = 0;
+	while (i < n) {
+		for (int j = 0; j < n - 1; j++) {
 			// Look up the nearest node where has not been visited yet.
-			to = self.neighborMatrix[self.dimension * (from - 1) + j].number;
+			int to = N[(from - 1) * n + j].number;
 			
 			// Check if the node has already been visited.
             for (k = 0; k < i; k++) {
@@ -391,7 +392,7 @@ void swap2opt(int *route, int d, int i, int j)
             // If new node has not been visited, add it to visited.
             if (k == i) {
                 visited[i++] = to;
-                distanceSum += self.neighborMatrix[self.dimension * (from - 1) + j].distance;
+                distanceSum += N[(from - 1) * n + j].distance;
                 from = to;
                 break;
             }
@@ -408,15 +409,17 @@ void swap2opt(int *route, int d, int i, int j)
 
 - (void)improveTourBy2opt:(Tour *)tour
 {
+    int *A = self.adjacencyMatrix;
+    int  n = self.dimension;
+    
 	BOOL improved = YES;
-
 	while (improved) {
 		improved = NO;
-		for (int i = 0; i < self.dimension - 1; i++) {
-			for (int j = i + 1; j < self.dimension ; j++) {
-				int newLength = length2opt(tour, self.adjacencyMatrix, self.dimension, i, j);
+		for (int i = 0; i < n - 1; i++) {
+			for (int j = i + 1; j < n ; j++) {
+				int newLength = length2opt(tour, A, n, i, j);
 				if (newLength < tour->distance) {
-					swap2opt(tour->route, self.dimension, i, j);
+					swap2opt(tour->route, n, i, j);
 					tour->distance = newLength;
 					improved = YES;
 				}
@@ -486,6 +489,7 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
             transitionInfluence:(int)b
            pheromoneEvaporation:(double)r
                            seed:(unsigned int)seed
+                   CSVLogString:(NSString **)log
 {
     srand(seed);
     
@@ -500,8 +504,8 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
         totalDistance += aTour.distance;
         free(aTour.route);
     }
-    double averateDistance = (double)totalDistance / n;
-    double initialPheromone = m / averateDistance;
+    double averageDistance  = (double)totalDistance / n;
+    double initialPheromone = m / averageDistance;
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
             P[i * n + j] = initialPheromone;
@@ -509,31 +513,42 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
     }
     
     // Generate solutions.
-    Tour theShortestTour = {INT32_MAX, calloc(n, sizeof(int))};
-    int noImproveCount = 0;
+    Tour globalBest      = {INT32_MAX, calloc(n, sizeof(int))};
+    int  noImproveCount  = 0;
+    int  loop            = 0;
+    NSMutableString *csv = [@"LOOP, DISTANCE\n" mutableCopy];
     while (noImproveCount < 1000) { // improve loop
+        loop++;
         
         // Do ant tours.
         Tour tours[m];
         for (int k = 0; k < m; k++) { // ant loop
+
+            // Initialize a tour.
             tours[k].distance = 0;
-            tours[k].route = calloc(n + 1, sizeof(int));
+            tours[k].route    = calloc(n + 1, sizeof(int));
+            
             // visited[i] is YES when node numbered i+1 was visited.
             bool *visited = calloc(n, sizeof(bool));
+            
+            // Set ant on start node.
             int start = k % n + 1;
-            tours[k].route[0] = start;
+            tours[k].route[0]  = start;
             visited[start - 1] = YES;
+            
+            // Do transition with probability.
             int from = start;
-            int to;
             for (int i = 1; i < n; i++) { // node loop
-                to = nextNodeNumber(visited, from, n, a, b, P, A);
-                tours[k].route[i] = to;
-                visited[to - 1] = YES;
+                int to = nextNodeNumber(visited, from, n, a, b, P, A);
                 tours[k].distance += A[(from - 1) * n + (to - 1)];
+                tours[k].route[i] =  to;
+                visited[to - 1]   =  YES;
                 from = to;
             }
-            tours[k].route[n] = start;
+            // Go back to the start node.
             tours[k].distance += A[(from - 1) * n + (start - 1)];
+            tours[k].route[n] =  start;
+
             free(visited);
         }
         
@@ -544,7 +559,7 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
             }
         }
         
-        // Pheromone update
+        // Pheromone deposit by ants
         for (int k = 0; k < m; k++) {
             double pheromone = 1.0 / tours[k].distance;
             for (int i = 0; i < n; i++) {
@@ -552,29 +567,35 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
             }
         }
         
-        // Find shortest path.
-        Tour shortestTour = {INT32_MAX, NULL};
+        // Find iteration best tour.
+        Tour iterationBest = {INT32_MAX, NULL};
         for (int k = 0; k < m; k++) {
-            if (tours[k].distance < shortestTour.distance) {
-                free(shortestTour.route);
-                shortestTour = tours[k];
+            if (tours[k].distance < iterationBest.distance) {
+                free(iterationBest.route);
+                iterationBest = tours[k];
             } else {
                 free(tours[k].route);
             }
         }
         
-        // Improve path.
-        if (shortestTour.distance < theShortestTour.distance) {
-            free(theShortestTour.route);
-            theShortestTour = shortestTour;
+        // Update global best tour.
+        if (iterationBest.distance < globalBest.distance) {
+            free(globalBest.route);
+            globalBest = iterationBest;
             noImproveCount = 0;
         } else {
-            free(shortestTour.route);
+            free(iterationBest.route);
             noImproveCount++;
         }
+        [csv appendFormat:@"%d, %d\n", loop, globalBest.distance];
     }
     
-    return theShortestTour;
+    // Export iteration best tour distances in CSV format.
+    if (log) {
+        *log = csv;
+    }
+    
+    return globalBest;
 }
 
 #pragma mark - utility methods
@@ -596,7 +617,6 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
 	[self.information enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop){
 		printf("%s: %s\n", [key cStringUsingEncoding:NSUTF8StringEncoding], [obj cStringUsingEncoding:NSUTF8StringEncoding]);
 	}];
-		
 }
 
 - (void)printNodes

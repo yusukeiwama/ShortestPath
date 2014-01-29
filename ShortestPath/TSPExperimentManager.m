@@ -59,7 +59,7 @@ static const int seeds[NUMBER_OF_SEEDS] = {101, 103, 107, 109, 113, 127, 131, 13
 {
 	NSMutableString *dataString		 = [@"NAME, DIMENSION, START_NODE, LENGTH\n" mutableCopy];
 	NSMutableString *statisticString = [@"NAME, OPTIMAL, SHORTEST, AVE, LONGEST, SIGMA\n" mutableCopy];
-	
+
     NSArray *sampleNames = @[@"eil51", @"pr76", @"rat99", @"kroA100", @"ch130"];
 	for (NSString *sampleName in sampleNames) {
 		TSP *tsp = [TSP TSPWithFile:[[NSBundle mainBundle] pathForResource:sampleName ofType:@"tsp"]];
@@ -113,7 +113,7 @@ static const int seeds[NUMBER_OF_SEEDS] = {101, 103, 107, 109, 113, 127, 131, 13
 {
 	NSMutableString *dataString		 = [@"NAME, DIMENSION, START_NODE, LENGTH\n" mutableCopy];
 	NSMutableString *statisticString = [@"NAME, OPTIMAL, SHORTEST, AVE, LONGEST, SIGMA\n" mutableCopy];
-	
+
     NSArray *sampleNames = @[@"eil51", @"pr76", @"rat99", @"kroA100", @"ch130"];
 	for (NSString *sampleName in sampleNames) {
 		TSP *tsp = [TSP TSPWithFile:[[NSBundle mainBundle] pathForResource:sampleName ofType:@"tsp"]];
@@ -161,17 +161,16 @@ static const int seeds[NUMBER_OF_SEEDS] = {101, 103, 107, 109, 113, 127, 131, 13
 
 - (void)experimentASTuning
 {
-    NSMutableString *dataString	= [@"NAME, DIMENSION, LENGTH, M, ALPHA, BETA, RO, SEED\n" mutableCopy];
+    NSMutableString *dataString      = [@"NAME, DIMENSION, LENGTH, M, ALPHA, BETA, RO, SEED\n" mutableCopy];
 	NSMutableString *statisticString = [@"NAME, OPTIMAL, BETA, SHORTEST, AVE, LONGEST, SIGMA\n" mutableCopy];
-	
+
     NSString *sampleName = @"eil51";
-    
     for (int b = 2; b <= 5; b++) {
         TSP *tsp = [TSP TSPWithFile:[[NSBundle mainBundle] pathForResource:sampleName ofType:@"tsp"]];
         int	lengthSum = 0;
+        int lengths[NUMBER_OF_SEEDS];
         Tour shortestTour = {INT32_MAX, calloc(tsp.dimension, sizeof(int))};
         Tour longestTour  = {0,         calloc(tsp.dimension, sizeof(int))};
-        int lengths[NUMBER_OF_SEEDS];
         
         for (int ri = 0; ri < NUMBER_OF_SEEDS; ri++) {
             // Compute average path length.
@@ -182,7 +181,8 @@ static const int seeds[NUMBER_OF_SEEDS] = {101, 103, 107, 109, 113, 127, 131, 13
                                   pheromoneInfluence:a
                                  transitionInfluence:b
                                 pheromoneEvaporation:ro
-                                                seed:seeds[ri]];
+                                                seed:seeds[ri]
+                                         CSVLogString:NULL];
             lengths[ri] = aTour.distance;
 			lengthSum += aTour.distance;
             [dataString appendString:[NSString stringWithFormat:@"%@, %d, %d, %d, %d, %d, %.2f, %d\n", sampleName, tsp.dimension, aTour.distance, m, a, b, ro, seeds[ri]]];
@@ -220,28 +220,29 @@ static const int seeds[NUMBER_OF_SEEDS] = {101, 103, 107, 109, 113, 127, 131, 13
 
 - (void)experimentAS
 {
-    NSMutableString *dataString	= [@"NAME, DIMENSION, LENGTH, M, ALPHA, BETA, RO, SEED\n" mutableCopy];
+    NSMutableString *dataString	     = [@"NAME, DIMENSION, LENGTH, M, ALPHA, BETA, RO, SEED\n" mutableCopy];
 	NSMutableString *statisticString = [@"NAME, OPTIMAL, BETA, SHORTEST, AVE, LONGEST, SIGMA\n" mutableCopy];
-    
+
     NSArray *sampleNames = @[@"pr76", @"rat99", @"kroA100", @"ch130"];
-    
     for (NSString *sampleName in sampleNames) {
         TSP *tsp = [TSP TSPWithFile:[[NSBundle mainBundle] pathForResource:sampleName ofType:@"tsp"]];
         int	lengthSum = 0;
+        int lengths[NUMBER_OF_SEEDS];
         Tour shortestTour = {INT32_MAX, calloc(tsp.dimension, sizeof(int))};
         Tour longestTour  = {0,         calloc(tsp.dimension, sizeof(int))};
-        int lengths[NUMBER_OF_SEEDS];
-        
+        NSString *shortestLog;
         for (int ri = 0; ri < NUMBER_OF_SEEDS; ri++) {
             // Compute average path length.
             int m = tsp.dimension;
             int a = 1;
             double ro = 0.5;
+            NSString *log;
             Tour aTour = [tsp tourByASWithNumberOfAnt:tsp.dimension
                                    pheromoneInfluence:a
                                   transitionInfluence:OPTIMAL_BETA
                                  pheromoneEvaporation:ro
-                                                 seed:seeds[ri]];
+                                                 seed:seeds[ri]
+                                         CSVLogString:&log];
             lengths[ri] = aTour.distance;
 			lengthSum += aTour.distance;
             [dataString appendString:[NSString stringWithFormat:@"%@, %d, %d, %d, %d, %d, %.2f, %d\n", sampleName, tsp.dimension, aTour.distance, m, a, OPTIMAL_BETA, ro, seeds[ri]]];
@@ -253,6 +254,7 @@ static const int seeds[NUMBER_OF_SEEDS] = {101, 103, 107, 109, 113, 127, 131, 13
 			if (aTour.distance < shortestTour.distance) {
 			    memcpy(shortestTour.route, aTour.route, tsp.dimension * sizeof(int));
                 shortestTour.distance = aTour.distance;
+                shortestLog = log;
 			}
             
             free(aTour.route);
@@ -267,14 +269,17 @@ static const int seeds[NUMBER_OF_SEEDS] = {101, 103, 107, 109, 113, 127, 131, 13
         double standardDeviation = sqrt(deviationSumSquare / tsp.dimension);
         [statisticString appendFormat:@"%@, %d, %d, %d, %.2f, %d, %.2f\n", sampleName, [TSP optimalSolutionWithName:sampleName].distance, OPTIMAL_BETA, shortestTour.distance, averageLength, longestTour.distance, standardDeviation];
         
-        
         // Visualize the shortest path.
         [self.visualizer PNGWithPath:shortestTour ofTSP:tsp toFileNamed:[NSString stringWithFormat:@"%@_AS_beta%d.png", sampleName, OPTIMAL_BETA] withStyle:TSPVisualizationStyleLight];
+        
+        // Export iteration best tour distances log.
+        [TSPExperimentManager writeString:shortestLog toFileNamed:[NSString stringWithFormat:@"%@_ASLog.csv", sampleName]];
     }
 	
 	// Export data
 	[TSPExperimentManager writeString:dataString      toFileNamed:@"ASData.csv"];
     [TSPExperimentManager writeString:statisticString toFileNamed:@"ASStatistics.csv"];
+
 }
 
 - (void)experimentOptimal

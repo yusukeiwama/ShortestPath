@@ -61,14 +61,16 @@ typedef struct _Tour {
  @param alpha       A parameter to control the influence of pheromone.
  @param beta        A parameter to control the influence of the desirability of state transition. (a priori knowledge, typically 1/dxy, where dxy is the distance between node x and node y)
  @param ro          The pheromone evaporatin coefficient. The rate of pheromone evaporation.
- @param  seed       Seed to generate random number.
+ @param seed        Seed to generate random number.
+ @param log         Iteration best tour distances in CSV format.
  @return The result tour.
  */
 - (Tour)tourByASWithNumberOfAnt:(int)numberOfAnt
              pheromoneInfluence:(int)alpha
             transitionInfluence:(int)beta
            pheromoneEvaporation:(double)ro
-                           seed:(unsigned)seed;
+                           seed:(unsigned)seed
+                   CSVLogString:(NSString **)log;
 
 /**
  Return the optimal solution by reading files.

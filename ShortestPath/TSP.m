@@ -578,20 +578,11 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
 
     // Initialize pheromone with pBest.
     double pheromoneMax = 1.0 / (r * initialBest.distance);
-    double pheromoneMin = ((1 - pow(pB, -n)) / (n / 2.0 * pow(pB, -n))) * pheromoneMax;
-
-    // Set min
+    double pheromoneMin = ((1 - pow(pB, 1.0 / n)) / (n / 2.0 * pow(pB, 1.0 / n))) * pheromoneMax;
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
             P[i * n + j] = pheromoneMin;
         }
-    }
-    
-    // Set max
-    for (int i = 0; i < n; i++) {
-        int from = initialBest.route[i];
-        int to   = initialBest.route[i + 1];
-        P[(from - 1) * n + (to - 1)] = pheromoneMax;
     }
     free(initialBest.route);
     

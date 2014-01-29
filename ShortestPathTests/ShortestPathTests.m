@@ -80,14 +80,14 @@
 - (void)testAS
 {
     for (NSString *sampleName in _sampleFileNames) {
-//        NSString *sampleName = @"ulysses16";
         TSP *tsp = [TSP TSPWithFile:[[NSBundle mainBundle] pathForResource:sampleName ofType:@"tsp"]];
         
         // Compute the shortest path.
         Tour tour = [tsp tourByASWithNumberOfAnt:tsp.dimension
-                               pheromoneInfluence:1
-                              transitionInfluence:2
-                             pheromoneEvaporation:0.5];
+                              pheromoneInfluence:1
+                             transitionInfluence:2
+                            pheromoneEvaporation:0.5
+                                            seed:101];
         
         // Check if the shortest path length is longer than the optimal path.
         XCTAssertTrue([TSP optimalSolutionWithName:sampleName].distance < tour.distance, @"Shorter than the optimal solution.");

@@ -13,7 +13,7 @@
 typedef enum USKTSPExperiment {
 	USKTSPExperimentNN,
 	USKTSPExperimentNN2opt,
-    USKTSPExperimentASTuning,
+    USKTSPExperimentASTuningBeta,
     USKTSPExperimentAS,
 	USKTSPExperimentOptimal
 } USKTSPExperiment;
@@ -25,3 +25,10 @@ typedef enum USKTSPExperiment {
 - (void)doExperiment:(USKTSPExperiment)experiment;
 
 @end
+
+
+/**
+ 異なるアルゴリズムを比較するときは解の作成回数を同じにして考える。
+ 2-optの１回を１回とする
+ 同じOのものを同じコストとかんがえる。
+*/

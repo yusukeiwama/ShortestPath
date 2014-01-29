@@ -30,7 +30,8 @@ typedef struct _Tour {
 
 + (id)TSPWithFile:(NSString *)path;
 - (id)initWithFile:(NSString *)path;
-+ (id)randomTSPWithDimension:(NSInteger)dimension;
++ (id)randomTSPWithDimension:(NSInteger)dimension seed:(unsigned)seed;
+- (id)initRandomTSPWithDimension:(NSInteger)dimension seed:(unsigned)seed;
 
 #pragma mark - TSP Solver Algorithms
 
@@ -60,12 +61,14 @@ typedef struct _Tour {
  @param alpha       A parameter to control the influence of pheromone.
  @param beta        A parameter to control the influence of the desirability of state transition. (a priori knowledge, typically 1/dxy, where dxy is the distance between node x and node y)
  @param ro          The pheromone evaporatin coefficient. The rate of pheromone evaporation.
+ @param  seed       Seed to generate random number.
  @return The result tour.
  */
 - (Tour)tourByASWithNumberOfAnt:(int)numberOfAnt
              pheromoneInfluence:(int)alpha
             transitionInfluence:(int)beta
-           pheromoneEvaporation:(double)ro;
+           pheromoneEvaporation:(double)ro
+                           seed:(unsigned)seed;
 
 /**
  Return the optimal solution by reading files.

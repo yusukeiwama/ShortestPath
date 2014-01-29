@@ -90,21 +90,21 @@ void swap2opt(int *route, int d, int i, int j)
 	return self;
 }
 
-+ (id)randomTSPWithDimension:(NSInteger)dimension
++ (id)randomTSPWithDimension:(NSInteger)dimension seed:(unsigned int)seed
 {
     if (dimension > MAX_DIMENSION) {
         dimension = MAX_DIMENSION;
     } else if (dimension < 3) {
         return nil;
     }
-	return [[TSP alloc] initRandomTSPWithDimension:dimension];
+	return [[TSP alloc] initRandomTSPWithDimension:dimension seed:seed];
 }
 
-- (id)initRandomTSPWithDimension:(NSInteger)dimension
+- (id)initRandomTSPWithDimension:(NSInteger)dimension seed:(unsigned int)seed
 {
 	self = [super init];
 	if (self) {
-		srand((unsigned)time(NULL));
+		srand(seed);
 		
 		_dimension = dimension;
 		_nodes = calloc(dimension, sizeof(Node));
@@ -436,32 +436,58 @@ double iPow(double val, int pow)
 
 int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int *A)
 {
+    // Compute the denominator of the probability.
     double sumWeight = 0.0;
     for (int j = 0; j < n; j++) {
         if (visited[j] == NO) {
             sumWeight += iPow(P[(from - 1) * n + j], a) * iPow(1.0 / A[(from - 1) * n + j], b);
         }
     }
-    double weight = sumWeight * (rand() / (RAND_MAX + 1.0));
-    sumWeight = 0.0;
 
-    // select next node
-    int j = 0;
-    while (sumWeight < weight) {
-        if (visited[j] == NO) {
-            sumWeight += iPow(P[(from - 1) * n + j], a) * iPow(1.0 / A[(from - 1) * n + j], b);
+    int to = 0;
+    if (sumWeight < DBL_MIN) { // No pheromone.
+        // Select node randomly.
+        int numberOfPossibleNode = 0;
+        for (int j = 0; j < n; j++) {
+            if (visited[j] == NO) {
+                numberOfPossibleNode++;
+            }
         }
-        j++;
+        int targetOrder = numberOfPossibleNode * (double)rand() / (RAND_MAX + 1.0) + 1;
+        int order = 0;
+        int j = 0;
+        while (order < targetOrder) {
+            if (visited[j] == NO) {
+                order++;
+            }
+            j++;
+        }
+        to = j;
+        
+    } else { // Pheromone exist.
+        // Select node with probability.
+        double targetWeight = sumWeight * (double)rand() / (RAND_MAX + 1.0);
+        double weight = 0.0;
+        int j = 0;
+        while (weight < targetWeight) {
+            if (visited[j] == NO) {
+                weight += iPow(P[(from - 1) * n + j], a) * iPow(1.0 / A[(from - 1) * n + j], b);
+            }
+            j++;
+        }
+        to = j;
     }
-    return j;
+    
+    return to;
 }
 
 - (Tour)tourByASWithNumberOfAnt:(int)m
              pheromoneInfluence:(int)a
             transitionInfluence:(int)b
            pheromoneEvaporation:(double)r
+                           seed:(unsigned int)seed
 {
-    srand((unsigned)383);
+    srand(seed);
     
     int     n = self.dimension;
     int    *A = self.adjacencyMatrix;
@@ -492,17 +518,22 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
         for (int k = 0; k < m; k++) { // ant loop
             tours[k].distance = 0;
             tours[k].route = calloc(n + 1, sizeof(int));
+            // visited[i] is YES when node numbered i+1 was visited.
             bool *visited = calloc(n, sizeof(bool));
             int start = k % n + 1;
             tours[k].route[0] = start;
             visited[start - 1] = YES;
+            int from = start;
+            int to;
             for (int i = 1; i < n; i++) { // node loop
-                tours[k].route[i] = nextNodeNumber(visited, tours[k].route[i-1], n, a, b, P, A);
-                visited[tours[k].route[i] - 1] = YES;
-                tours[k].distance += A[(tours[k].route[i-1] - 1) * n + (tours[k].route[i] - 1)];
+                to = nextNodeNumber(visited, from, n, a, b, P, A);
+                tours[k].route[i] = to;
+                visited[to - 1] = YES;
+                tours[k].distance += A[(from - 1) * n + (to - 1)];
+                from = to;
             }
             tours[k].route[n] = start;
-            tours[k].distance += A[(tours[k].route[n-1] - 1) * n + (tours[k].route[n] - 1)];
+            tours[k].distance += A[(from - 1) * n + (start - 1)];
             free(visited);
         }
         
@@ -517,7 +548,7 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
         for (int k = 0; k < m; k++) {
             double pheromone = 1.0 / tours[k].distance;
             for (int i = 0; i < n; i++) {
-                P[(tours[k].route[i] - 1) * n + (tours[k].route[i+1] - 1)] += pheromone;
+                    P[(tours[k].route[i] - 1) * n + (tours[k].route[i+1] - 1)] += pheromone;
             }
         }
         
@@ -543,7 +574,6 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
         }
     }
     
-    printf("theShortestTour.distance = %d\n", theShortestTour.distance);
     return theShortestTour;
 }
 

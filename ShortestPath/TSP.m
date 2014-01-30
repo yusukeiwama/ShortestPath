@@ -523,7 +523,7 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
         }
         
         // Find iteration best tour.
-        Tour iterationBest = {INT32_MAX, NULL};
+        Tour iterationBest = {INT32_MAX, calloc(n + 1, sizeof(int))};
         for (int k = 0; k < m; k++) {
             if (tours[k].distance < iterationBest.distance) {
                 free(iterationBest.route);
@@ -627,7 +627,7 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
         }
         
         // Find iteration best tour.
-        Tour iterationBest = {INT32_MAX, NULL};
+        Tour iterationBest = {INT32_MAX, calloc(n + 1, sizeof(int))};
         for (int k = 0; k < m; k++) {
             if (tours[k].distance < iterationBest.distance) {
                 free(iterationBest.route);
@@ -760,11 +760,11 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
             free(visited);
             
             // Improve using 2-opt
-            [self improveTourBy2opt:&tours[k]];
+            [self improveTourBy2opt:&(tours[k])];
         }
         
         // Find iteration best tour.
-        Tour iterationBest = {INT32_MAX, NULL};
+        Tour iterationBest = {INT32_MAX, calloc(n + 1, sizeof(int))};
         for (int k = 0; k < m; k++) {
             if (tours[k].distance < iterationBest.distance) {
                 free(iterationBest.route);
@@ -821,7 +821,6 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
         *log = csv;
     }
     
-    printf("globalBest = %d\n", globalBest.distance);
     return globalBest;
 }
 

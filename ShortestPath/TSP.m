@@ -9,11 +9,11 @@
 #import "TSP.h"
 #import "USKTrimmer.h"
 
-int euc2D(CGPoint P, CGPoint Q)
+int euc2D(Coordinate P, Coordinate Q)
 {
 	double dx = Q.x - P.x;
 	double dy = Q.y - P.y;
-	return rint(sqrt(dx * dx + dy * dy));
+	return (int)(sqrt(dx * dx + dy * dy) + 0.5);
 }
 
 /// return (distance - A[i][i+1] - A[j][j+1] + A[i][j] + A[i+1][j+1])
@@ -42,8 +42,6 @@ void swap2opt(int *route, int d, int i, int j)
 }
 
 @interface TSP ()
-
-@property (readonly) int *adjacencyMatrix;
 
 @end
 
@@ -93,10 +91,9 @@ void swap2opt(int *route, int d, int i, int j)
 		n = dimension;
 		N = calloc(n, sizeof(Node));
 		for (int i = 0; i < n; i++) {
-			CGPoint p = CGPointMake(100.0 * rand() / (RAND_MAX + 1.0),
-                                    100.0 * rand() / (RAND_MAX + 1.0));
-			N[i].number = i + 1;
-			N[i].coord  = p;
+			Coordinate p = {100.0 * rand() / (RAND_MAX + 1.0), 100.0 * rand() / (RAND_MAX + 1.0)};
+			N[i].number  = i + 1;
+			N[i].coord   = p;
 		}
 	}
 	return self;
@@ -391,6 +388,15 @@ double iPow(double val, int pow)
     return powered;
 }
 
+void initializePheromone(double pheromone, int n, double *P)
+{
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            P[i * n + j] = pheromone;
+        }
+    }
+}
+
 int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int *A)
 {
     // Compute the denominator of the probability.
@@ -400,7 +406,7 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
             sumWeight += iPow(P[(from - 1) * n + j], a) * iPow(1.0 / A[(from - 1) * n + j], b);
         }
     }
-
+    
     int to = 0;
     if (sumWeight < DBL_MIN) { // No pheromone.
         // Select node randomly.
@@ -469,6 +475,17 @@ Tour antTour(int k, int n, int *A, double *P, int a, int b)
     return tour;
 };
 
+bool takeBetterTour(Tour canditateTour, Tour *bestSoFarTour_p)
+{
+    if (canditateTour.distance < bestSoFarTour_p->distance) {
+        free(bestSoFarTour_p->route);
+        *bestSoFarTour_p = canditateTour;
+        return true;
+    } else {
+        free(canditateTour.route);
+        return false;
+    }
+}
 
 void evaporatePheromone(double r, int n, double *P)
 {
@@ -477,25 +494,6 @@ void evaporatePheromone(double r, int n, double *P)
         for (int j = 0; j < n; j++) {
             P[i * n + j] *= (1.0 - r);
         }
-    }
-}
-
-void initializePheromone(double pheromone, int n, double *P)
-{
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < n; j++) {
-            P[i * n + j] = pheromone;
-        }
-    }
-}
-
-void takeBetterTour(Tour canditateTour, Tour *bestSoFarTour_p)
-{
-    if (canditateTour.distance < bestSoFarTour_p->distance) {
-        free(bestSoFarTour_p->route);
-        *bestSoFarTour_p = canditateTour;
-    } else {
-        free(canditateTour.route);
     }
 }
 
@@ -542,7 +540,7 @@ void depositPheromone(Tour tour, int n, double *P)
         
         // Do ant tours.
         Tour tours[m];
-        for (int k = 0; k < m; k++) { // ant loop
+        for (int k = 0; k < m; k++) {
             tours[k] = antTour(k, n, A, P, a, b);
         }
         
@@ -559,14 +557,12 @@ void depositPheromone(Tour tour, int n, double *P)
         }
         
         // Update global best tour.
-        if (iterationBest.distance < globalBest.distance) {
-            free(globalBest.route);
-            globalBest = iterationBest;
+        if (takeBetterTour(iterationBest, &globalBest)) {
             noImproveCount = 0;
         } else {
-            free(iterationBest.route);
             noImproveCount++;
         }
+
         [csv appendFormat:@"%d, %d\n", loop, globalBest.distance];
     }
     
@@ -576,6 +572,24 @@ void depositPheromone(Tour tour, int n, double *P)
     }
     
     return globalBest;
+}
+
+void limitPheromoneRange(int opt, double r, int n, double pB, double *P)
+{
+    // Update max and min of pheromone.
+    double max = 1.0 / (r * opt);
+    double min = ((1 - pow(pB, 1.0 / n)) / (n / 2.0 * pow(pB, 1.0 / n))) * max;
+    
+    // Fix pheromone amount between min and max.
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            if (P[i * n + j] < min) {
+                P[i * n + j] = min;
+            } else if (P[i * n + j] > max) {
+                P[i * n + j] = max;
+            }
+        }
+    }
 }
 
 - (Tour)tourByMMASWithNumberOfAnt:(int)m
@@ -591,19 +605,15 @@ void depositPheromone(Tour tour, int n, double *P)
     
     double *P = calloc(n * n, sizeof(double)); // Pheromone matrix
     
-    // Compute initial best.
+    // Compute initial best tour by NN.
     Tour initialBest = {INT32_MAX, calloc(n + 1, sizeof(int))};
     for (int i = 0; i < n; i++) {
         Tour aTour = [self tourByNNFrom:i + 1];
-        if (aTour.distance < initialBest.distance) {
-            free(initialBest.route);
-            initialBest = aTour;
-        }
+        takeBetterTour(aTour, &initialBest);
     }
 
-    // Initialize pheromone with pBest.
+    // Initialize pheromone with max pheromone.
     double pheromoneMax = 1.0 / (r * initialBest.distance);
-    double pheromoneMin = ((1 - pow(pB, 1.0 / n)) / (n / 2.0 * pow(pB, 1.0 / n))) * pheromoneMax;
     initializePheromone(pheromoneMax, n, P);
     free(initialBest.route);
     
@@ -612,8 +622,7 @@ void depositPheromone(Tour tour, int n, double *P)
     int  noImproveCount  = 0;
     int  loop            = 0;
     NSMutableString *csv = [@"LOOP, DISTANCE\n" mutableCopy];
-    while (noImproveCount < limit) { // improve loop
-        loop++;
+    while (noImproveCount < limit) {
         
         // Do ant tours.
         Tour tours[m];
@@ -628,34 +637,18 @@ void depositPheromone(Tour tour, int n, double *P)
         }
         
         // Update global best tour.
-        if (iterationBest.distance < globalBest.distance) {
-            free(globalBest.route);
-            globalBest = iterationBest;
+        if (takeBetterTour(iterationBest, &globalBest)) {
             noImproveCount = 0;
         } else {
-            free(iterationBest.route);
             noImproveCount++;
         }
-        [csv appendFormat:@"%d, %d\n", loop, globalBest.distance];
+
+        [csv appendFormat:@"%d, %d\n", ++loop, globalBest.distance];
         
         // Update pheromone
         evaporatePheromone(r, n, P);
         depositPheromone(globalBest, n, P);
-        
-        // Update max and min of pheromone.
-        pheromoneMax = 1.0 / (r * globalBest.distance);
-        pheromoneMin = ((1 - pow(pB, 1.0 / n)) / (n / 2.0 * pow(pB, 1.0 / n))) * pheromoneMax;
-        
-        // Fix pheromone amount between min and max.
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < n; j++) {
-                if (P[i * n + j] < pheromoneMin) {
-                    P[i * n + j] = pheromoneMin;
-                } else if (P[i * n + j] > pheromoneMax) {
-                    P[i * n + j] = pheromoneMax;
-                }
-            }
-        }
+        limitPheromoneRange(globalBest.distance, r, n, pB, P);
     }
     
     // Export iteration best tour distances in CSV format.
@@ -679,24 +672,16 @@ void depositPheromone(Tour tour, int n, double *P)
     
     double *P = calloc(n * n, sizeof(double)); // Pheromone matrix
     
-    // Compute initial best.
+    // Compute initial best tour by NN.
     Tour initialBest = {INT32_MAX, calloc(n + 1, sizeof(int))};
     for (int i = 0; i < n; i++) {
         Tour aTour = [self tourByNNFrom:i + 1];
-        if (aTour.distance < initialBest.distance) {
-            free(initialBest.route);
-            initialBest = aTour;
-        }
+        takeBetterTour(aTour, &initialBest);
     }
     
-    // Initialize pheromone with pBest.
-    double pheromoneMax = 1.0 / (r * initialBest.distance);
-    double pheromoneMin = ((1 - pow(pB, 1.0 / n)) / (n / 2.0 * pow(pB, 1.0 / n))) * pheromoneMax;
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < n; j++) {
-            P[i * n + j] = pheromoneMax;
-        }
-    }
+    // Initialize pheromone with max pheromone.
+    double initialPheromone = 1.0 / (r * initialBest.distance);
+    initializePheromone(initialPheromone, n, P);
     free(initialBest.route);
     
     // Generate solutions.
@@ -704,12 +689,11 @@ void depositPheromone(Tour tour, int n, double *P)
     int  noImproveCount  = 0;
     int  loop            = 0;
     NSMutableString *csv = [@"LOOP, DISTANCE\n" mutableCopy];
-    while (noImproveCount < limit) { // improve loop
-        loop++;
-        
+    while (noImproveCount < limit) {
+
         // Do ant tours.
         Tour tours[m];
-        for (int k = 0; k < m; k++) { // ant loop
+        for (int k = 0; k < m; k++) {
             tours[k] = antTour(k, n, A, P, a, b);
 
             // Improve using 2-opt
@@ -719,55 +703,29 @@ void depositPheromone(Tour tour, int n, double *P)
         // Find iteration best tour.
         Tour iterationBest = {INT32_MAX, calloc(n + 1, sizeof(int))};
         for (int k = 0; k < m; k++) {
-            if (tours[k].distance < iterationBest.distance) {
-                free(iterationBest.route);
-                iterationBest = tours[k];
-            } else {
-                free(tours[k].route);
-            }
+            takeBetterTour(tours[k], &iterationBest);
         }
         
         // Update global best tour.
-        if (iterationBest.distance < globalBest.distance) {
-            free(globalBest.route);
-            globalBest = iterationBest;
+        if (takeBetterTour(iterationBest, &globalBest)) {
             noImproveCount = 0;
         } else {
-            free(iterationBest.route);
             noImproveCount++;
         }
-        [csv appendFormat:@"%d, %d\n", loop, globalBest.distance];
+        [csv appendFormat:@"%d, %d\n", ++loop, globalBest.distance];
         
+        // Update pheromone
         evaporatePheromone(r, n, P);
-        
-        // Pheromone deposit by global best tour.
-        double pheromone = 1.0 / globalBest.distance;
-        for (int i = 0; i < n; i++) {
-            int from = globalBest.route[i];
-            int to   = globalBest.route[i + 1];
-            P[(from - 1) * n + (to - 1)] += pheromone;
-        }
-        
-        // Update max and min of pheromone.
-        pheromoneMax = 1.0 / (r * globalBest.distance);
-        pheromoneMin = ((1 - pow(pB, 1.0 / n)) / (n / 2.0 * pow(pB, 1.0 / n))) * pheromoneMax;
-        
-        // Fix pheromone amount between min and max.
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < n; j++) {
-                if (P[i * n + j] < pheromoneMin) {
-                    P[i * n + j] = pheromoneMin;
-                } else if (P[i * n + j] > pheromoneMax) {
-                    P[i * n + j] = pheromoneMax;
-                }
-            }
-        }
+        depositPheromone(globalBest, n, P);
+        limitPheromoneRange(globalBest.distance, r, n, pB, P);
     }
     
     // Export iteration best tour distances in CSV format.
     if (log) {
         *log = csv;
     }
+    
+    printf("globalBest.distance = %d\n", globalBest.distance);
     
     return globalBest;
 }

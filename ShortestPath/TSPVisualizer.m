@@ -14,10 +14,12 @@ static CGPoint offset = {0.0, 0.0};
 static CGSize  scale  = {1.0, 1.0};
 static CGFloat height;
 
-CGPoint correctedPoint(CGPoint point)
+Coordinate correctedPoint(Coordinate point)
 {
-	return CGPointMake((point.x - offset.x) * scale.width  + margin.left + padding.left,
-					   ((point.y - offset.y) * scale.height + margin.top + padding.top) * (-1) + height); // Flip verically
+    Coordinate newPoint = {(point.x - offset.x) * scale.width  + margin.left + padding.left,
+        ((point.y - offset.y) * scale.height + margin.top + padding.top) * (-1) + height}; // Flip verically
+
+	return newPoint;
 }
 
 @implementation TSPVisualizer {
@@ -97,11 +99,11 @@ CGPoint correctedPoint(CGPoint point)
     CGContextFillRect(context, CGRectMake(0.0, 0.0, self.imageView.frame.size.width, self.imageView.frame.size.height));
 	
 	// Draw path
-	CGPoint startPoint = correctedPoint(tsp.nodes[path.route[0] - 1].coord);
+	Coordinate startPoint = correctedPoint(tsp.nodes[path.route[0] - 1].coord);
 	CGContextSetLineWidth(context, 10.0);
 	CGContextMoveToPoint(context, startPoint.x, startPoint.y);
 	for (int i = 1; i < tsp.dimension; i++) {
-		CGPoint aPoint = correctedPoint(tsp.nodes[path.route[i] - 1].coord);
+		Coordinate aPoint = correctedPoint(tsp.nodes[path.route[i] - 1].coord);
 		CGContextAddLineToPoint(context, aPoint.x, aPoint.y);
         if (style == TSPVisualizationStyleDark || style == TSPVisualizationStyleLight) {
             CGContextSetStrokeColorWithColor(context, [[UIColor colorWithHue:((double)i / tsp.dimension) saturation:1.0 brightness:1.0 alpha:1.0] CGColor]);
@@ -118,7 +120,7 @@ CGPoint correctedPoint(CGPoint point)
 	CGFloat r = 5.0;
 	CGContextSetFillColorWithColor(context, _nodeColor);
 	for (int i = 0; i < tsp.dimension; i++) {
-		CGPoint aPoint = correctedPoint(tsp.nodes[i].coord);
+		Coordinate aPoint = correctedPoint(tsp.nodes[i].coord);
 		CGContextFillEllipseInRect(context, CGRectMake(aPoint.x - r, aPoint.y - r, 2 * r, 2 * r));
 	}
 	

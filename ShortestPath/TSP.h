@@ -10,9 +10,18 @@
 
 #define MAX_DIMENSION 3000
 
+/*
+ Optimal solution can be different according to which type used.
+ i.e. tsp225.tsp (float:3919, double:3916)
+*/
+typedef struct _Coordinate {
+    double x;
+    double y;
+} Coordinate;
+
 typedef struct _Node {
 	int		number;
-	CGPoint coord;
+	Coordinate   coord;
 } Node;
 
 typedef struct _Tour {
@@ -25,6 +34,7 @@ typedef struct _Tour {
 @property (readonly) NSDictionary *information;
 @property (readonly) int		  dimension;
 @property (readonly) Node         *nodes;
+@property (readonly) int *adjacencyMatrix;
 
 #pragma mark - Constructors
 

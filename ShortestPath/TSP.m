@@ -647,8 +647,8 @@ void limitPheromoneRange(int opt, double r, int n, double pB, double *P)
         
         // Update pheromone
         evaporatePheromone(r, n, P);
-        depositPheromone(globalBest, n, P);
-        limitPheromoneRange(globalBest.distance, r, n, pB, P);
+        depositPheromone(iterationBest, n, P);
+        limitPheromoneRange(iterationBest.distance, r, n, pB, P);
     }
     
     // Export iteration best tour distances in CSV format.
@@ -716,16 +716,14 @@ void limitPheromoneRange(int opt, double r, int n, double pB, double *P)
         
         // Update pheromone
         evaporatePheromone(r, n, P);
-        depositPheromone(globalBest, n, P);
-        limitPheromoneRange(globalBest.distance, r, n, pB, P);
+        depositPheromone(iterationBest, n, P);
+        limitPheromoneRange(iterationBest.distance, r, n, pB, P);
     }
     
     // Export iteration best tour distances in CSV format.
     if (log) {
         *log = csv;
     }
-    
-    printf("globalBest.distance = %d\n", globalBest.distance);
     
     return globalBest;
 }

@@ -87,7 +87,7 @@ CGPoint correctedPoint(CGPoint point)
 	
 	[self prepareForCorrectionWithTSP:tsp];
     [self prepareColorsWithStyle:style];
-	   
+    
 	// Start drawing
 	UIGraphicsBeginImageContextWithOptions((self.imageView.frame.size), YES, 0);
 	CGContextRef context = UIGraphicsGetCurrentContext();

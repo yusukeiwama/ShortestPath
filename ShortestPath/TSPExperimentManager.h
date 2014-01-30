@@ -19,6 +19,7 @@ typedef enum USKTSPExperiment {
     USKTSPExperimentMMAS,
     USKTSPExperimentMMAS2optTuning,
     USKTSPExperimentMMAS2opt,
+    USKTSPExperimentTSPTrial,
 	USKTSPExperimentOptimal
 } USKTSPExperiment;
 

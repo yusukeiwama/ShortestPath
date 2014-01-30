@@ -23,7 +23,7 @@ typedef enum TSPVisualizationStyle {
  */
 @property UIImageView *imageView;
 
-- (BOOL)drawPath:(Tour)path  ofTSP:(TSP *)tsp withStyle:(TSPVisualizationStyle)style;
+- (BOOL)drawPath:(Tour)path ofTSP:(TSP *)tsp withStyle:(TSPVisualizationStyle)style;
 - (BOOL)PNGWithPath:(Tour)path ofTSP:(TSP *)tsp toFileNamed:(NSString *)fileName withStyle:(TSPVisualizationStyle)style;
 
 @end

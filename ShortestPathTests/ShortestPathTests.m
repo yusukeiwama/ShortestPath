@@ -117,15 +117,13 @@
     Tour tour = [tsp tourByMMAS2optWithNumberOfAnt:25
                                 pheromoneInfluence:1
                                transitionInfluence:4
-                              pheromoneEvaporation:0.02
-                                   probabilityBest:0.01
+                              pheromoneEvaporation:0.01
+                                   probabilityBest:0.001
                                               seed:101
                                     noImproveLimit:200
                                       CSVLogString:NULL];
     // Check if the shortest path length is longer than the optimal path.
     XCTAssertTrue([TSP optimalSolutionWithName:sampleName].distance <= tour.distance, @"Shorter than the optimal solution.");
 }
-
-
 
 @end

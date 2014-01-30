@@ -11,8 +11,6 @@
 #import "TSPVisualizer.h"
 
 #define NUMBER_OF_SEEDS 10
-#define OPTIMAL_BETA 5
-#define OPTIMAL_BETA_MMAS 5
 
 static const int seeds[NUMBER_OF_SEEDS] = {101, 103, 107, 109, 113, 127, 131, 137, 139, 149};
 
@@ -31,6 +29,7 @@ static const int seeds[NUMBER_OF_SEEDS] = {101, 103, 107, 109, 113, 127, 131, 13
         case USKTSPExperimentMMAS:           [self experimentMMAS];           break;
         case USKTSPExperimentMMAS2optTuning: [self experimentMMAS2optTuning]; break;
         case USKTSPExperimentMMAS2opt:       [self experimentMMAS2opt];       break;
+        case USKTSPExperimentTSPTrial:       [self experimentTSPTrial];       break;
 		case USKTSPExperimentOptimal:        [self experimentOptimal];        break;
 		default:                                                              break;
 	}
@@ -246,18 +245,19 @@ static const int seeds[NUMBER_OF_SEEDS] = {101, 103, 107, 109, 113, 127, 131, 13
             // Compute average path length.
             int m = tsp.dimension;
             int a = 1;
+            int beta = 5;
             double ro = 0.5;
             NSString *log;
             Tour aTour = [tsp tourByASWithNumberOfAnt:tsp.dimension
                                    pheromoneInfluence:a
-                                  transitionInfluence:OPTIMAL_BETA
+                                  transitionInfluence:beta
                                  pheromoneEvaporation:ro
                                                  seed:seeds[ri]
                                        noImproveLimit:1000
                                          CSVLogString:&log];
             lengths[ri] = aTour.distance;
 			lengthSum += aTour.distance;
-            [dataString appendString:[NSString stringWithFormat:@"%@, %d, %d, %d, %d, %d, %.2f, %d\n", sampleName, tsp.dimension, aTour.distance, m, a, OPTIMAL_BETA, ro, seeds[ri]]];
+            [dataString appendString:[NSString stringWithFormat:@"%@, %d, %d, %d, %d, %d, %.2f, %d\n", sampleName, tsp.dimension, aTour.distance, m, a, beta, ro, seeds[ri]]];
             
 			if (aTour.distance > longestTour.distance) {
                 memcpy(longestTour.route, aTour.route, tsp.dimension * sizeof(int));
@@ -279,10 +279,10 @@ static const int seeds[NUMBER_OF_SEEDS] = {101, 103, 107, 109, 113, 127, 131, 13
             deviationSumSquare += (lengths[i] - averageLength) * (lengths[i] - averageLength);
         }
         double standardDeviation = sqrt(deviationSumSquare / tsp.dimension);
-        [statisticString appendFormat:@"%@, %d, %d, %d, %.2f, %d, %.2f\n", sampleName, [TSP optimalSolutionWithName:sampleName].distance, OPTIMAL_BETA, shortestTour.distance, averageLength, longestTour.distance, standardDeviation];
+        [statisticString appendFormat:@"%@, %d, %d, %.2f, %d, %.2f\n", sampleName, [TSP optimalSolutionWithName:sampleName].distance, shortestTour.distance, averageLength, longestTour.distance, standardDeviation];
         
         // Visualize the shortest path.
-        [self.visualizer PNGWithPath:shortestTour ofTSP:tsp toFileNamed:[NSString stringWithFormat:@"%@_AS_beta%d.png", sampleName, OPTIMAL_BETA] withStyle:TSPVisualizationStyleLight];
+        [self.visualizer PNGWithPath:shortestTour ofTSP:tsp toFileNamed:[NSString stringWithFormat:@"%@_AS.png", sampleName] withStyle:TSPVisualizationStyleLight];
         
         // Export iteration best tour distances log.
         [TSPExperimentManager writeString:shortestLog toFileNamed:[NSString stringWithFormat:@"%@_ASLog.csv", sampleName]];
@@ -369,21 +369,22 @@ static const int seeds[NUMBER_OF_SEEDS] = {101, 103, 107, 109, 113, 127, 131, 13
         NSString *shortestLog;
         for (int ri = 0; ri < NUMBER_OF_SEEDS; ri++) {
             // Compute average path length.
-            int      m = tsp.dimension;
-            int      a = 1;
-            double   r = 0.02;
+            int    m     = tsp.dimension;
+            int    alpha = 1;
+            int    beta  = 5;
+            double rho   = 0.02;
             NSString *log;
             Tour aTour = [tsp tourByMMASWithNumberOfAnt:tsp.dimension
-                                     pheromoneInfluence:a
-                                    transitionInfluence:OPTIMAL_BETA_MMAS
-                                   pheromoneEvaporation:r
+                                     pheromoneInfluence:alpha
+                                    transitionInfluence:beta
+                                   pheromoneEvaporation:rho
                                         probabilityBest:0.05
                                                    seed:seeds[ri]
                                          noImproveLimit:1000
                                            CSVLogString:&log];
             lengths[ri] = aTour.distance;
 			lengthSum += aTour.distance;
-            [dataString appendString:[NSString stringWithFormat:@"%@, %d, %d, %d, %d, %d, %.2f, %d\n", sampleName, tsp.dimension, aTour.distance, m, a, OPTIMAL_BETA_MMAS, r, seeds[ri]]];
+            [dataString appendString:[NSString stringWithFormat:@"%@, %d, %d, %d, %d, %d, %.2f, %d\n", sampleName, tsp.dimension, aTour.distance, m, alpha, beta, rho, seeds[ri]]];
             
 			if (aTour.distance > longestTour.distance) {
                 memcpy(longestTour.route, aTour.route, tsp.dimension * sizeof(int));
@@ -405,10 +406,10 @@ static const int seeds[NUMBER_OF_SEEDS] = {101, 103, 107, 109, 113, 127, 131, 13
             deviationSumSquare += (lengths[i] - averageLength) * (lengths[i] - averageLength);
         }
         double standardDeviation = sqrt(deviationSumSquare / tsp.dimension);
-        [statisticString appendFormat:@"%@, %d, %d, %d, %.2f, %d, %.2f\n", sampleName, [TSP optimalSolutionWithName:sampleName].distance, OPTIMAL_BETA_MMAS, shortestTour.distance, averageLength, longestTour.distance, standardDeviation];
+        [statisticString appendFormat:@"%@, %d, %d, %.2f, %d, %.2f\n", sampleName, [TSP optimalSolutionWithName:sampleName].distance, shortestTour.distance, averageLength, longestTour.distance, standardDeviation];
         
         // Visualize the shortest path.
-        [self.visualizer PNGWithPath:shortestTour ofTSP:tsp toFileNamed:[NSString stringWithFormat:@"%@_MMAS_beta%d.png", sampleName, OPTIMAL_BETA_MMAS] withStyle:TSPVisualizationStyleLight];
+        [self.visualizer PNGWithPath:shortestTour ofTSP:tsp toFileNamed:[NSString stringWithFormat:@"%@_MMAS.png", sampleName] withStyle:TSPVisualizationStyleLight];
         
         // Export iteration best tour distances log.
         [TSPExperimentManager writeString:shortestLog toFileNamed:[NSString stringWithFormat:@"%@_MMASLog.csv", sampleName]];
@@ -423,7 +424,7 @@ static const int seeds[NUMBER_OF_SEEDS] = {101, 103, 107, 109, 113, 127, 131, 13
 - (void)experimentMMAS2optTuning
 {
     NSMutableString *dataString      = [@"NAME, DIMENSION, LENGTH, M, ALPHA, BETA, RHO, PBEST, SEED, LIMIT\n" mutableCopy];
-	NSMutableString *statisticString = [@"NAME, OPTIMAL, BETA, SHORTEST, AVE, LONGEST, SIGMA\n" mutableCopy];
+	NSMutableString *statisticString = [@"NAME, OPTIMAL, SHORTEST, AVE, LONGEST, SIGMA, RHO, PBEST\n" mutableCopy];
     
     NSArray *sampleNames = @[@"eil51", @"pr76", @"rat99", @"kroA100", @"ch130"];
 	for (NSString *sampleName in sampleNames) {
@@ -440,11 +441,12 @@ static const int seeds[NUMBER_OF_SEEDS] = {101, 103, 107, 109, 113, 127, 131, 13
                 for (int ri = 0; ri < NUMBER_OF_SEEDS; ri++) {
                     // Compute average path length.
                     int      m = 25;
-                    int      a = 1;
+                    int  alpha = 1;
+                    int   beta = 5;
                     int  limit = 200;
                     Tour aTour = [tsp tourByMMAS2optWithNumberOfAnt:m
-                                             pheromoneInfluence:a
-                                            transitionInfluence:OPTIMAL_BETA_MMAS
+                                             pheromoneInfluence:alpha
+                                            transitionInfluence:beta
                                            pheromoneEvaporation:rho[r]
                                                 probabilityBest:pBest[p]
                                                            seed:seeds[ri]
@@ -452,7 +454,7 @@ static const int seeds[NUMBER_OF_SEEDS] = {101, 103, 107, 109, 113, 127, 131, 13
                                                    CSVLogString:NULL];
                     lengths[ri] =  aTour.distance;
                     lengthSum   += aTour.distance;
-                    [dataString appendString:[NSString stringWithFormat:@"%@, %d, %d, %d, %d, %d, %.2f, %.2f, %d, %d\n", sampleName, m, aTour.distance, m, a, OPTIMAL_BETA_MMAS, rho[r], pBest[p], seeds[ri], limit]];
+                    [dataString appendString:[NSString stringWithFormat:@"%@, %d, %d, %d, %d, %d, %.2f, %.2f, %d, %d\n", sampleName, m, aTour.distance, m, alpha, beta, rho[r], pBest[p], seeds[ri], limit]];
                     
                     // Update iteration best and worst. (not assign but memcpy to simplify free-related code.)
                     if (aTour.distance > iterationWorst.distance) {
@@ -472,7 +474,7 @@ static const int seeds[NUMBER_OF_SEEDS] = {101, 103, 107, 109, 113, 127, 131, 13
                     deviationSumSquare += (lengths[i] - averageLength) * (lengths[i] - averageLength);
                 }
                 double standardDeviation = sqrt(deviationSumSquare / tsp.dimension);
-                [statisticString appendFormat:@"%@, %d, %d, %d, %.2f, %d, %.2f\n", sampleName, [TSP optimalSolutionWithName:sampleName].distance, OPTIMAL_BETA_MMAS, iterationBest.distance, averageLength, iterationWorst.distance, standardDeviation];
+                [statisticString appendFormat:@"%@, %d, %d, %.2f, %d, %.2f, %.4f, %.4f\n", sampleName, [TSP optimalSolutionWithName:sampleName].distance, iterationBest.distance, averageLength, iterationWorst.distance, standardDeviation, rho[r], pBest[p]];
 
                 // Update global best (not assign but memcpy to simplify free-related code.)
                 if (iterationBest.distance < globalBest.distance) {
@@ -495,68 +497,128 @@ static const int seeds[NUMBER_OF_SEEDS] = {101, 103, 107, 109, 113, 127, 131, 13
 
 - (void)experimentMMAS2opt
 {
-    NSMutableString *dataString      = [@"NAME, DIMENSION, LENGTH, M, ALPHA, BETA, RHO, SEED\n" mutableCopy];
-	NSMutableString *statisticString = [@"NAME, OPTIMAL, BETA, SHORTEST, AVE, LONGEST, SIGMA\n" mutableCopy];
+    NSMutableString *dataString      = [@"NAME, DIMENSION, LENGTH, M, ALPHA, BETA, RHO, PBEST, SEED, LIMIT\n" mutableCopy];
+	NSMutableString *statisticString = [@"NAME, OPTIMAL, SHORTEST, AVE, LONGEST, SIGMA\n" mutableCopy];
     
-    NSArray *sampleNames = @[@"pr76", @"rat99", @"kroA100", @"ch130"];
-    for (NSString *sampleName in sampleNames) {
+    NSArray *sampleNames = @[@"eil51", @"pr76", @"rat99", @"kroA100", @"ch130"];
+	for (NSString *sampleName in sampleNames) {
         TSP *tsp = [TSP TSPWithFile:[[NSBundle mainBundle] pathForResource:sampleName ofType:@"tsp"]];
-        int	lengthSum = 0;
-        int lengths[NUMBER_OF_SEEDS];
-        Tour shortestTour = {INT32_MAX, calloc(tsp.dimension, sizeof(int))};
-        Tour longestTour  = {0,         calloc(tsp.dimension, sizeof(int))};
-        NSString *shortestLog;
+
+        int  lengths[NUMBER_OF_SEEDS];
+        int	 lengthSum     = 0;
+        Tour shortestTour  = {INT32_MAX, calloc(tsp.dimension + 1, sizeof(int))};
+        Tour longestTour   = {0,         calloc(tsp.dimension + 1, sizeof(int))};
         for (int ri = 0; ri < NUMBER_OF_SEEDS; ri++) {
             // Compute average path length.
-            int      m = tsp.dimension;
-            int      a = 1;
-            double   r = 0.02;
-            NSString *log;
-            Tour aTour = [tsp tourByMMAS2optWithNumberOfAnt:tsp.dimension
-                                     pheromoneInfluence:a
-                                    transitionInfluence:OPTIMAL_BETA_MMAS
-                                   pheromoneEvaporation:r
-                                        probabilityBest:0.05
-                                                   seed:seeds[ri]
-                                         noImproveLimit:1000
-                                           CSVLogString:&log];
-            lengths[ri] = aTour.distance;
-			lengthSum += aTour.distance;
-            [dataString appendString:[NSString stringWithFormat:@"%@, %d, %d, %d, %d, %d, %.2f, %d\n", sampleName, tsp.dimension, aTour.distance, m, a, OPTIMAL_BETA_MMAS, r, seeds[ri]]];
+            int    m     = 25;
+            int    alpha = 1;
+            int    beta  = 5;
+            double rho   = 0.01;
+            double pBest = 0.001;
+            int    limit = 200;
+            Tour aTour = [tsp tourByMMAS2optWithNumberOfAnt:m
+                                         pheromoneInfluence:alpha
+                                        transitionInfluence:beta
+                                       pheromoneEvaporation:rho
+                                            probabilityBest:pBest
+                                                       seed:seeds[ri]
+                                             noImproveLimit:limit
+                                               CSVLogString:NULL];
+            lengths[ri] =  aTour.distance;
+            lengthSum   += aTour.distance;
+            [dataString appendString:[NSString stringWithFormat:@"%@, %d, %d, %d, %d, %d, %.2f, %.2f, %d, %d\n", sampleName, m, aTour.distance, m, alpha, beta, rho, pBest, seeds[ri], limit]];
             
-			if (aTour.distance > longestTour.distance) {
+            // Update iteration best and worst. (not assign but memcpy to simplify free-related code.)
+            if (aTour.distance > longestTour.distance) {
                 memcpy(longestTour.route, aTour.route, tsp.dimension * sizeof(int));
                 longestTour.distance = aTour.distance;
-			}
-			if (aTour.distance < shortestTour.distance) {
-			    memcpy(shortestTour.route, aTour.route, tsp.dimension * sizeof(int));
+            }
+            if (aTour.distance < shortestTour.distance) {
+                memcpy(shortestTour.route, aTour.route, tsp.dimension * sizeof(int));
                 shortestTour.distance = aTour.distance;
-                shortestLog = log;
-			}
-            
+            }
             free(aTour.route);
         }
-        double averageLength = (double)lengthSum / NUMBER_OF_SEEDS;
-        
-        // Compute standard deviation.
+        // Compute statistics.
+        double averageLength      = (double)lengthSum / NUMBER_OF_SEEDS;
         double deviationSumSquare = 0.0;
         for (int i = 0; i < NUMBER_OF_SEEDS; i++) {
             deviationSumSquare += (lengths[i] - averageLength) * (lengths[i] - averageLength);
         }
         double standardDeviation = sqrt(deviationSumSquare / tsp.dimension);
-        [statisticString appendFormat:@"%@, %d, %d, %d, %.2f, %d, %.2f\n", sampleName, [TSP optimalSolutionWithName:sampleName].distance, OPTIMAL_BETA_MMAS, shortestTour.distance, averageLength, longestTour.distance, standardDeviation];
+        [statisticString appendFormat:@"%@, %d, %d, %.2f, %d, %.2f\n", sampleName, [TSP optimalSolutionWithName:sampleName].distance, shortestTour.distance, averageLength, longestTour.distance, standardDeviation];
         
         // Visualize the shortest path.
-        [self.visualizer PNGWithPath:shortestTour ofTSP:tsp toFileNamed:[NSString stringWithFormat:@"%@_MMAS_beta%d.png", sampleName, OPTIMAL_BETA_MMAS] withStyle:TSPVisualizationStyleLight];
-        
-        // Export iteration best tour distances log.
-        [TSPExperimentManager writeString:shortestLog toFileNamed:[NSString stringWithFormat:@"%@_MMASLog.csv", sampleName]];
-        
+        [self.visualizer PNGWithPath:shortestTour ofTSP:tsp toFileNamed:[NSString stringWithFormat:@"%@_MMAS2opt.png", sampleName] withStyle:TSPVisualizationStyleLight];
+        free(shortestTour.route);
     }
 	
 	// Export data
-	[TSPExperimentManager writeString:dataString      toFileNamed:@"MMASData.csv"];
-    [TSPExperimentManager writeString:statisticString toFileNamed:@"MMASStatistics.csv"];
+	[TSPExperimentManager writeString:dataString      toFileNamed:@"MMAS2optData.csv"];
+    [TSPExperimentManager writeString:statisticString toFileNamed:@"MMAS2optStatistics.csv"];
+}
+
+- (void)experimentTSPTrial
+{
+    NSMutableString *dataString      = [@"NAME, DIMENSION, LENGTH, M, ALPHA, BETA, RHO, PBEST, SEED, LIMIT\n" mutableCopy];
+	NSMutableString *statisticString = [@"NAME, OPTIMAL, SHORTEST, AVE, LONGEST, SIGMA\n" mutableCopy];
+    
+    NSArray *sampleNames = @[@"tsp225"];
+	for (NSString *sampleName in sampleNames) {
+        TSP *tsp = [TSP TSPWithFile:[[NSBundle mainBundle] pathForResource:sampleName ofType:@"tsp"]];
+        
+        int  lengths[NUMBER_OF_SEEDS];
+        int	 lengthSum     = 0;
+        Tour shortestTour  = {INT32_MAX, calloc(tsp.dimension + 1, sizeof(int))};
+        Tour longestTour   = {0,         calloc(tsp.dimension + 1, sizeof(int))};
+        for (int ri = 0; ri < NUMBER_OF_SEEDS; ri++) {
+            // Compute average path length.
+            int    m     = 25;
+            int    alpha = 1;
+            int    beta  = 5;
+            double rho   = 0.01;
+            double pBest = 0.001;
+            int    limit = 200;
+            Tour aTour = [tsp tourByMMAS2optWithNumberOfAnt:m
+                                         pheromoneInfluence:alpha
+                                        transitionInfluence:beta
+                                       pheromoneEvaporation:rho
+                                            probabilityBest:pBest
+                                                       seed:seeds[ri]
+                                             noImproveLimit:limit
+                                               CSVLogString:NULL];
+            lengths[ri] =  aTour.distance;
+            lengthSum   += aTour.distance;
+            [dataString appendString:[NSString stringWithFormat:@"%@, %d, %d, %d, %d, %d, %.2f, %.4f, %d, %d\n", sampleName, m, aTour.distance, m, alpha, beta, rho, pBest, seeds[ri], limit]];
+            
+            // Update iteration best and worst. (not assign but memcpy to simplify free-related code.)
+            if (aTour.distance > longestTour.distance) {
+                memcpy(longestTour.route, aTour.route, tsp.dimension * sizeof(int));
+                longestTour.distance = aTour.distance;
+            }
+            if (aTour.distance < shortestTour.distance) {
+                memcpy(shortestTour.route, aTour.route, tsp.dimension * sizeof(int));
+                shortestTour.distance = aTour.distance;
+            }
+            free(aTour.route);
+        }
+        // Compute statistics.
+        double averageLength      = (double)lengthSum / NUMBER_OF_SEEDS;
+        double deviationSumSquare = 0.0;
+        for (int i = 0; i < NUMBER_OF_SEEDS; i++) {
+            deviationSumSquare += (lengths[i] - averageLength) * (lengths[i] - averageLength);
+        }
+        double standardDeviation = sqrt(deviationSumSquare / tsp.dimension);
+        [statisticString appendFormat:@"%@, %d, %d, %.2f, %d, %.2f\n", sampleName, [TSP optimalSolutionWithName:sampleName].distance, shortestTour.distance, averageLength, longestTour.distance, standardDeviation];
+        
+        // Visualize the shortest path.
+        [self.visualizer PNGWithPath:shortestTour ofTSP:tsp toFileNamed:[NSString stringWithFormat:@"%@_MMAS2opt.png", sampleName] withStyle:TSPVisualizationStyleLight];
+        free(shortestTour.route);
+    }
+	
+	// Export data
+	[TSPExperimentManager writeString:dataString      toFileNamed:@"MMAS2optTSPTrialData.csv"];
+    [TSPExperimentManager writeString:statisticString toFileNamed:@"MMAS2optTSPTrialStatistics.csv"];
 }
 
 - (void)experimentOptimal

@@ -438,6 +438,77 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
     return to;
 }
 
+Tour antTour(int k, int n, int *A, double *P, int a, int b)
+{
+    // Initialize a tour.
+    Tour tour = {0, calloc(n + 1, sizeof(int))};
+    
+    // visited[i] is true when node numbered i+1 was visited.
+    bool *visited = calloc(n, sizeof(bool));
+    
+    // Set ant on start node.
+    int start = k % n + 1;
+    tour.route[0]  = start;
+    visited[start - 1] = true;
+    
+    // Do transition with probability.
+    int from = start;
+    for (int i = 1; i < n; i++) { // node loop
+        int to = nextNodeNumber(visited, from, n, a, b, P, A);
+        tour.distance += A[(from - 1) * n + (to - 1)];
+        tour.route[i] =  to;
+        visited[to - 1] = true;
+        from = to;
+    }
+    // Go back to the start node.
+    tour.distance += A[(from - 1) * n + (start - 1)];
+    tour.route[n] =  start;
+    
+    free(visited);
+    
+    return tour;
+};
+
+
+void evaporatePheromone(double r, int n, double *P)
+{
+    // Pheromone evaporation
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            P[i * n + j] *= (1.0 - r);
+        }
+    }
+}
+
+void initializePheromone(double pheromone, int n, double *P)
+{
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            P[i * n + j] = pheromone;
+        }
+    }
+}
+
+void takeBetterTour(Tour canditateTour, Tour *bestSoFarTour_p)
+{
+    if (canditateTour.distance < bestSoFarTour_p->distance) {
+        free(bestSoFarTour_p->route);
+        *bestSoFarTour_p = canditateTour;
+    } else {
+        free(canditateTour.route);
+    }
+}
+
+void depositPheromone(Tour tour, int n, double *P)
+{
+    double pheromone = 1.0 / tour.distance;
+    for (int i = 0; i < n; i++) {
+        int from = tour.route[i];
+        int to   = tour.route[i + 1];
+        P[(from - 1) * n + (to - 1)] += pheromone;
+    }
+}
+
 - (Tour)tourByASWithNumberOfAnt:(int)m
              pheromoneInfluence:(int)a
             transitionInfluence:(int)b
@@ -459,11 +530,7 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
     }
     double averageDistance  = (double)totalDistance / n;
     double initialPheromone = m / averageDistance;
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < n; j++) {
-            P[i * n + j] = initialPheromone;
-        }
-    }
+    initializePheromone(initialPheromone, n, P);
     
     // Generate solutions.
     Tour globalBest      = {INT32_MAX, calloc(n + 1, sizeof(int))};
@@ -476,61 +543,19 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
         // Do ant tours.
         Tour tours[m];
         for (int k = 0; k < m; k++) { // ant loop
-
-            // Initialize a tour.
-            tours[k].distance = 0;
-            tours[k].route    = calloc(n + 1, sizeof(int));
-            
-            // visited[i] is true when node numbered i+1 was visited.
-            bool *visited = calloc(n, sizeof(bool));
-            
-            // Set ant on start node.
-            int start = k % n + 1;
-            tours[k].route[0]  = start;
-            visited[start - 1] = true;
-            
-            // Do transition with probability.
-            int from = start;
-            for (int i = 1; i < n; i++) { // node loop
-                int to = nextNodeNumber(visited, from, n, a, b, P, A);
-                tours[k].distance += A[(from - 1) * n + (to - 1)];
-                tours[k].route[i] =  to;
-                visited[to - 1]   =  true;
-                from = to;
-            }
-            // Go back to the start node.
-            tours[k].distance += A[(from - 1) * n + (start - 1)];
-            tours[k].route[n] =  start;
-
-            free(visited);
+            tours[k] = antTour(k, n, A, P, a, b);
         }
         
-        // Pheromone evaporation
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < n; j++) {
-                P[i * n + j] *= (1.0 - r);
-            }
-        }
-        
-        // Pheromone deposit by ants
+        // Update pheromone
+        evaporatePheromone(r, n, P);
         for (int k = 0; k < m; k++) {
-            double pheromone = 1.0 / tours[k].distance;
-            for (int i = 0; i < n; i++) {
-                int from = tours[k].route[i];
-                int to   = tours[k].route[i + 1];
-                P[(from - 1) * n + (to - 1)] += pheromone;
-            }
+            depositPheromone(tours[k], n, P);
         }
         
         // Find iteration best tour.
         Tour iterationBest = {INT32_MAX, calloc(n + 1, sizeof(int))};
         for (int k = 0; k < m; k++) {
-            if (tours[k].distance < iterationBest.distance) {
-                free(iterationBest.route);
-                iterationBest = tours[k];
-            } else {
-                free(tours[k].route);
-            }
+            takeBetterTour(tours[k], &iterationBest);
         }
         
         // Update global best tour.
@@ -579,11 +604,7 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
     // Initialize pheromone with pBest.
     double pheromoneMax = 1.0 / (r * initialBest.distance);
     double pheromoneMin = ((1 - pow(pB, 1.0 / n)) / (n / 2.0 * pow(pB, 1.0 / n))) * pheromoneMax;
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < n; j++) {
-            P[i * n + j] = pheromoneMax;
-        }
-    }
+    initializePheromone(pheromoneMax, n, P);
     free(initialBest.route);
     
     // Generate solutions.
@@ -596,45 +617,14 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
         
         // Do ant tours.
         Tour tours[m];
-        for (int k = 0; k < m; k++) { // ant loop
-            
-            // Initialize a tour.
-            tours[k].distance = 0;
-            tours[k].route    = calloc(n + 1, sizeof(int));
-            
-            // visited[i] is true when node numbered i+1 was visited.
-            bool *visited = calloc(n, sizeof(bool));
-            
-            // Set ant on start node.
-            int start = k % n + 1;
-            tours[k].route[0]  = start;
-            visited[start - 1] = true;
-            
-            // Do transition with probability.
-            int from = start;
-            for (int i = 1; i < n; i++) { // node loop
-                int to = nextNodeNumber(visited, from, n, a, b, P, A);
-                tours[k].distance += A[(from - 1) * n + (to - 1)];
-                tours[k].route[i] =  to;
-                visited[to - 1]   =  true;
-                from = to;
-            }
-            // Go back to the start node.
-            tours[k].distance += A[(from - 1) * n + (start - 1)];
-            tours[k].route[n] =  start;
-            
-            free(visited);
+        for (int k = 0; k < m; k++) {
+            tours[k] = antTour(k, n, A, P, a, b);
         }
         
         // Find iteration best tour.
         Tour iterationBest = {INT32_MAX, calloc(n + 1, sizeof(int))};
         for (int k = 0; k < m; k++) {
-            if (tours[k].distance < iterationBest.distance) {
-                free(iterationBest.route);
-                iterationBest = tours[k];
-            } else {
-                free(tours[k].route);
-            }
+            takeBetterTour(tours[k], &iterationBest);
         }
         
         // Update global best tour.
@@ -648,20 +638,9 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
         }
         [csv appendFormat:@"%d, %d\n", loop, globalBest.distance];
         
-        // Pheromone evaporation
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < n; j++) {
-                P[i * n + j] *= (1.0 - r);
-            }
-        }
-        
-        // Pheromone deposit by global best tour.
-        double pheromone = 1.0 / globalBest.distance;
-        for (int i = 0; i < n; i++) {
-            int from = globalBest.route[i];
-            int to   = globalBest.route[i + 1];
-            P[(from - 1) * n + (to - 1)] += pheromone;
-        }
+        // Update pheromone
+        evaporatePheromone(r, n, P);
+        depositPheromone(globalBest, n, P);
         
         // Update max and min of pheromone.
         pheromoneMax = 1.0 / (r * globalBest.distance);
@@ -731,34 +710,8 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
         // Do ant tours.
         Tour tours[m];
         for (int k = 0; k < m; k++) { // ant loop
-            
-            // Initialize a tour.
-            tours[k].distance = 0;
-            tours[k].route    = calloc(n + 1, sizeof(int));
-            
-            // visited[i] is true when node numbered i+1 was visited.
-            bool *visited = calloc(n, sizeof(bool));
-            
-            // Set ant on start node.
-            int start = k % n + 1;
-            tours[k].route[0]  = start;
-            visited[start - 1] = true;
-            
-            // Do transition with probability.
-            int from = start;
-            for (int i = 1; i < n; i++) { // node loop
-                int to = nextNodeNumber(visited, from, n, a, b, P, A);
-                tours[k].distance += A[(from - 1) * n + (to - 1)];
-                tours[k].route[i] =  to;
-                visited[to - 1]   =  true;
-                from = to;
-            }
-            // Go back to the start node.
-            tours[k].distance += A[(from - 1) * n + (start - 1)];
-            tours[k].route[n] =  start;
-            
-            free(visited);
-            
+            tours[k] = antTour(k, n, A, P, a, b);
+
             // Improve using 2-opt
             [self improveTourBy2opt:&(tours[k])];
         }
@@ -785,12 +738,7 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
         }
         [csv appendFormat:@"%d, %d\n", loop, globalBest.distance];
         
-        // Pheromone evaporation
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < n; j++) {
-                P[i * n + j] *= (1.0 - r);
-            }
-        }
+        evaporatePheromone(r, n, P);
         
         // Pheromone deposit by global best tour.
         double pheromone = 1.0 / globalBest.distance;

@@ -13,7 +13,7 @@ typedef enum TSPVisualizationStyle {
     TSPVisualizationStyleDark,
     TSPVisualizationStyleLight,
     TSPVisualizationStyleGrayScale,
-    TSPVisualizationStyleDefault = TSPVisualizationStyleGrayScale
+    TSPVisualizationStyleDefault = TSPVisualizationStyleLight
 } TSPVisualizationStyle;
 
 @interface TSPVisualizer : NSObject
@@ -26,4 +26,10 @@ typedef enum TSPVisualizationStyle {
 - (BOOL)drawPath:(Tour)path ofTSP:(TSP *)tsp withStyle:(TSPVisualizationStyle)style;
 - (BOOL)PNGWithPath:(Tour)path ofTSP:(TSP *)tsp toFileNamed:(NSString *)fileName withStyle:(TSPVisualizationStyle)style;
 
+- (void)drawNodesWithTSP:(TSP *)tsp withStyle:(TSPVisualizationStyle)style;
+
 @end
+
+/*
+ TODO: パスはパス、ノードはノードだけ描画する。背景も別。全部のせもあり。
+*/

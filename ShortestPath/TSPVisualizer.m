@@ -8,13 +8,12 @@
 
 #import "TSPVisualizer.h"
 
-static UIEdgeInsets margin  = {20.0, 20.0, 20.0, 20.0};
 static UIEdgeInsets padding = {20.0, 20.0, 20.0, 20.0};
 static CGPoint offset = {0.0, 0.0};
 static CGSize  scale  = {1.0, 1.0};
 static CGFloat height;
 
-Coordinate correctedPoint(Coordinate point)
+Coordinate correctedPoint(Coordinate point, UIEdgeInsets margin)
 {
     Coordinate newPoint = {(point.x - offset.x) * scale.width  + margin.left + padding.left,
         ((point.y - offset.y) * scale.height + margin.top + padding.top) * (-1) + height}; // Flip verically
@@ -28,7 +27,7 @@ Coordinate correctedPoint(Coordinate point)
     CGColorRef _edgeColor;
 }
 
-- (void)prepareForCorrectionWithTSP:(TSP *)tsp
+- (void)prepareForCorrectionWithTSP:(TSP *)tsp margin:(UIEdgeInsets)margin
 {
 	// Find top, left, right, bottom nodes.
 	double top = MAXFLOAT, left = MAXFLOAT, bottom = 0, right = 0;
@@ -87,7 +86,8 @@ Coordinate correctedPoint(Coordinate point)
 {
 	if (path.route == NULL || tsp == nil || tsp.nodes == NULL) return NO;
 	
-	[self prepareForCorrectionWithTSP:tsp];
+    UIEdgeInsets margin  = {20.0, 20.0, 20.0, 20.0};
+	[self prepareForCorrectionWithTSP:tsp margin:margin];
     [self prepareColorsWithStyle:style];
     
 	// Start drawing
@@ -99,11 +99,11 @@ Coordinate correctedPoint(Coordinate point)
     CGContextFillRect(context, CGRectMake(0.0, 0.0, self.imageView.frame.size.width, self.imageView.frame.size.height));
 	
 	// Draw path
-	Coordinate startPoint = correctedPoint(tsp.nodes[path.route[0] - 1].coord);
+	Coordinate startPoint = correctedPoint(tsp.nodes[path.route[0] - 1].coord, margin);
 	CGContextSetLineWidth(context, 10.0);
 	CGContextMoveToPoint(context, startPoint.x, startPoint.y);
 	for (int i = 1; i < tsp.dimension; i++) {
-		Coordinate aPoint = correctedPoint(tsp.nodes[path.route[i] - 1].coord);
+		Coordinate aPoint = correctedPoint(tsp.nodes[path.route[i] - 1].coord, margin);
 		CGContextAddLineToPoint(context, aPoint.x, aPoint.y);
         if (style == TSPVisualizationStyleDark || style == TSPVisualizationStyleLight) {
             CGContextSetStrokeColorWithColor(context, [[UIColor colorWithHue:((double)i / tsp.dimension) saturation:1.0 brightness:1.0 alpha:1.0] CGColor]);
@@ -120,7 +120,7 @@ Coordinate correctedPoint(Coordinate point)
 	CGFloat r = 5.0;
 	CGContextSetFillColorWithColor(context, _nodeColor);
 	for (int i = 0; i < tsp.dimension; i++) {
-		Coordinate aPoint = correctedPoint(tsp.nodes[i].coord);
+		Coordinate aPoint = correctedPoint(tsp.nodes[i].coord, margin);
 		CGContextFillEllipseInRect(context, CGRectMake(aPoint.x - r, aPoint.y - r, 2 * r, 2 * r));
 	}
 	
@@ -159,6 +159,34 @@ Coordinate correctedPoint(Coordinate point)
 	
 	NSLog(@"Failed to draw %@", fileName);
 	return NO;
+}
+
+- (void)drawNodesWithTSP:(TSP *)tsp withStyle:(TSPVisualizationStyle)style
+{
+    if (tsp == nil) return;
+	
+    UIEdgeInsets margin = {40.0, 40.0, 40.0, 40.0};
+	[self prepareForCorrectionWithTSP:tsp margin:margin];
+    [self prepareColorsWithStyle:style];
+    
+	// Start drawing
+	UIGraphicsBeginImageContextWithOptions((self.imageView.frame.size), YES, 0);
+	CGContextRef context = UIGraphicsGetCurrentContext();
+    
+    // Draw background
+    CGContextSetFillColorWithColor(context, _backgroundColor);
+    CGContextFillRect(context, CGRectMake(0.0, 0.0, self.imageView.frame.size.width, self.imageView.frame.size.height));
+		
+	// Draw nodes
+	CGFloat r = 22.0;
+	CGContextSetFillColorWithColor(context, _nodeColor);
+	for (int i = 0; i < tsp.dimension; i++) {
+		Coordinate aPoint = correctedPoint(tsp.nodes[i].coord, margin);
+		CGContextFillEllipseInRect(context, CGRectMake(aPoint.x - r, aPoint.y - r, 2 * r, 2 * r));
+	}
+		
+	self.imageView.image = UIGraphicsGetImageFromCurrentImageContext();
+	UIGraphicsEndImageContext();
 }
 
 @end

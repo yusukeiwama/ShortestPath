@@ -655,6 +655,9 @@ void depositPheromone(Tour tour, int n, double *P)
                    CSVLogString:(NSString *__autoreleasing *)log
 {
     srand(seed);
+    if (c > n) {
+        c = n;
+    }
     
     double *P = calloc(n * n, sizeof(double)); // Pheromone matrix
     
@@ -742,6 +745,9 @@ void limitPheromoneRange(int opt, double r, int n, double pB, double *P)
                      CSVLogString:(NSString *__autoreleasing *)log
 {
     srand(seed);
+    if (c > n) {
+        c = n;
+    }
     
     double *P = calloc(n * n, sizeof(double)); // Pheromone matrix
     
@@ -810,6 +816,9 @@ void limitPheromoneRange(int opt, double r, int n, double pB, double *P)
                          CSVLogString:(NSString *__autoreleasing *)log
 {
     srand(seed);
+    if (c > n) {
+        c = n;
+    }
     
     double *P = calloc(n * n, sizeof(double)); // Pheromone matrix
     

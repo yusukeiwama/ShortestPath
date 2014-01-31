@@ -437,116 +437,147 @@ void initializePheromone(double pheromone, int n, double *P)
     }
 }
 
-int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int *A, Neighbor *NN, int c)
+double pheromoneWeight(int from, int to, int n, int a, int b, double *P, int *A)
 {
-    int to = 0; // Initialize node number with invalid value.
-    
-    if (c > 0) { // Use canditate list.
-        // Get intersection.
-        int intersection[c];
-        double sumWeight = 0.0;
-        int e = 0; // Number of elements in intersection.
-        for (int i = 0; i < c; i++) {
-            if (visited[NN[i].number - 1] == false) {
-                intersection[e] = NN[i].number;
-                sumWeight += iPow(P[(from - 1) * n + (intersection[e] - 1)], a) * iPow(1.0 / A[(from - 1) * n + (intersection[e] - 1)], b);
-                e++;
+    return iPow(P[(from - 1) * n + (to - 1)], a) * iPow(1.0 / A[(from - 1) * n + (to - 1)], b);
+}
+
+int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int *A, Neighbor *NN, int candidateListSize)
+{
+    /*
+     When using Candidate List, there are 4 case.
+     case 1: Intersection is empty and pheromone exist => select the unused edge which has the most pheromone weight.
+     case 2: Intersection is empty and no pheromone => select node randomly from all unvisited nodes.
+     case 3: Intersection is not empty and no pheromone => select node randomly from intersection.
+     case 4: Intersection is not empty and pheromone exist => select node with probability from intersection.
+     */
+
+    if (candidateListSize > 0) { // Use canditate list.
+        // Get candidate list and the number of elements in intersection.
+        int candidates[candidateListSize];
+        int numberOfElementsInIntersection = 0;
+        for (int i = 0; i < candidateListSize; i++) {
+            candidates[i] = NN[(from - 1) * n + i].number;
+            if (visited[candidates[i] - 1] == false) {
+                numberOfElementsInIntersection++;
             }
         }
         
-        if (e == 0) { // Intersection is empty.
-            // Get the unvisited edge where the most pheromone weight.
-            double tmpMax = DBL_MIN;
+        // Get intersection.
+        int intersectionIndex = 0;
+        int intersection[numberOfElementsInIntersection];
+        for (int i = 0; i < candidateListSize; i++) {
+            if (visited[candidates[i] - 1] == false) {
+                intersection[intersectionIndex++] = candidates[i];
+            }
+        }
+        
+        // Compute sum weight of intersection.
+        double sumWeight = 0.0;
+        for (int i = 0; i < numberOfElementsInIntersection; i++) {
+            sumWeight += pheromoneWeight(from, intersection[i], n, a, b, P, A);
+        }
+        
+        if (numberOfElementsInIntersection == 0) { // Intersection is empty.
+            // case 1: select the unused edge which has the most pheromone weight.
+            // Find the node to which the edge has the most pheromone weight.
+            double maxWeight = DBL_MIN;
+            int maxWeightNodeNumber = 0;
             for (int i = 0; i < n; i++) {
-                double weight = iPow(P[(from - 1) * n + (intersection[e] - 1)], a) * iPow(1.0 / A[(from - 1) * n + (intersection[e] - 1)], b);
-                if (visited[i] == false && weight > tmpMax) {
-                    tmpMax = weight;
-                    to = i + 1;
-                }
-            }
-            if (to == 0) { // No pheromone.
-                // Select unvisited node randomly.
-                int numberOfPossibleNode = 0;
-                for (int j = 0; j < n; j++) {
-                    if (visited[j] == false) {
-                        numberOfPossibleNode++;
+                int to = i + 1;
+                if (visited[to - 1] == false) {
+                    double aWeight = pheromoneWeight(from, to, n, a, b, P, A);
+                    if (aWeight > maxWeight) {
+                        maxWeight = aWeight;
+                        maxWeightNodeNumber = i + 1;
                     }
                 }
-                int targetOrder = numberOfPossibleNode * (double)rand() / (RAND_MAX + 1.0) + 1;
-                int order = 0;
-                int j = 0;
-                while (order < targetOrder) {
-                    if (visited[j] == false) {
-                        order++;
-                    }
-                    j++;
-                }
-                to = j;
             }
-            return to;
+            if (maxWeightNodeNumber != 0) {
+                return maxWeightNodeNumber;
+            }
+            
+            // No intersection and no pheromone.
+            // case 2: select node randomly from all unvisited nodes.
+            int numberOfUnvisitedNodes = 0;
+            for (int i = 0; i < n; i++) {
+                if (visited[i] == false) {
+                    numberOfUnvisitedNodes++;
+                }
+            }
+            int targetOrder = numberOfUnvisitedNodes * (double)rand() / (RAND_MAX + 1.0) + 1;
+            int order = 0;
+            int targetNodeNumber = 0;
+            while (order != targetOrder) {
+                if (visited[targetNodeNumber] == false) {
+                    order++;
+                }
+                targetNodeNumber++;
+            }
+            return targetNodeNumber;
             
         } else { // Intersection exists.
             if (sumWeight < DBL_MIN) { // No pheromone.
-                // Select unvisited node in intersection randomly.
-                int targetOrder = e * (double)rand() / (RAND_MAX + 1.0) + 1;
-                to = intersection[targetOrder];
-                return to;
+                // case 3: select node randomly from intersection.
+                int targetIndex = numberOfElementsInIntersection * (double)rand() / (RAND_MAX + 1.0) + 1;
+                return intersection[targetIndex];
                 
             } else { // Pheromone exist.
-                // Select node with probability.
+                // case 4: select with probability from intersection.
                 double targetWeight = sumWeight * (double)rand() / (RAND_MAX + 1.0);
                 double weight = 0.0;
-                int j = 0;
+                int targetIndex = 0;
                 while (weight < targetWeight) {
-                    to = intersection[j++];
-                    weight += iPow(P[(from - 1) * n + (to - 1)], a) * iPow(1.0 / A[(from - 1) * n + (to - 1)], b);
+                    weight += pheromoneWeight(from, intersection[targetIndex++], n, a, b, P, A);
                 }
-                return to;
+                targetIndex--;
+                return intersection[targetIndex];
             }
         }
+
     } else { // Don't use canditate list.
-        // Compute the denominator of the probability.
+        // Compute the sum of pheromone weight (denominator of the probability).
         double sumWeight = 0.0;
-        for (int j = 0; j < n; j++) {
-            if (visited[j] == false) {
-                sumWeight += iPow(P[(from - 1) * n + j], a) * iPow(1.0 / A[(from - 1) * n + j], b);
+        for (int to = 1; to <= n; to++) {
+            if (visited[to - 1] == false) {
+                sumWeight += pheromoneWeight(from, to, n, a, b, P, A);
             }
         }
         
         if (sumWeight < DBL_MIN) { // No pheromone.
             // Select unvisited node randomly.
-            int numberOfPossibleNode = 0;
-            for (int j = 0; j < n; j++) {
-                if (visited[j] == false) {
-                    numberOfPossibleNode++;
+            int numberOfUnvisitedNodes = 0;
+            for (int i = 0; i < n; i++) {
+                if (visited[i] == false) {
+                    numberOfUnvisitedNodes++;
                 }
             }
-            int targetOrder = numberOfPossibleNode * (double)rand() / (RAND_MAX + 1.0) + 1;
+            int targetOrder = numberOfUnvisitedNodes * (double)rand() / (RAND_MAX + 1.0) + 1;
             int order = 0;
-            int j = 0;
-            while (order < targetOrder) {
-                if (visited[j] == false) {
+            int targetNodeNumber = 1;
+            while (order != targetOrder) {
+                if (visited[targetNodeNumber - 1] == false) {
                     order++;
                 }
-                j++;
+                targetNodeNumber++;
             }
-            to = j;
+            targetNodeNumber--;
+            return targetNodeNumber;
             
         } else { // Pheromone exist.
             // Select node with probability.
             double targetWeight = sumWeight * (double)rand() / (RAND_MAX + 1.0);
             double weight = 0.0;
-            int j = 0;
+            int targetNodeNumber = 1;
             while (weight < targetWeight) {
-                if (visited[j] == false) {
-                    weight += iPow(P[(from - 1) * n + j], a) * iPow(1.0 / A[(from - 1) * n + j], b);
+                if (visited[targetNodeNumber - 1] == false) {
+                    weight += pheromoneWeight(from, targetNodeNumber, n, a, b, P, A);
                 }
-                j++;
+                targetNodeNumber++;
             }
-            to = j;
+            targetNodeNumber--;
+            return targetNodeNumber;
         }
-
-        return to;
     }
 }
 

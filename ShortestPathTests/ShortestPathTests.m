@@ -31,7 +31,7 @@
 /// Check if the shortest path length is longer than the optimal path.
 - (void)testNN
 {
-    NSString *sampleName = @"eil51";
+    NSString *sampleName = @"pr2392";
     TSP *tsp = [TSP TSPWithFile:[[NSBundle mainBundle] pathForResource:sampleName ofType:@"tsp"]];
     
     // Compute the shortest path.

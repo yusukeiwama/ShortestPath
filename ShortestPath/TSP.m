@@ -362,6 +362,10 @@ void swap2opt(int *route, int d, int i, int j)
 
 #pragma mark - Algorithms
 
+/*
+ For performance reason, NN is computed in advance.
+ i.e. pr2392 NN:1.7sec A:68sec
+ */
 int nearestNodeNumber(bool *visited, int from, int n, Neighbor *NN)
 {
     int i = 0;
@@ -371,7 +375,7 @@ int nearestNodeNumber(bool *visited, int from, int n, Neighbor *NN)
     do {
         nearest = NN[(from - 1) * n + i++].number;
     } while (visited[nearest - 1]);
-
+    
     return nearest;
 }
 
@@ -379,7 +383,7 @@ int nearestNodeNumber(bool *visited, int from, int n, Neighbor *NN)
 {
     Tour tour     = {0, calloc(n + 1, sizeof(int))};
     bool *visited = calloc(n, sizeof(bool));
-
+    
     tour.route[0]      = start;
     visited[start - 1] = true;
     
@@ -393,7 +397,7 @@ int nearestNodeNumber(bool *visited, int from, int n, Neighbor *NN)
     }
     tour.distance += A[(from - 1) * n + (start - 1)];
     tour.route[n] =  start;
-
+    
     return tour;
 }
 

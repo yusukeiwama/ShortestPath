@@ -28,6 +28,25 @@
 	
 	TSPExperimentManager *experimentManager = [[TSPExperimentManager alloc] init];
 	experimentManager.visualizer = visualizer;
+    
+    
+    NSString *sampleName = @"eil51";
+    TSP *tsp = [TSP TSPWithFile:[[NSBundle mainBundle] pathForResource:sampleName ofType:@"tsp"]];
+    
+    // Compute the shortest path.
+//    Tour tour = [tsp tourByASWithNumberOfAnt:tsp.dimension
+//                          pheromoneInfluence:1
+//                         transitionInfluence:2
+//                        pheromoneEvaporation:0.5
+//                                        seed:469049721
+//                              noImproveLimit:1000
+//                           canditateListSize:20
+//                                CSVLogString:NULL];
+    
+//    Tour tour = [tsp tourByNNFrom:1];
+
+//    [visualizer drawPath:tour ofTSP:tsp withStyle:TSPVisualizationStyleLight];
+//    printf("distance = %d\n", tour.distance);
 
 //	[experimentManager doExperiment:USKTSPExperimentTSPTrial];
 

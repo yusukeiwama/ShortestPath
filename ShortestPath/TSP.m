@@ -362,20 +362,17 @@ void swap2opt(int *route, int d, int i, int j)
 
 #pragma mark - Algorithms
 
-int nearestNodeNumber(bool *visited, int from, int n, int *A)
+int nearestNodeNumber(bool *visited, int from, int n, Neighbor *NN)
 {
-    int number;
-    int shortestDistance = INT32_MAX;
-    for (int i = 0; i < n; i++) {
-        if (visited[i] == false) {
-            int distance = A[(from - 1) * n + i];
-            if (distance < shortestDistance) {
-                number           = i + 1;
-                shortestDistance = distance;
-            }
-        }
-    }
-    return number;
+    int i = 0;
+    int nearest;
+    
+    // Look up unvisited nearest node from NN matrix.
+    do {
+        nearest = NN[(from - 1) * n + i++].number;
+    } while (visited[nearest - 1]);
+
+    return nearest;
 }
 
 - (Tour)tourByNNFrom:(int)start
@@ -388,7 +385,7 @@ int nearestNodeNumber(bool *visited, int from, int n, int *A)
     
     int from = start;
     for (int i = 1; i < n; i++) {
-        int to = nearestNodeNumber(visited, from, n, A);
+        int to = nearestNodeNumber(visited, from, n, NN);
         tour.distance   += A[(from - 1) * n + (to - 1)];
         tour.route[i]   =  to;
         visited[to - 1] =  true;
@@ -440,33 +437,26 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
 {
     int to = 0; // Initialize node number with invalid value.
     
-    //DEBUG OK
     if (c > 0) { // Use canditate list.
-        // Get c-closest node numbers.
-        int candidates[c];
-        for (int i = 0; i < c; i++) {
-            candidates[i] = NN[i].number;
-        }
-
-        // DEBUG OK
         // Get intersection.
         int intersection[c];
         double sumWeight = 0.0;
         int e = 0; // Number of elements in intersection.
         for (int i = 0; i < c; i++) {
-            if (visited[candidates[i] - 1] == false) {
-                intersection[e++] = candidates[i];
-                sumWeight += iPow(P[(from - 1) * n + (candidates[i] - 1)], a) * iPow(1.0 / A[(from - 1) * n + (candidates[i] - 1)], b);
-                
+            if (visited[NN[i].number - 1] == false) {
+                intersection[e] = NN[i].number;
+                sumWeight += iPow(P[(from - 1) * n + (intersection[e] - 1)], a) * iPow(1.0 / A[(from - 1) * n + (intersection[e] - 1)], b);
+                e++;
             }
         }
         
         if (e == 0) { // Intersection is empty.
-            // Get the unvisited edge where the most pheromone is deposited.
+            // Get the unvisited edge where the most pheromone weight.
             double tmpMax = DBL_MIN;
             for (int i = 0; i < n; i++) {
-                if (visited[i] == false && P[(from - 1) * n + i] > tmpMax) {
-                    tmpMax = P[(from - 1) * n + i];
+                double weight = iPow(P[(from - 1) * n + (intersection[e] - 1)], a) * iPow(1.0 / A[(from - 1) * n + (intersection[e] - 1)], b);
+                if (visited[i] == false && weight > tmpMax) {
+                    tmpMax = weight;
                     to = i + 1;
                 }
             }
@@ -490,25 +480,13 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
                 to = j;
             }
             return to;
+            
         } else { // Intersection exists.
             if (sumWeight < DBL_MIN) { // No pheromone.
-                // Select unvisited node randomly.
-                int numberOfPossibleNode = 0;
-                for (int j = 0; j < n; j++) {
-                    if (visited[j] == false) {
-                        numberOfPossibleNode++;
-                    }
-                }
-                int targetOrder = numberOfPossibleNode * (double)rand() / (RAND_MAX + 1.0) + 1;
-                int order = 0;
-                int j = 0;
-                while (order < targetOrder) {
-                    if (visited[j] == false) {
-                        order++;
-                    }
-                    j++;
-                }
-                to = j;
+                // Select unvisited node in intersection randomly.
+                int targetOrder = e * (double)rand() / (RAND_MAX + 1.0) + 1;
+                to = intersection[targetOrder];
+                return to;
                 
             } else { // Pheromone exist.
                 // Select node with probability.
@@ -519,9 +497,8 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
                     to = intersection[j++];
                     weight += iPow(P[(from - 1) * n + (to - 1)], a) * iPow(1.0 / A[(from - 1) * n + (to - 1)], b);
                 }
-                to = j;
+                return to;
             }
-            return to;
         }
     } else { // Don't use canditate list.
         // Compute the denominator of the probability.
@@ -564,6 +541,7 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
             }
             to = j;
         }
+
         return to;
     }
 }

@@ -16,15 +16,93 @@
                         <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Zja-rO-8tn" userLabel="Image View - path">
-                                <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="Zja-rO-8tn" userLabel="Image View - path">
+                                <rect key="frame" x="0.0" y="0.0" width="768" height="768"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="768" id="Kk9-8R-GZ4"/>
+                                    <constraint firstAttribute="height" constant="768" id="qRe-Ac-oqq"/>
+                                </constraints>
                             </imageView>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="paP-ds-Day">
+                                <rect key="frame" x="0.0" y="768" width="120" height="256"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="120" id="9uh-M6-eig"/>
+                                </constraints>
+                                <prototypes>
+                                    <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="sampleNameCell" textLabel="fM5-Cb-jN8" style="IBUITableViewCellStyleDefault" id="PUC-wk-Hpv">
+                                        <rect key="frame" x="0.0" y="22" width="120" height="44"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="PUC-wk-Hpv" id="utf-Gr-iaQ">
+                                            <rect key="frame" x="0.0" y="0.0" width="120" height="43"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <label opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="left" text="pla85900" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="fM5-Cb-jN8">
+                                                    <rect key="frame" x="15" y="0.0" width="90" height="43"/>
+                                                    <autoresizingMask key="autoresizingMask"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="18"/>
+                                                    <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                            </subviews>
+                                        </tableViewCellContentView>
+                                    </tableViewCell>
+                                </prototypes>
+                                <connections>
+                                    <outlet property="dataSource" destination="BYZ-38-t0r" id="LG4-Oa-arw"/>
+                                    <outlet property="delegate" destination="BYZ-38-t0r" id="PJt-bI-nEo"/>
+                                </connections>
+                            </tableView>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="xVj-S4-eBP">
+                                <rect key="frame" x="120" y="768" width="200" height="256"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="200" id="zF4-Gc-y8g"/>
+                                </constraints>
+                                <prototypes>
+                                    <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="solverNameCell" textLabel="hwl-hp-ZYr" style="IBUITableViewCellStyleDefault" id="73R-TD-D8S">
+                                        <rect key="frame" x="0.0" y="22" width="200" height="44"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="73R-TD-D8S" id="K2M-PV-Cqo">
+                                            <rect key="frame" x="0.0" y="0.0" width="200" height="43"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <label opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="left" text="Max-Min Ant System" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="hwl-hp-ZYr">
+                                                    <rect key="frame" x="15" y="0.0" width="170" height="43"/>
+                                                    <autoresizingMask key="autoresizingMask"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="18"/>
+                                                    <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                            </subviews>
+                                        </tableViewCellContentView>
+                                    </tableViewCell>
+                                </prototypes>
+                                <connections>
+                                    <outlet property="dataSource" destination="BYZ-38-t0r" id="xQx-C8-y36"/>
+                                    <outlet property="delegate" destination="BYZ-38-t0r" id="PIF-9M-tHM"/>
+                                </connections>
+                            </tableView>
                         </subviews>
-                        <color key="backgroundColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstItem="5Z0-mu-SW6" firstAttribute="top" secondItem="xVj-S4-eBP" secondAttribute="bottom" id="NY0-UC-B72"/>
+                            <constraint firstItem="5Z0-mu-SW6" firstAttribute="top" secondItem="paP-ds-Day" secondAttribute="bottom" id="XJg-bF-cRu"/>
+                            <constraint firstItem="Zja-rO-8tn" firstAttribute="top" secondItem="8bC-Xf-vdC" secondAttribute="top" id="YLh-tj-jV2"/>
+                            <constraint firstItem="paP-ds-Day" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" id="ZNE-PZ-RpK"/>
+                            <constraint firstItem="xVj-S4-eBP" firstAttribute="top" secondItem="Zja-rO-8tn" secondAttribute="bottom" id="bPg-2T-cnM"/>
+                            <constraint firstItem="paP-ds-Day" firstAttribute="top" secondItem="Zja-rO-8tn" secondAttribute="bottom" id="duL-fg-Rmc"/>
+                            <constraint firstItem="Zja-rO-8tn" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" id="kG8-Yt-vaA"/>
+                            <constraint firstItem="xVj-S4-eBP" firstAttribute="leading" secondItem="paP-ds-Day" secondAttribute="trailing" id="vqp-I2-C94"/>
+                        </constraints>
                     </view>
                     <connections>
                         <outlet property="pathImageView" destination="Zja-rO-8tn" id="QKt-c4-whK"/>
+                        <outlet property="sampleNameTable" destination="paP-ds-Day" id="rrr-OM-9GK"/>
+                        <outlet property="solverNameTable" destination="xVj-S4-eBP" id="Hez-pH-YW8"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>

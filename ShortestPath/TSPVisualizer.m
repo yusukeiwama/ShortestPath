@@ -86,7 +86,7 @@ Coordinate correctedPoint(Coordinate point, UIEdgeInsets margin)
 {
 	if (path.route == NULL || tsp == nil || tsp.nodes == NULL) return NO;
 	
-    UIEdgeInsets margin  = {20.0, 20.0, 20.0, 20.0};
+    UIEdgeInsets margin  = {40.0, 40.0, 40.0, 40.0};
 	[self prepareForCorrectionWithTSP:tsp margin:margin];
     [self prepareColorsWithStyle:style];
     

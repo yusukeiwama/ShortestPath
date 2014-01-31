@@ -9,11 +9,21 @@
 #import "TSP.h"
 #import "USKTrimmer.h"
 
+typedef struct _Neighbor {
+	int	number;
+	int distance;
+} Neighbor;
+
 int euc2D(Coordinate P, Coordinate Q)
 {
 	double dx = Q.x - P.x;
 	double dy = Q.y - P.y;
 	return (int)(sqrt(dx * dx + dy * dy) + 0.5);
+}
+
+int compareDistances(const Neighbor *n1, const Neighbor *n2)
+{
+	return n1->distance - n2->distance;
 }
 
 /// return (distance - A[i][i+1] - A[j][j+1] + A[i][j] + A[i+1][j+1])
@@ -43,6 +53,9 @@ void swap2opt(int *route, int d, int i, int j)
 
 @interface TSP ()
 
+@property (readonly) int	  *adjacencyMatrix;
+@property (readonly) Neighbor *neighborMatrix;
+
 @end
 
 @implementation TSP
@@ -50,6 +63,7 @@ void swap2opt(int *route, int d, int i, int j)
 @synthesize dimension       = n;
 @synthesize nodes           = N;
 @synthesize adjacencyMatrix = A;
+@synthesize neighborMatrix  = NN;
 
 #pragma mark - Constructors
 
@@ -63,9 +77,11 @@ void swap2opt(int *route, int d, int i, int j)
 	self = [super init];
 	if (self) {
 		if ([self readTSPDataFromFile:path]) {
+            [self computeNeighborMatrix];
 //			[self printInformation];
-//          [self printNodes];
+//            [self printNodes];
 //			[self printAdjecencyMatrix];
+//            [self printNeighborMatrix];
 		}
 	}
         
@@ -95,6 +111,7 @@ void swap2opt(int *route, int d, int i, int j)
 			N[i].number  = i + 1;
 			N[i].coord   = p;
 		}
+        [self computeNeighborMatrix];
 	}
 	return self;
 }
@@ -321,6 +338,28 @@ void swap2opt(int *route, int d, int i, int j)
 	}
 }
 
+- (void)computeNeighborMatrix
+{
+	if (NN == NULL) {
+		NN = calloc(n * n, sizeof(Neighbor));
+		[self computeAdjacencyMatrix];
+		
+		for (int i = 0; i < n; i++) {
+			for (int j = 0; j < n; j++) {
+				// Copy adjacency matrix.
+				NN[i * n + j].number = j + 1;
+				NN[i * n + j].distance   = A[i * n + j];
+			}
+			
+			// Ignore i == j element because the element is not a neighbor but itself.
+			NN[i * n + i] = NN[i * n + n - 1];
+			
+			// Sort neighbors by distance, ignoring i == j element.
+			qsort(&(NN[n * i + 0]), n - 1, sizeof(Neighbor), (int(*)(const void *, const void *))compareDistances);
+		}
+	}
+}
+
 #pragma mark - Algorithms
 
 int nearestNodeNumber(bool *visited, int from, int n, int *A)
@@ -397,54 +436,139 @@ void initializePheromone(double pheromone, int n, double *P)
     }
 }
 
-int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int *A)
+int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int *A, Neighbor *NN, int c)
 {
-    // Compute the denominator of the probability.
-    double sumWeight = 0.0;
-    for (int j = 0; j < n; j++) {
-        if (visited[j] == false) {
-            sumWeight += iPow(P[(from - 1) * n + j], a) * iPow(1.0 / A[(from - 1) * n + j], b);
-        }
-    }
+    int to = 0; // Initialize node number with invalid value.
     
-    int to = 0;
-    if (sumWeight < DBL_MIN) { // No pheromone.
-        // Select node randomly.
-        int numberOfPossibleNode = 0;
+    //DEBUG OK
+    if (c > 0) { // Use canditate list.
+        // Get c-closest node numbers.
+        int candidates[c];
+        for (int i = 0; i < c; i++) {
+            candidates[i] = NN[i].number;
+        }
+
+        // DEBUG OK
+        // Get intersection.
+        int intersection[c];
+        double sumWeight = 0.0;
+        int e = 0; // Number of elements in intersection.
+        for (int i = 0; i < c; i++) {
+            if (visited[candidates[i] - 1] == false) {
+                intersection[e++] = candidates[i];
+                sumWeight += iPow(P[(from - 1) * n + (candidates[i] - 1)], a) * iPow(1.0 / A[(from - 1) * n + (candidates[i] - 1)], b);
+                
+            }
+        }
+        
+        if (e == 0) { // Intersection is empty.
+            // Get the unvisited edge where the most pheromone is deposited.
+            double tmpMax = DBL_MIN;
+            for (int i = 0; i < n; i++) {
+                if (visited[i] == false && P[(from - 1) * n + i] > tmpMax) {
+                    tmpMax = P[(from - 1) * n + i];
+                    to = i + 1;
+                }
+            }
+            if (to == 0) { // No pheromone.
+                // Select unvisited node randomly.
+                int numberOfPossibleNode = 0;
+                for (int j = 0; j < n; j++) {
+                    if (visited[j] == false) {
+                        numberOfPossibleNode++;
+                    }
+                }
+                int targetOrder = numberOfPossibleNode * (double)rand() / (RAND_MAX + 1.0) + 1;
+                int order = 0;
+                int j = 0;
+                while (order < targetOrder) {
+                    if (visited[j] == false) {
+                        order++;
+                    }
+                    j++;
+                }
+                to = j;
+            }
+            return to;
+        } else { // Intersection exists.
+            if (sumWeight < DBL_MIN) { // No pheromone.
+                // Select unvisited node randomly.
+                int numberOfPossibleNode = 0;
+                for (int j = 0; j < n; j++) {
+                    if (visited[j] == false) {
+                        numberOfPossibleNode++;
+                    }
+                }
+                int targetOrder = numberOfPossibleNode * (double)rand() / (RAND_MAX + 1.0) + 1;
+                int order = 0;
+                int j = 0;
+                while (order < targetOrder) {
+                    if (visited[j] == false) {
+                        order++;
+                    }
+                    j++;
+                }
+                to = j;
+                
+            } else { // Pheromone exist.
+                // Select node with probability.
+                double targetWeight = sumWeight * (double)rand() / (RAND_MAX + 1.0);
+                double weight = 0.0;
+                int j = 0;
+                while (weight < targetWeight) {
+                    to = intersection[j++];
+                    weight += iPow(P[(from - 1) * n + (to - 1)], a) * iPow(1.0 / A[(from - 1) * n + (to - 1)], b);
+                }
+                to = j;
+            }
+            return to;
+        }
+    } else { // Don't use canditate list.
+        // Compute the denominator of the probability.
+        double sumWeight = 0.0;
         for (int j = 0; j < n; j++) {
             if (visited[j] == false) {
-                numberOfPossibleNode++;
+                sumWeight += iPow(P[(from - 1) * n + j], a) * iPow(1.0 / A[(from - 1) * n + j], b);
             }
         }
-        int targetOrder = numberOfPossibleNode * (double)rand() / (RAND_MAX + 1.0) + 1;
-        int order = 0;
-        int j = 0;
-        while (order < targetOrder) {
-            if (visited[j] == false) {
-                order++;
-            }
-            j++;
-        }
-        to = j;
         
-    } else { // Pheromone exist.
-        // Select node with probability.
-        double targetWeight = sumWeight * (double)rand() / (RAND_MAX + 1.0);
-        double weight = 0.0;
-        int j = 0;
-        while (weight < targetWeight) {
-            if (visited[j] == false) {
-                weight += iPow(P[(from - 1) * n + j], a) * iPow(1.0 / A[(from - 1) * n + j], b);
+        if (sumWeight < DBL_MIN) { // No pheromone.
+            // Select unvisited node randomly.
+            int numberOfPossibleNode = 0;
+            for (int j = 0; j < n; j++) {
+                if (visited[j] == false) {
+                    numberOfPossibleNode++;
+                }
             }
-            j++;
+            int targetOrder = numberOfPossibleNode * (double)rand() / (RAND_MAX + 1.0) + 1;
+            int order = 0;
+            int j = 0;
+            while (order < targetOrder) {
+                if (visited[j] == false) {
+                    order++;
+                }
+                j++;
+            }
+            to = j;
+            
+        } else { // Pheromone exist.
+            // Select node with probability.
+            double targetWeight = sumWeight * (double)rand() / (RAND_MAX + 1.0);
+            double weight = 0.0;
+            int j = 0;
+            while (weight < targetWeight) {
+                if (visited[j] == false) {
+                    weight += iPow(P[(from - 1) * n + j], a) * iPow(1.0 / A[(from - 1) * n + j], b);
+                }
+                j++;
+            }
+            to = j;
         }
-        to = j;
+        return to;
     }
-    
-    return to;
 }
 
-Tour antTour(int k, int n, int *A, double *P, int a, int b)
+Tour antTour(int k, int n, int *A, Neighbor *NN, double *P, int a, int b, int c)
 {
     // Initialize a tour.
     Tour tour = {0, calloc(n + 1, sizeof(int))};
@@ -460,7 +584,7 @@ Tour antTour(int k, int n, int *A, double *P, int a, int b)
     // Do transition with probability.
     int from = start;
     for (int i = 1; i < n; i++) { // node loop
-        int to = nextNodeNumber(visited, from, n, a, b, P, A);
+        int to = nextNodeNumber(visited, from, n, a, b, P, A, NN, c);
         tour.distance += A[(from - 1) * n + (to - 1)];
         tour.route[i] =  to;
         visited[to - 1] = true;
@@ -513,6 +637,7 @@ void depositPheromone(Tour tour, int n, double *P)
            pheromoneEvaporation:(double)r
                            seed:(unsigned int)seed
                  noImproveLimit:(int)limit
+              canditateListSize:(int)c
                    CSVLogString:(NSString *__autoreleasing *)log
 {
     srand(seed);
@@ -541,7 +666,7 @@ void depositPheromone(Tour tour, int n, double *P)
         // Do ant tours.
         Tour tours[m];
         for (int k = 0; k < m; k++) {
-            tours[k] = antTour(k, n, A, P, a, b);
+            tours[k] = antTour(k, n, A, NN, P, a, b, c);
         }
         
         // Update pheromone
@@ -599,6 +724,7 @@ void limitPheromoneRange(int opt, double r, int n, double pB, double *P)
                   probabilityBest:(double)pB
                              seed:(unsigned int)seed
                    noImproveLimit:(int)limit
+                canditateListSize:(int)c
                      CSVLogString:(NSString *__autoreleasing *)log
 {
     srand(seed);
@@ -627,7 +753,7 @@ void limitPheromoneRange(int opt, double r, int n, double pB, double *P)
         // Do ant tours.
         Tour tours[m];
         for (int k = 0; k < m; k++) {
-            tours[k] = antTour(k, n, A, P, a, b);
+            tours[k] = antTour(k, n, A, NN, P, a, b, c);
         }
         
         // Find iteration best tour.
@@ -635,6 +761,11 @@ void limitPheromoneRange(int opt, double r, int n, double pB, double *P)
         for (int k = 0; k < m; k++) {
             takeBetterTour(tours[k], &iterationBest);
         }
+        
+        // Update pheromone
+        evaporatePheromone(r, n, P);
+        depositPheromone(iterationBest, n, P);
+        limitPheromoneRange(iterationBest.distance, r, n, pB, P);
         
         // Update global best tour.
         if (takeBetterTour(iterationBest, &globalBest)) {
@@ -644,11 +775,6 @@ void limitPheromoneRange(int opt, double r, int n, double pB, double *P)
         }
 
         [csv appendFormat:@"%d, %d\n", ++loop, globalBest.distance];
-        
-        // Update pheromone
-        evaporatePheromone(r, n, P);
-        depositPheromone(iterationBest, n, P);
-        limitPheromoneRange(iterationBest.distance, r, n, pB, P);
     }
     
     // Export iteration best tour distances in CSV format.
@@ -666,6 +792,7 @@ void limitPheromoneRange(int opt, double r, int n, double pB, double *P)
                       probabilityBest:(double)pB
                                  seed:(unsigned int)seed
                        noImproveLimit:(int)limit
+                    canditateListSize:(int)c
                          CSVLogString:(NSString *__autoreleasing *)log
 {
     srand(seed);
@@ -694,7 +821,7 @@ void limitPheromoneRange(int opt, double r, int n, double pB, double *P)
         // Do ant tours.
         Tour tours[m];
         for (int k = 0; k < m; k++) {
-            tours[k] = antTour(k, n, A, P, a, b);
+            tours[k] = antTour(k, n, A, NN, P, a, b, c);
 
             // Improve using 2-opt
             [self improveTourBy2opt:&(tours[k])];
@@ -706,6 +833,11 @@ void limitPheromoneRange(int opt, double r, int n, double pB, double *P)
             takeBetterTour(tours[k], &iterationBest);
         }
         
+        // Update pheromone
+        evaporatePheromone(r, n, P);
+        depositPheromone(iterationBest, n, P);
+        limitPheromoneRange(iterationBest.distance, r, n, pB, P);
+        
         // Update global best tour.
         if (takeBetterTour(iterationBest, &globalBest)) {
             noImproveCount = 0;
@@ -713,11 +845,6 @@ void limitPheromoneRange(int opt, double r, int n, double pB, double *P)
             noImproveCount++;
         }
         [csv appendFormat:@"%d, %d\n", ++loop, globalBest.distance];
-        
-        // Update pheromone
-        evaporatePheromone(r, n, P);
-        depositPheromone(iterationBest, n, P);
-        limitPheromoneRange(iterationBest.distance, r, n, pB, P);
     }
     
     // Export iteration best tour distances in CSV format.
@@ -773,6 +900,27 @@ void limitPheromoneRange(int opt, double r, int n, double pB, double *P)
 		printf("%4d: ", i + 1);
 		for (int j = 0; j < n; j++) {
 			printf("%4d ", self.adjacencyMatrix[i * n + j]);
+		}
+		printf("\n");
+	}
+}
+
+- (void)printNeighborMatrix
+{
+	printf("\n========== NEIGHBOR INDEX MATRIX ==========\n");
+	for (int i = 0; i < self.dimension; i++) {
+		printf("%4d: ", i + 1);
+		for (int j = 0; j < self.dimension - 1; j++) {
+			printf("%4d ", self.neighborMatrix[self.dimension * i + j].number);
+		}
+		printf("\n");
+	}
+	
+	printf("\n========== NEIGHBOR DISTANCE MATRIX ==========\n");
+	for (int i = 0; i < self.dimension; i++) {
+		printf("%4d: ", i + 1);
+		for (int j = 0; j < self.dimension - 1; j++) {
+			printf("%4d ", (int)(self.neighborMatrix[self.dimension * i + j].distance));
 		}
 		printf("\n");
 	}

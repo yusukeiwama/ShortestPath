@@ -82,6 +82,7 @@
                         pheromoneEvaporation:0.5
                                         seed:101
                               noImproveLimit:1000
+                           canditateListSize:20
                                 CSVLogString:NULL];
     
     // Check if the shortest path length is longer than the optimal path.
@@ -102,6 +103,7 @@
                                probabilityBest:0.05
                                           seed:101
                                 noImproveLimit:1000
+                             canditateListSize:20
                                   CSVLogString:NULL];
     // Check if the shortest path length is longer than the optimal path.
     XCTAssertTrue([TSP optimalSolutionWithName:sampleName].distance <= tour.distance, @"Shorter than the optimal solution.");
@@ -121,6 +123,7 @@
                                    probabilityBest:0.001
                                               seed:101
                                     noImproveLimit:200
+                                 canditateListSize:20
                                       CSVLogString:NULL];
     // Check if the shortest path length is longer than the optimal path.
     XCTAssertTrue([TSP optimalSolutionWithName:sampleName].distance <= tour.distance, @"Shorter than the optimal solution.");

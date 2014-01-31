@@ -193,7 +193,7 @@ static const int seeds[NUMBER_OF_SEEDS] = {469049721, 2053676357, 1781357515, 12
                                  pheromoneEvaporation:ro
                                                  seed:seeds[ri]
                                        noImproveLimit:1000
-                                    canditateListSize:20
+                                    candidateListSize:20
                                          CSVLogString:NULL];
             lengths[ri] = aTour.distance;
 			lengthSum += aTour.distance;
@@ -256,7 +256,7 @@ static const int seeds[NUMBER_OF_SEEDS] = {469049721, 2053676357, 1781357515, 12
                                  pheromoneEvaporation:ro
                                                  seed:seeds[ri]
                                        noImproveLimit:1000
-                                    canditateListSize:20
+                                    candidateListSize:20
                                          CSVLogString:&log];
             lengths[ri] = aTour.distance;
 			lengthSum += aTour.distance;
@@ -321,7 +321,7 @@ static const int seeds[NUMBER_OF_SEEDS] = {469049721, 2053676357, 1781357515, 12
                                         probabilityBest:0.05
                                                    seed:seeds[ri]
                                          noImproveLimit:1000
-                                      canditateListSize:20
+                                      candidateListSize:20
                                            CSVLogString:NULL];
             lengths[ri] = aTour.distance;
 			lengthSum += aTour.distance;
@@ -385,7 +385,7 @@ static const int seeds[NUMBER_OF_SEEDS] = {469049721, 2053676357, 1781357515, 12
                                         probabilityBest:0.05
                                                    seed:seeds[ri]
                                          noImproveLimit:1000
-                                      canditateListSize:20
+                                      candidateListSize:20
                                            CSVLogString:&log];
             lengths[ri] = aTour.distance;
 			lengthSum += aTour.distance;
@@ -456,7 +456,7 @@ static const int seeds[NUMBER_OF_SEEDS] = {469049721, 2053676357, 1781357515, 12
                                                 probabilityBest:pBest[p]
                                                            seed:seeds[ri]
                                                  noImproveLimit:limit
-                                                  canditateListSize:20
+                                                  candidateListSize:20
                                                    CSVLogString:NULL];
                     lengths[ri] =  aTour.distance;
                     lengthSum   += aTour.distance;
@@ -529,7 +529,7 @@ static const int seeds[NUMBER_OF_SEEDS] = {469049721, 2053676357, 1781357515, 12
                                             probabilityBest:pBest
                                                        seed:seeds[ri]
                                              noImproveLimit:limit
-                                          canditateListSize:20
+                                          candidateListSize:20
                                                CSVLogString:NULL];
             lengths[ri] =  aTour.distance;
             lengthSum   += aTour.distance;
@@ -596,7 +596,7 @@ static const int seeds[NUMBER_OF_SEEDS] = {469049721, 2053676357, 1781357515, 12
                                         probabilityBest:pBest
                                                    seed:seeds[ri]
                                          noImproveLimit:limit
-                                      canditateListSize:20
+                                      candidateListSize:20
                                            CSVLogString:NULL];
         lengths[ri] =  aTour.distance;
         lengthSum   += aTour.distance;

@@ -452,7 +452,7 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
      case 4: Intersection is not empty and pheromone exist => select node with probability from intersection.
      */
 
-    if (candidateListSize > 0) { // Use canditate list.
+    if (candidateListSize > 0) { // Use candidate list.
         // Get candidate list and the number of elements in intersection.
         int candidates[candidateListSize];
         int numberOfElementsInIntersection = 0;
@@ -494,6 +494,9 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
                 }
             }
             if (maxWeightNodeNumber != 0) {
+                if (maxWeightNodeNumber > n) {
+                    printf("1!");
+                }
                 return maxWeightNodeNumber;
             }
             
@@ -507,19 +510,26 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
             }
             int targetOrder = numberOfUnvisitedNodes * (double)rand() / (RAND_MAX + 1.0) + 1;
             int order = 0;
-            int targetNodeNumber = 0;
+            int targetNodeNumber = 1;
             while (order != targetOrder) {
-                if (visited[targetNodeNumber] == false) {
+                if (visited[targetNodeNumber - 1] == false) {
                     order++;
                 }
                 targetNodeNumber++;
+            }
+            targetNodeNumber--;
+            if (targetNodeNumber > n) {
+                printf("2!");
             }
             return targetNodeNumber;
             
         } else { // Intersection exists.
             if (sumWeight < DBL_MIN) { // No pheromone.
                 // case 3: select node randomly from intersection.
-                int targetIndex = numberOfElementsInIntersection * (double)rand() / (RAND_MAX + 1.0) + 1;
+                int targetIndex = numberOfElementsInIntersection * (double)rand() / (RAND_MAX + 1.0);
+                if (intersection[targetIndex] > n) {
+                    printf("3!");
+                }
                 return intersection[targetIndex];
                 
             } else { // Pheromone exist.
@@ -531,11 +541,14 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
                     weight += pheromoneWeight(from, intersection[targetIndex++], n, a, b, P, A);
                 }
                 targetIndex--;
+                if (intersection[targetIndex] > n) {
+                    printf("4!");
+                }
                 return intersection[targetIndex];
             }
         }
 
-    } else { // Don't use canditate list.
+    } else { // Don't use candidate list.
         // Compute the sum of pheromone weight (denominator of the probability).
         double sumWeight = 0.0;
         for (int to = 1; to <= n; to++) {
@@ -612,14 +625,14 @@ Tour antTour(int k, int n, int *A, Neighbor *NN, double *P, int a, int b, int c)
     return tour;
 };
 
-bool takeBetterTour(Tour canditateTour, Tour *bestSoFarTour_p)
+bool takeBetterTour(Tour candidateTour, Tour *bestSoFarTour_p)
 {
-    if (canditateTour.distance < bestSoFarTour_p->distance) {
+    if (candidateTour.distance < bestSoFarTour_p->distance) {
         free(bestSoFarTour_p->route);
-        *bestSoFarTour_p = canditateTour;
+        *bestSoFarTour_p = candidateTour;
         return true;
     } else {
-        free(canditateTour.route);
+        free(candidateTour.route);
         return false;
     }
 }
@@ -650,7 +663,7 @@ void depositPheromone(Tour tour, int n, double *P)
            pheromoneEvaporation:(double)r
                            seed:(unsigned int)seed
                  noImproveLimit:(int)limit
-              canditateListSize:(int)c
+              candidateListSize:(int)c
                    CSVLogString:(NSString *__autoreleasing *)log
 {
     srand(seed);
@@ -737,7 +750,7 @@ void limitPheromoneRange(int opt, double r, int n, double pB, double *P)
                   probabilityBest:(double)pB
                              seed:(unsigned int)seed
                    noImproveLimit:(int)limit
-                canditateListSize:(int)c
+                candidateListSize:(int)c
                      CSVLogString:(NSString *__autoreleasing *)log
 {
     srand(seed);
@@ -805,7 +818,7 @@ void limitPheromoneRange(int opt, double r, int n, double pB, double *P)
                       probabilityBest:(double)pB
                                  seed:(unsigned int)seed
                        noImproveLimit:(int)limit
-                    canditateListSize:(int)c
+                    candidateListSize:(int)c
                          CSVLogString:(NSString *__autoreleasing *)log
 {
     srand(seed);

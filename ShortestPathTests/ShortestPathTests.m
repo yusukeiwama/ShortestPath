@@ -82,7 +82,26 @@
                         pheromoneEvaporation:0.5
                                         seed:469049721
                               noImproveLimit:1000
-                           canditateListSize:20
+                           candidateListSize:0
+                                CSVLogString:NULL];
+    NSLog(@"%@: Distance = %d", sampleName, tour.distance);
+    XCTAssertTrue([TSP optimalSolutionWithName:sampleName].distance <= tour.distance, @"Shorter than the optimal solution.");
+}
+
+/// Check if the shortest path length is longer than the optimal path.
+- (void)testASWithCandidateList
+{
+    NSString *sampleName = @"eil51";
+    TSP *tsp = [TSP TSPWithFile:[[NSBundle mainBundle] pathForResource:sampleName ofType:@"tsp"]];
+    
+    // Compute the shortest path.
+    Tour tour = [tsp tourByASWithNumberOfAnt:tsp.dimension
+                          pheromoneInfluence:1
+                         transitionInfluence:2
+                        pheromoneEvaporation:0.5
+                                        seed:469049721
+                              noImproveLimit:1000
+                           candidateListSize:20
                                 CSVLogString:NULL];
     NSLog(@"%@: Distance = %d", sampleName, tour.distance);
     XCTAssertTrue([TSP optimalSolutionWithName:sampleName].distance <= tour.distance, @"Shorter than the optimal solution.");
@@ -102,14 +121,34 @@
                                probabilityBest:0.05
                                           seed:469049721
                                 noImproveLimit:1000
-                             canditateListSize:20
+                             candidateListSize:0
                                   CSVLogString:NULL];
     NSLog(@"%@: Distance = %d", sampleName, tour.distance);
     XCTAssertTrue([TSP optimalSolutionWithName:sampleName].distance <= tour.distance, @"Shorter than the optimal solution.");
 }
 
 /// Check if the shortest path length is longer than the optimal path.
-- (void)testMMAS2optWithoutCandidateList
+- (void)testMMASWithCandidateList
+{
+    NSString *sampleName = @"eil51";
+    TSP *tsp = [TSP TSPWithFile:[[NSBundle mainBundle] pathForResource:sampleName ofType:@"tsp"]];
+    
+    // Compute the shortest path.
+    Tour tour = [tsp tourByMMASWithNumberOfAnt:tsp.dimension
+                            pheromoneInfluence:1
+                           transitionInfluence:2
+                          pheromoneEvaporation:0.02
+                               probabilityBest:0.05
+                                          seed:469049721
+                                noImproveLimit:1000
+                             candidateListSize:20
+                                  CSVLogString:NULL];
+    NSLog(@"%@: Distance = %d", sampleName, tour.distance);
+    XCTAssertTrue([TSP optimalSolutionWithName:sampleName].distance <= tour.distance, @"Shorter than the optimal solution.");
+}
+
+/// Check if the shortest path length is longer than the optimal path.
+- (void)testMMAS2opt
 {
     NSString *sampleName = @"eil51";
     TSP *tsp = [TSP TSPWithFile:[[NSBundle mainBundle] pathForResource:sampleName ofType:@"tsp"]];
@@ -122,7 +161,7 @@
                                    probabilityBest:0.001
                                               seed:469049721
                                     noImproveLimit:200
-                                 canditateListSize:0
+                                 candidateListSize:0
                                       CSVLogString:NULL];
     NSLog(@"%@: Distance = %d", sampleName, tour.distance);
     XCTAssertTrue([TSP optimalSolutionWithName:sampleName].distance <= tour.distance, @"Shorter than the optimal solution.");
@@ -142,7 +181,7 @@
                                    probabilityBest:0.001
                                               seed:469049721
                                     noImproveLimit:200
-                                 canditateListSize:20
+                                 candidateListSize:20
                                       CSVLogString:NULL];
     NSLog(@"%@: Distance = %d", sampleName, tour.distance);
     XCTAssertTrue([TSP optimalSolutionWithName:sampleName].distance <= tour.distance, @"Shorter than the optimal solution.");

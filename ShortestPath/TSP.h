@@ -77,7 +77,7 @@ typedef struct _Tour {
  @param rho         The pheromone evaporatin coefficient. The rate of pheromone evaporation.
  @param seed        Seed to generate random number.
  @param limit       The number of iteration without improvement to break.
- @param size        The number of closest nodes to be canditates. If less than or equal to 0, a canditate list won't be used.
+ @param size        The number of closest nodes to be candidates. If less than or equal to 0, a candidate list won't be used.
  @param log         Iteration best tour distances in CSV format.
  @return The result tour.
  */
@@ -87,7 +87,7 @@ typedef struct _Tour {
            pheromoneEvaporation:(double)rho
                            seed:(unsigned)seed
                  noImproveLimit:(int)limit
-              canditateListSize:(int)size
+              candidateListSize:(int)size
                    CSVLogString:(NSString *__autoreleasing *)log;
 
 /**
@@ -99,7 +99,7 @@ typedef struct _Tour {
  @param pBest       The parameter to compute minimum pheromone.
  @param seed        Seed to generate random number.
  @param limit       The number of iteration without improvement to break.
- @param size        The number of closest nodes to be canditates. If less than or equal to 0, a canditate list won't be used.
+ @param size        The number of closest nodes to be candidates. If less than or equal to 0, a candidate list won't be used.
  @param log         Iteration best tour distances in CSV format.
  @return The result tour.
  */
@@ -110,7 +110,7 @@ typedef struct _Tour {
                   probabilityBest:(double)pBest
                              seed:(unsigned)seed
                    noImproveLimit:(int)limit
-                canditateListSize:(int)size
+                candidateListSize:(int)size
                      CSVLogString:(NSString *__autoreleasing *)log;
 
 
@@ -123,7 +123,7 @@ typedef struct _Tour {
  @param pBest       The parameter to compute minimum pheromone.
  @param seed        Seed to generate random number.
  @param limit       The number of iteration without improvement to break.
- @param size        The number of closest nodes to be canditates. If less than or equal to 0, a canditate list won't be used.
+ @param size        The number of closest nodes to be candidates. If less than or equal to 0, a candidate list won't be used.
  @param log         Iteration best tour distances in CSV format.
  @return The result tour.
  */
@@ -134,7 +134,7 @@ typedef struct _Tour {
                       probabilityBest:(double)pBest
                                  seed:(unsigned)seed
                        noImproveLimit:(int)limit
-                    canditateListSize:(int)size
+                    candidateListSize:(int)size
                          CSVLogString:(NSString *__autoreleasing *)log;
 
 @end

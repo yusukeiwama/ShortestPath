@@ -43,7 +43,7 @@
                                        probabilityBest:0.001
                                                   seed:469049721
                                         noImproveLimit:200
-                                     canditateListSize:20
+                                     candidateListSize:20
                                           CSVLogString:NULL];
         
 //         Tour tour = [tsp tourByNNFrom:1];

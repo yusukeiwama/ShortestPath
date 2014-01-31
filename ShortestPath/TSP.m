@@ -494,9 +494,6 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
                 }
             }
             if (maxWeightNodeNumber != 0) {
-                if (maxWeightNodeNumber > n) {
-                    printf("1!");
-                }
                 return maxWeightNodeNumber;
             }
             
@@ -518,18 +515,12 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
                 targetNodeNumber++;
             }
             targetNodeNumber--;
-            if (targetNodeNumber > n) {
-                printf("2!");
-            }
             return targetNodeNumber;
             
         } else { // Intersection exists.
             if (sumWeight < DBL_MIN) { // No pheromone.
                 // case 3: select node randomly from intersection.
                 int targetIndex = numberOfElementsInIntersection * (double)rand() / (RAND_MAX + 1.0);
-                if (intersection[targetIndex] > n) {
-                    printf("3!");
-                }
                 return intersection[targetIndex];
                 
             } else { // Pheromone exist.
@@ -541,9 +532,6 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
                     weight += pheromoneWeight(from, intersection[targetIndex++], n, a, b, P, A);
                 }
                 targetIndex--;
-                if (intersection[targetIndex] > n) {
-                    printf("4!");
-                }
                 return intersection[targetIndex];
             }
         }

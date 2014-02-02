@@ -91,12 +91,12 @@ Coordinate correctedPoint(Coordinate point, UIEdgeInsets margin)
     [self prepareColorsWithStyle:style];
     
 	// Start drawing
-	UIGraphicsBeginImageContextWithOptions((self.imageView.frame.size), YES, 0);
+	UIGraphicsBeginImageContextWithOptions((self.imageView.frame.size), NO, 0);
 	CGContextRef context = UIGraphicsGetCurrentContext();
     
     // Draw background
-    CGContextSetFillColorWithColor(context, _backgroundColor);
-    CGContextFillRect(context, CGRectMake(0.0, 0.0, self.imageView.frame.size.width, self.imageView.frame.size.height));
+//    CGContextSetFillColorWithColor(context, _backgroundColor);
+//    CGContextFillRect(context, CGRectMake(0.0, 0.0, self.imageView.frame.size.width, self.imageView.frame.size.height));
 	
 	// Draw path
 	Coordinate startPoint = correctedPoint(tsp.nodes[path.route[0] - 1].coord, margin);
@@ -170,15 +170,15 @@ Coordinate correctedPoint(Coordinate point, UIEdgeInsets margin)
     [self prepareColorsWithStyle:style];
     
 	// Start drawing
-	UIGraphicsBeginImageContextWithOptions((self.imageView.frame.size), YES, 0);
+	UIGraphicsBeginImageContextWithOptions((self.imageView.frame.size), NO, 0);
 	CGContextRef context = UIGraphicsGetCurrentContext();
     
     // Draw background
-    CGContextSetFillColorWithColor(context, _backgroundColor);
-    CGContextFillRect(context, CGRectMake(0.0, 0.0, self.imageView.frame.size.width, self.imageView.frame.size.height));
+//    CGContextSetFillColorWithColor(context, _backgroundColor);
+//    CGContextFillRect(context, CGRectMake(0.0, 0.0, self.imageView.frame.size.width, self.imageView.frame.size.height));
 		
 	// Draw nodes
-	CGFloat r = 22.0;
+	CGFloat r = 5.0;
 	CGContextSetFillColorWithColor(context, _nodeColor);
 	for (int i = 0; i < tsp.dimension; i++) {
 		Coordinate aPoint = correctedPoint(tsp.nodes[i].coord, margin);

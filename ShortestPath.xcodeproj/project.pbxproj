@@ -23,6 +23,9 @@
 		434D6F14185A13530068D753 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 434D6F12185A13530068D753 /* InfoPlist.strings */; };
 		434D6F16185A13530068D753 /* ShortestPathTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 434D6F15185A13530068D753 /* ShortestPathTests.m */; };
 		434D6F26185A22B10068D753 /* TSP.m in Sources */ = {isa = PBXBuildFile; fileRef = 434D6F25185A22B10068D753 /* TSP.m */; };
+		43B0E2C2189D6DB4002855DA /* ASTuningView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 43B0E2C1189D6DB4002855DA /* ASTuningView.xib */; };
+		43B0E2C4189D6E02002855DA /* HumanTuningView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 43B0E2C3189D6E02002855DA /* HumanTuningView.xib */; };
+		43B0E2C6189E8C48002855DA /* login_background.png in Resources */ = {isa = PBXBuildFile; fileRef = 43B0E2C5189E8C48002855DA /* login_background.png */; };
 		43BAD61D18950C430016F3B2 /* TSPExperimentManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 43BAD61C18950C430016F3B2 /* TSPExperimentManager.m */; };
 		43BAD62018951BEF0016F3B2 /* TSPVisualizer.m in Sources */ = {isa = PBXBuildFile; fileRef = 43BAD61F18951BEF0016F3B2 /* TSPVisualizer.m */; };
 		43BAD6B318959EFE0016F3B2 /* a280.opt.tour in Resources */ = {isa = PBXBuildFile; fileRef = 43BAD62218959EFE0016F3B2 /* a280.opt.tour */; };
@@ -207,6 +210,9 @@
 		434D6F15185A13530068D753 /* ShortestPathTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ShortestPathTests.m; sourceTree = "<group>"; };
 		434D6F24185A22B10068D753 /* TSP.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TSP.h; sourceTree = "<group>"; };
 		434D6F25185A22B10068D753 /* TSP.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TSP.m; sourceTree = "<group>"; };
+		43B0E2C1189D6DB4002855DA /* ASTuningView.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = ASTuningView.xib; sourceTree = "<group>"; };
+		43B0E2C3189D6E02002855DA /* HumanTuningView.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = HumanTuningView.xib; sourceTree = "<group>"; };
+		43B0E2C5189E8C48002855DA /* login_background.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = login_background.png; sourceTree = "<group>"; };
 		43BAD61B18950C430016F3B2 /* TSPExperimentManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TSPExperimentManager.h; sourceTree = "<group>"; };
 		43BAD61C18950C430016F3B2 /* TSPExperimentManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TSPExperimentManager.m; sourceTree = "<group>"; };
 		43BAD61E18951BEF0016F3B2 /* TSPVisualizer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TSPVisualizer.h; sourceTree = "<group>"; };
@@ -471,8 +477,11 @@
 		434D6F20185A21DF0068D753 /* View */ = {
 			isa = PBXGroup;
 			children = (
+				43B0E2C5189E8C48002855DA /* login_background.png */,
 				434D6EF9185A13530068D753 /* Main_iPhone.storyboard */,
 				434D6EFC185A13530068D753 /* Main_iPad.storyboard */,
+				43B0E2C1189D6DB4002855DA /* ASTuningView.xib */,
+				43B0E2C3189D6E02002855DA /* HumanTuningView.xib */,
 			);
 			name = View;
 			sourceTree = "<group>";
@@ -755,6 +764,7 @@
 				43BAD6EE18959EFE0016F3B2 /* gr229.tsp in Resources */,
 				43BAD6E918959EFE0016F3B2 /* gr120.opt.tour in Resources */,
 				43BAD6CF18959EFE0016F3B2 /* d15112.tsp in Resources */,
+				43B0E2C6189E8C48002855DA /* login_background.png in Resources */,
 				43BAD71618959EFE0016F3B2 /* pr226.tsp in Resources */,
 				43BAD6EA18959EFE0016F3B2 /* gr120.tsp in Resources */,
 				43BAD73718959EFE0016F3B2 /* u1060.tsp in Resources */,
@@ -852,11 +862,13 @@
 				43BAD6E418959EFE0016F3B2 /* gr24.tsp in Resources */,
 				43BAD6EB18959EFE0016F3B2 /* gr137.tsp in Resources */,
 				43BAD73818959EFE0016F3B2 /* u1432.tsp in Resources */,
+				43B0E2C2189D6DB4002855DA /* ASTuningView.xib in Resources */,
 				43BAD6BF18959EFE0016F3B2 /* bier127.tsp in Resources */,
 				43BAD6D118959EFE0016F3B2 /* dantzig42.tsp in Resources */,
 				43BAD71018959EFE0016F3B2 /* pr76.tsp in Resources */,
 				43BAD73218959EFE0016F3B2 /* tsp225.opt.tour in Resources */,
 				43BAD72218959EFE0016F3B2 /* rd100.opt.tour in Resources */,
+				43B0E2C4189D6E02002855DA /* HumanTuningView.xib in Resources */,
 				43BAD6B818959EFE0016F3B2 /* att532.tsp in Resources */,
 				43BAD6B318959EFE0016F3B2 /* a280.opt.tour in Resources */,
 				43BAD70F18959EFE0016F3B2 /* pr76.opt.tour in Resources */,

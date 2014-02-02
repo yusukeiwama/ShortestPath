@@ -26,7 +26,7 @@ typedef enum USKTSPExperiment {
 @interface TSPExperimentManager : NSObject
 
 @property TSPVisualizer *visualizer;
-@property NSArray       *SampleNames;
+@property NSArray       *sampleNames;
 @property NSArray       *solverNames;
 
 - (void)doExperiment:(USKTSPExperiment)experiment;

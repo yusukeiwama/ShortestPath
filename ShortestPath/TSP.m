@@ -379,7 +379,7 @@ int nearestNodeNumber(bool *visited, int from, int n, Neighbor *NN)
     return nearest;
 }
 
-- (Tour)tourByNNFrom:(int)start
+- (Tour)tourByNNFrom:(int)start use2opt:(BOOL)use2opt
 {
     Tour tour     = {0, calloc(n + 1, sizeof(int))};
     bool *visited = calloc(n, sizeof(bool));
@@ -397,6 +397,10 @@ int nearestNodeNumber(bool *visited, int from, int n, Neighbor *NN)
     }
     tour.distance += A[(from - 1) * n + (start - 1)];
     tour.route[n] =  start;
+    
+    if (use2opt) {
+        [self improveTourBy2opt:&tour];
+    }
     
     return tour;
 }
@@ -652,7 +656,9 @@ void depositPheromone(Tour tour, int n, double *P)
                            seed:(unsigned int)seed
                  noImproveLimit:(int)limit
               candidateListSize:(int)c
+                        use2opt:(BOOL)use2opt
                    CSVLogString:(NSString *__autoreleasing *)log
+
 {
     srand(seed);
     if (c > n) {
@@ -664,7 +670,7 @@ void depositPheromone(Tour tour, int n, double *P)
     // Initialize pheromone with average tour distance.
     int	totalDistance = 0;
     for (int i = 0; i < n; i++) {
-        Tour aTour = [self tourByNNFrom:i + 1];
+        Tour aTour = [self tourByNNFrom:i + 1 use2opt:use2opt];
         totalDistance += aTour.distance;
         free(aTour.route);
     }
@@ -684,6 +690,9 @@ void depositPheromone(Tour tour, int n, double *P)
         Tour tours[m];
         for (int k = 0; k < m; k++) {
             tours[k] = antTour(k, n, A, NN, P, a, b, c);
+            if (use2opt) {
+                [self improveTourBy2opt:&(tours[k])];
+            }
         }
         
         // Update pheromone
@@ -735,77 +744,6 @@ void limitPheromoneRange(int opt, double r, int n, double pB, double *P)
 }
 
 - (Tour)tourByMMASWithNumberOfAnt:(int)m
-               pheromoneInfluence:(int)a
-              transitionInfluence:(int)b
-             pheromoneEvaporation:(double)r
-                  probabilityBest:(double)pB
-                             seed:(unsigned int)seed
-                   noImproveLimit:(int)limit
-                candidateListSize:(int)c
-                     CSVLogString:(NSString *__autoreleasing *)log
-{
-    srand(seed);
-    if (c > n) {
-        c = n;
-    }
-    
-    double *P = calloc(n * n, sizeof(double)); // Pheromone matrix
-    
-    // Compute initial best tour by NN.
-    Tour initialBest = {INT32_MAX, calloc(n + 1, sizeof(int))};
-    for (int i = 0; i < n; i++) {
-        Tour aTour = [self tourByNNFrom:i + 1];
-        takeBetterTour(aTour, &initialBest);
-    }
-
-    // Initialize pheromone with max pheromone.
-    double pheromoneMax = 1.0 / (r * initialBest.distance);
-    initializePheromone(pheromoneMax, n, P);
-    free(initialBest.route);
-    
-    // Generate solutions.
-    Tour globalBest      = {INT32_MAX, calloc(n + 1, sizeof(int))};
-    int  noImproveCount  = 0;
-    int  loop            = 0;
-    NSMutableString *csv = [@"LOOP, DISTANCE\n" mutableCopy];
-    while (noImproveCount < limit) {
-        
-        // Do ant tours.
-        Tour tours[m];
-        for (int k = 0; k < m; k++) {
-            tours[k] = antTour(k, n, A, NN, P, a, b, c);
-        }
-        
-        // Find iteration best tour.
-        Tour iterationBest = {INT32_MAX, calloc(n + 1, sizeof(int))};
-        for (int k = 0; k < m; k++) {
-            takeBetterTour(tours[k], &iterationBest);
-        }
-        
-        // Update pheromone
-        evaporatePheromone(r, n, P);
-        depositPheromone(iterationBest, n, P);
-        limitPheromoneRange(iterationBest.distance, r, n, pB, P);
-        
-        // Update global best tour.
-        if (takeBetterTour(iterationBest, &globalBest)) {
-            noImproveCount = 0;
-        } else {
-            noImproveCount++;
-        }
-
-        [csv appendFormat:@"%d, %d\n", ++loop, globalBest.distance];
-    }
-    
-    // Export iteration best tour distances in CSV format.
-    if (log) {
-        *log = csv;
-    }
-    
-    return globalBest;
-}
-
-- (Tour)tourByMMAS2optWithNumberOfAnt:(int)m
                    pheromoneInfluence:(int)a
                   transitionInfluence:(int)b
                  pheromoneEvaporation:(double)r
@@ -813,6 +751,7 @@ void limitPheromoneRange(int opt, double r, int n, double pB, double *P)
                                  seed:(unsigned int)seed
                        noImproveLimit:(int)limit
                     candidateListSize:(int)c
+                              use2opt:(BOOL)use2opt
                          CSVLogString:(NSString *__autoreleasing *)log
 {
     srand(seed);
@@ -825,7 +764,7 @@ void limitPheromoneRange(int opt, double r, int n, double pB, double *P)
     // Compute initial best tour by NN.
     Tour initialBest = {INT32_MAX, calloc(n + 1, sizeof(int))};
     for (int i = 0; i < n; i++) {
-        Tour aTour = [self tourByNNFrom:i + 1];
+        Tour aTour = [self tourByNNFrom:i + 1 use2opt:use2opt];
         takeBetterTour(aTour, &initialBest);
     }
     
@@ -846,8 +785,9 @@ void limitPheromoneRange(int opt, double r, int n, double pB, double *P)
         for (int k = 0; k < m; k++) {
             tours[k] = antTour(k, n, A, NN, P, a, b, c);
 
-            // Improve using 2-opt
-            [self improveTourBy2opt:&(tours[k])];
+            if (use2opt) {
+                [self improveTourBy2opt:&(tours[k])];
+            }
         }
         
         // Find iteration best tour.

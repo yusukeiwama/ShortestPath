@@ -209,7 +209,8 @@ typedef enum _ExpandingPanel {
 
     switch (self.currentSolverType) {
         case TSPSolverTypeNN: {
-            tour = [self.currentTSP tourByNNFrom:rand() % self.currentTSP.dimension + 1];
+            tour = [self.currentTSP tourByNNFrom:rand() % self.currentTSP.dimension + 1
+                                         use2opt:YES];
             [self.currentTSP improveTourBy2opt:&tour];
             break;
         }
@@ -221,11 +222,12 @@ typedef enum _ExpandingPanel {
                                                        seed:rand()
                                              noImproveLimit:1000
                                           candidateListSize:20
+                                                    use2opt:YES
                                                CSVLogString:nil];
             break;
         }
         case TSPSolverTypeMMAS: {
-            tour = [self.currentTSP tourByMMAS2optWithNumberOfAnt:25
+            tour = [self.currentTSP tourByMMASWithNumberOfAnt:25
                                                     pheromoneInfluence:1
                                                    transitionInfluence:4
                                                   pheromoneEvaporation:0.2
@@ -233,6 +235,7 @@ typedef enum _ExpandingPanel {
                                                                   seed:rand()
                                                         noImproveLimit:200
                                                      candidateListSize:20
+                                                          use2opt:YES
                                                           CSVLogString:nil];
             break;
         }

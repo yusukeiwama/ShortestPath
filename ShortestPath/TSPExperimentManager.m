@@ -85,7 +85,8 @@ static const int seeds[NUMBER_OF_SEEDS] = {469049721, 2053676357, 1781357515, 12
 		Tour longestTour  = {0,         calloc(tsp.dimension, sizeof(int))};
 		int lengths[tsp.dimension];
 		for (int i = 0; i < tsp.dimension; i++) {
-			Tour aTour = [tsp tourByNNFrom:i + 1];
+			Tour aTour = [tsp tourByNNFrom:i + 1
+                                   use2opt:NO];
 			lengths[i] = aTour.distance;
 			lengthSum += aTour.distance;
 			[dataString appendString:[NSString stringWithFormat:@"%@, %d, %d, %d\n", sampleName, tsp.dimension, i + 1, aTour.distance]];
@@ -139,7 +140,8 @@ static const int seeds[NUMBER_OF_SEEDS] = {469049721, 2053676357, 1781357515, 12
 		Tour longestTour  = {0,         calloc(tsp.dimension, sizeof(int))};
 		int lengths[tsp.dimension];
 		for (int i = 0; i < tsp.dimension; i++) {
-			Tour aTour = [tsp tourByNNFrom:i + 1];
+			Tour aTour = [tsp tourByNNFrom:i + 1
+                                   use2opt:YES];
 			[tsp improveTourBy2opt:&aTour];
 			lengths[i] = aTour.distance;
 			lengthSum += aTour.distance;
@@ -199,6 +201,7 @@ static const int seeds[NUMBER_OF_SEEDS] = {469049721, 2053676357, 1781357515, 12
                                                  seed:seeds[ri]
                                        noImproveLimit:1000
                                     candidateListSize:20
+                                              use2opt:NO
                                          CSVLogString:NULL];
             lengths[ri] = aTour.distance;
 			lengthSum += aTour.distance;
@@ -262,6 +265,7 @@ static const int seeds[NUMBER_OF_SEEDS] = {469049721, 2053676357, 1781357515, 12
                                                  seed:seeds[ri]
                                        noImproveLimit:1000
                                     candidateListSize:20
+                                              use2opt:NO
                                          CSVLogString:&log];
             lengths[ri] = aTour.distance;
 			lengthSum += aTour.distance;
@@ -327,6 +331,7 @@ static const int seeds[NUMBER_OF_SEEDS] = {469049721, 2053676357, 1781357515, 12
                                                    seed:seeds[ri]
                                          noImproveLimit:1000
                                       candidateListSize:20
+                                                use2opt:NO
                                            CSVLogString:NULL];
             lengths[ri] = aTour.distance;
 			lengthSum += aTour.distance;
@@ -391,6 +396,7 @@ static const int seeds[NUMBER_OF_SEEDS] = {469049721, 2053676357, 1781357515, 12
                                                    seed:seeds[ri]
                                          noImproveLimit:1000
                                       candidateListSize:20
+                                                use2opt:NO
                                            CSVLogString:&log];
             lengths[ri] = aTour.distance;
 			lengthSum += aTour.distance;
@@ -454,7 +460,7 @@ static const int seeds[NUMBER_OF_SEEDS] = {469049721, 2053676357, 1781357515, 12
                     int  alpha = 1;
                     int   beta = 4;
                     int  limit = 200;
-                    Tour aTour = [tsp tourByMMAS2optWithNumberOfAnt:m
+                    Tour aTour = [tsp tourByMMASWithNumberOfAnt:m
                                              pheromoneInfluence:alpha
                                             transitionInfluence:beta
                                            pheromoneEvaporation:rho[r]
@@ -462,6 +468,7 @@ static const int seeds[NUMBER_OF_SEEDS] = {469049721, 2053676357, 1781357515, 12
                                                            seed:seeds[ri]
                                                  noImproveLimit:limit
                                                   candidateListSize:20
+                                                            use2opt:YES
                                                    CSVLogString:NULL];
                     lengths[ri] =  aTour.distance;
                     lengthSum   += aTour.distance;
@@ -529,7 +536,7 @@ static const int seeds[NUMBER_OF_SEEDS] = {469049721, 2053676357, 1781357515, 12
             double pBest = 0.1;
             int    limit = 200;
             NSString *log;
-            Tour aTour = [tsp tourByMMAS2optWithNumberOfAnt:m
+            Tour aTour = [tsp tourByMMASWithNumberOfAnt:m
                                          pheromoneInfluence:alpha
                                         transitionInfluence:beta
                                        pheromoneEvaporation:rho
@@ -537,6 +544,7 @@ static const int seeds[NUMBER_OF_SEEDS] = {469049721, 2053676357, 1781357515, 12
                                                        seed:seeds[ri]
                                              noImproveLimit:limit
                                           candidateListSize:20
+                                                    use2opt:YES
                                                CSVLogString:&log];
             lengths[ri] =  aTour.distance;
             lengthSum   += aTour.distance;
@@ -601,7 +609,7 @@ static const int seeds[NUMBER_OF_SEEDS] = {469049721, 2053676357, 1781357515, 12
         double pBest = 0.005;
         int    limit = 200;
         NSString *log;
-        Tour aTour = [tsp tourByMMAS2optWithNumberOfAnt:m
+        Tour aTour = [tsp tourByMMASWithNumberOfAnt:m
                                      pheromoneInfluence:alpha
                                     transitionInfluence:beta
                                    pheromoneEvaporation:rho
@@ -609,6 +617,7 @@ static const int seeds[NUMBER_OF_SEEDS] = {469049721, 2053676357, 1781357515, 12
                                                    seed:seeds[ri]
                                          noImproveLimit:limit
                                       candidateListSize:20
+                                                use2opt:YES
                                            CSVLogString:&log];
         lengths[ri] =  aTour.distance;
         lengthSum   += aTour.distance;

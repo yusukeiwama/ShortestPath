@@ -78,7 +78,7 @@ void swap2opt(int *route, int d, int i, int j)
 	if (self) {
 		if ([self readTSPDataFromFile:path]) {
             [self computeNeighborMatrix];
-//			[self printInformation];
+			[self printInformation];
 //            [self printNodes];
 //			[self printAdjecencyMatrix];
 //            [self printNeighborMatrix];
@@ -894,16 +894,34 @@ void limitPheromoneRange(int opt, double r, int n, double pB, double *P)
 
 - (void)printInformation
 {
-	printf("\n========== TSP INFORMATION ==========\n");
+	printf("\n=============== TSP INFORMATION ================\n");
+    printf("%s: %s\n", "NAME", [[self.information objectForKey:@"NAME"] cStringUsingEncoding:NSUTF8StringEncoding]);
 	[self.information enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop){
-		printf("%s: %s\n", [key cStringUsingEncoding:NSUTF8StringEncoding], [obj cStringUsingEncoding:NSUTF8StringEncoding]);
+        if ([key isEqualToString:@"NAME"] == NO) {
+            printf("%s: %s\n", [key cStringUsingEncoding:NSUTF8StringEncoding], [obj cStringUsingEncoding:NSUTF8StringEncoding]);
+        }
 	}];
+}
+
+- (NSString *)informationString
+{
+    NSMutableString *string = [NSMutableString string];
+
+    [string appendString:@"\n=============== TSP INFORMATION ================\n"];
+    [string appendString:[NSString stringWithFormat:@"%s: %s\n", "NAME", [[self.information objectForKey:@"NAME"] cStringUsingEncoding:NSUTF8StringEncoding]]];
+	[self.information enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop){
+        if ([key isEqualToString:@"NAME"] == NO) {
+            [string appendString:[NSString stringWithFormat:@"%@: %@\n", key, obj]];
+        }
+	}];
+
+    return string;
 }
 
 - (void)printNodes
 {
 	if (N != NULL) {
-		printf("\n========== NODE COORDINATIONS ==========\n");
+		printf("\n============== NODE COORDINATIONS ==============\n");
 		for (int i = 0; i < n; i++) {
 			printf("%5d: (%10.2f, %10.2f)\n", self.nodes[i].number, self.nodes[i].coord.x, self.nodes[i].coord.y);
 		}

@@ -29,6 +29,12 @@ typedef struct _Tour {
 	int	*route;
 } Tour;
 
+typedef enum _TSPSolverType {
+    TSPSolverTypeNN = 1,
+    TSPSolverTypeAS,
+    TSPSolverTypeMMAS,
+} TSPSolverType;
+
 @interface TSP : NSObject
 
 @property (readonly) NSDictionary *information;
@@ -136,5 +142,10 @@ typedef struct _Tour {
                        noImproveLimit:(int)limit
                     candidateListSize:(int)size
                          CSVLogString:(NSString *__autoreleasing *)log;
+
+
+#pragma mark - log
+- (NSString *)informationString;
+
 
 @end

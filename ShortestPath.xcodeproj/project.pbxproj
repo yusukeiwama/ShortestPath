@@ -7,6 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		434AC5B918A0207D004AF327 /* triangle.png in Resources */ = {isa = PBXBuildFile; fileRef = 434AC5B818A0207D004AF327 /* triangle.png */; };
+		434AC5C818A137A6004AF327 /* deepBlueOcean.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 434AC5C718A137A6004AF327 /* deepBlueOcean.jpg */; };
+		434AC5CE18A14BA0004AF327 /* aurora1.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 434AC5CB18A14BA0004AF327 /* aurora1.jpg */; };
+		434AC5CF18A14BA0004AF327 /* aurora2.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 434AC5CC18A14BA0004AF327 /* aurora2.jpg */; };
+		434AC5D018A14BA0004AF327 /* aurora3.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 434AC5CD18A14BA0004AF327 /* aurora3.jpg */; };
+		434AC5D218A14D9F004AF327 /* dizzyGreen.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 434AC5D118A14D9F004AF327 /* dizzyGreen.jpg */; };
+		434AC5D418A15197004AF327 /* curvedLines.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 434AC5D318A15197004AF327 /* curvedLines.jpg */; };
+		434AC5D618A15439004AF327 /* moonNight.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 434AC5D518A15439004AF327 /* moonNight.jpg */; };
 		434D6EE8185A13530068D753 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 434D6EE7185A13530068D753 /* Foundation.framework */; };
 		434D6EEA185A13530068D753 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 434D6EE9185A13530068D753 /* CoreGraphics.framework */; };
 		434D6EEC185A13530068D753 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 434D6EEB185A13530068D753 /* UIKit.framework */; };
@@ -23,9 +31,7 @@
 		434D6F14185A13530068D753 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 434D6F12185A13530068D753 /* InfoPlist.strings */; };
 		434D6F16185A13530068D753 /* ShortestPathTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 434D6F15185A13530068D753 /* ShortestPathTests.m */; };
 		434D6F26185A22B10068D753 /* TSP.m in Sources */ = {isa = PBXBuildFile; fileRef = 434D6F25185A22B10068D753 /* TSP.m */; };
-		43B0E2C2189D6DB4002855DA /* ASTuningView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 43B0E2C1189D6DB4002855DA /* ASTuningView.xib */; };
-		43B0E2C4189D6E02002855DA /* HumanTuningView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 43B0E2C3189D6E02002855DA /* HumanTuningView.xib */; };
-		43B0E2C6189E8C48002855DA /* login_background.png in Resources */ = {isa = PBXBuildFile; fileRef = 43B0E2C5189E8C48002855DA /* login_background.png */; };
+		4357AFDB189F2A360077B456 /* login_background.png in Resources */ = {isa = PBXBuildFile; fileRef = 4357AFDA189F2A360077B456 /* login_background.png */; };
 		43BAD61D18950C430016F3B2 /* TSPExperimentManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 43BAD61C18950C430016F3B2 /* TSPExperimentManager.m */; };
 		43BAD62018951BEF0016F3B2 /* TSPVisualizer.m in Sources */ = {isa = PBXBuildFile; fileRef = 43BAD61F18951BEF0016F3B2 /* TSPVisualizer.m */; };
 		43BAD6B318959EFE0016F3B2 /* a280.opt.tour in Resources */ = {isa = PBXBuildFile; fileRef = 43BAD62218959EFE0016F3B2 /* a280.opt.tour */; };
@@ -188,6 +194,14 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		434AC5B818A0207D004AF327 /* triangle.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = triangle.png; sourceTree = "<group>"; };
+		434AC5C718A137A6004AF327 /* deepBlueOcean.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = deepBlueOcean.jpg; sourceTree = "<group>"; };
+		434AC5CB18A14BA0004AF327 /* aurora1.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = aurora1.jpg; sourceTree = "<group>"; };
+		434AC5CC18A14BA0004AF327 /* aurora2.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = aurora2.jpg; sourceTree = "<group>"; };
+		434AC5CD18A14BA0004AF327 /* aurora3.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = aurora3.jpg; sourceTree = "<group>"; };
+		434AC5D118A14D9F004AF327 /* dizzyGreen.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = dizzyGreen.jpg; sourceTree = "<group>"; };
+		434AC5D318A15197004AF327 /* curvedLines.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = curvedLines.jpg; sourceTree = "<group>"; };
+		434AC5D518A15439004AF327 /* moonNight.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = moonNight.jpg; sourceTree = "<group>"; };
 		434D6EE4185A13530068D753 /* ShortestPath.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ShortestPath.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		434D6EE7185A13530068D753 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		434D6EE9185A13530068D753 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -210,9 +224,7 @@
 		434D6F15185A13530068D753 /* ShortestPathTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ShortestPathTests.m; sourceTree = "<group>"; };
 		434D6F24185A22B10068D753 /* TSP.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TSP.h; sourceTree = "<group>"; };
 		434D6F25185A22B10068D753 /* TSP.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TSP.m; sourceTree = "<group>"; };
-		43B0E2C1189D6DB4002855DA /* ASTuningView.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = ASTuningView.xib; sourceTree = "<group>"; };
-		43B0E2C3189D6E02002855DA /* HumanTuningView.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = HumanTuningView.xib; sourceTree = "<group>"; };
-		43B0E2C5189E8C48002855DA /* login_background.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = login_background.png; sourceTree = "<group>"; };
+		4357AFDA189F2A360077B456 /* login_background.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = login_background.png; sourceTree = "<group>"; };
 		43BAD61B18950C430016F3B2 /* TSPExperimentManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TSPExperimentManager.h; sourceTree = "<group>"; };
 		43BAD61C18950C430016F3B2 /* TSPExperimentManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TSPExperimentManager.m; sourceTree = "<group>"; };
 		43BAD61E18951BEF0016F3B2 /* TSPVisualizer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TSPVisualizer.h; sourceTree = "<group>"; };
@@ -477,11 +489,17 @@
 		434D6F20185A21DF0068D753 /* View */ = {
 			isa = PBXGroup;
 			children = (
-				43B0E2C5189E8C48002855DA /* login_background.png */,
+				434AC5D518A15439004AF327 /* moonNight.jpg */,
+				434AC5D318A15197004AF327 /* curvedLines.jpg */,
+				434AC5D118A14D9F004AF327 /* dizzyGreen.jpg */,
+				434AC5CB18A14BA0004AF327 /* aurora1.jpg */,
+				434AC5CC18A14BA0004AF327 /* aurora2.jpg */,
+				434AC5CD18A14BA0004AF327 /* aurora3.jpg */,
+				434AC5C718A137A6004AF327 /* deepBlueOcean.jpg */,
+				434AC5B818A0207D004AF327 /* triangle.png */,
+				4357AFDA189F2A360077B456 /* login_background.png */,
 				434D6EF9185A13530068D753 /* Main_iPhone.storyboard */,
 				434D6EFC185A13530068D753 /* Main_iPad.storyboard */,
-				43B0E2C1189D6DB4002855DA /* ASTuningView.xib */,
-				43B0E2C3189D6E02002855DA /* HumanTuningView.xib */,
 			);
 			name = View;
 			sourceTree = "<group>";
@@ -719,7 +737,7 @@
 				ORGANIZATIONNAME = "Yusuke Iwama";
 				TargetAttributes = {
 					434D6EE3185A13530068D753 = {
-						DevelopmentTeam = VV4XJ6D4G4;
+						DevelopmentTeam = RM3N4N4RRF;
 					};
 					434D6F07185A13530068D753 = {
 						TestTargetID = 434D6EE3185A13530068D753;
@@ -764,7 +782,7 @@
 				43BAD6EE18959EFE0016F3B2 /* gr229.tsp in Resources */,
 				43BAD6E918959EFE0016F3B2 /* gr120.opt.tour in Resources */,
 				43BAD6CF18959EFE0016F3B2 /* d15112.tsp in Resources */,
-				43B0E2C6189E8C48002855DA /* login_background.png in Resources */,
+				4357AFDB189F2A360077B456 /* login_background.png in Resources */,
 				43BAD71618959EFE0016F3B2 /* pr226.tsp in Resources */,
 				43BAD6EA18959EFE0016F3B2 /* gr120.tsp in Resources */,
 				43BAD73718959EFE0016F3B2 /* u1060.tsp in Resources */,
@@ -778,6 +796,7 @@
 				434D6F03185A13530068D753 /* Images.xcassets in Resources */,
 				43BAD6E218959EFE0016F3B2 /* gr21.tsp in Resources */,
 				43BAD71718959EFE0016F3B2 /* pr264.tsp in Resources */,
+				434AC5B918A0207D004AF327 /* triangle.png in Resources */,
 				43BAD6C218959EFE0016F3B2 /* brg180.opt.tour in Resources */,
 				43BAD6BE18959EFE0016F3B2 /* berlin52.tsp in Resources */,
 				434D6EFB185A13530068D753 /* Main_iPhone.storyboard in Resources */,
@@ -788,6 +807,7 @@
 				43BAD6B718959EFE0016F3B2 /* att48.tsp in Resources */,
 				43BAD6CA18959EFE0016F3B2 /* d493.tsp in Resources */,
 				43BAD6B618959EFE0016F3B2 /* att48.opt.tour in Resources */,
+				434AC5CE18A14BA0004AF327 /* aurora1.jpg in Resources */,
 				43BAD6FB18959EFE0016F3B2 /* kroC100.tsp in Resources */,
 				43BAD6D018959EFE0016F3B2 /* d18512.tsp in Resources */,
 				43BAD6ED18959EFE0016F3B2 /* gr202.tsp in Resources */,
@@ -817,6 +837,7 @@
 				43BAD6F718959EFE0016F3B2 /* kroB100.tsp in Resources */,
 				43BAD6E118959EFE0016F3B2 /* gr17.tsp in Resources */,
 				43BAD6B918959EFE0016F3B2 /* bayg29.opt.tour in Resources */,
+				434AC5D218A14D9F004AF327 /* dizzyGreen.jpg in Resources */,
 				43BAD6F118959EFE0016F3B2 /* gr666.tsp in Resources */,
 				43BAD72818959EFE0016F3B2 /* rl5915.tsp in Resources */,
 				43BAD70418959EFE0016F3B2 /* optimalSolutions.txt in Resources */,
@@ -827,6 +848,7 @@
 				43BAD6D818959EFE0016F3B2 /* eil101.tsp in Resources */,
 				43BAD6DB18959EFE0016F3B2 /* fl1577.tsp in Resources */,
 				43BAD71818959EFE0016F3B2 /* pr299.tsp in Resources */,
+				434AC5C818A137A6004AF327 /* deepBlueOcean.jpg in Resources */,
 				43BAD70918959EFE0016F3B2 /* pcb442.tsp in Resources */,
 				43BAD6BA18959EFE0016F3B2 /* bayg29.tsp in Resources */,
 				43BAD72A18959EFE0016F3B2 /* rl11849.tsp in Resources */,
@@ -838,6 +860,8 @@
 				43BAD6E718959EFE0016F3B2 /* gr96.opt.tour in Resources */,
 				43BAD70218959EFE0016F3B2 /* linhp318.tsp in Resources */,
 				43BAD70018959EFE0016F3B2 /* lin105.tsp in Resources */,
+				434AC5D618A15439004AF327 /* moonNight.jpg in Resources */,
+				434AC5D018A14BA0004AF327 /* aurora3.jpg in Resources */,
 				43BAD71A18959EFE0016F3B2 /* pr1002.opt.tour in Resources */,
 				43BAD6CC18959EFE0016F3B2 /* d1291.tsp in Resources */,
 				43BAD70B18959EFE0016F3B2 /* pcb3038.tsp in Resources */,
@@ -846,6 +870,7 @@
 				43BAD70A18959EFE0016F3B2 /* pcb1173.tsp in Resources */,
 				43BAD72D18959EFE0016F3B2 /* si1032.tsp in Resources */,
 				43BAD73418959EFE0016F3B2 /* u159.tsp in Resources */,
+				434AC5CF18A14BA0004AF327 /* aurora2.jpg in Resources */,
 				43BAD6D718959EFE0016F3B2 /* eil101.opt.tour in Resources */,
 				43BAD74118959EFE0016F3B2 /* vm1084.tsp in Resources */,
 				43BAD72E18959EFE0016F3B2 /* st70.opt.tour in Resources */,
@@ -862,18 +887,17 @@
 				43BAD6E418959EFE0016F3B2 /* gr24.tsp in Resources */,
 				43BAD6EB18959EFE0016F3B2 /* gr137.tsp in Resources */,
 				43BAD73818959EFE0016F3B2 /* u1432.tsp in Resources */,
-				43B0E2C2189D6DB4002855DA /* ASTuningView.xib in Resources */,
 				43BAD6BF18959EFE0016F3B2 /* bier127.tsp in Resources */,
 				43BAD6D118959EFE0016F3B2 /* dantzig42.tsp in Resources */,
 				43BAD71018959EFE0016F3B2 /* pr76.tsp in Resources */,
 				43BAD73218959EFE0016F3B2 /* tsp225.opt.tour in Resources */,
 				43BAD72218959EFE0016F3B2 /* rd100.opt.tour in Resources */,
-				43B0E2C4189D6E02002855DA /* HumanTuningView.xib in Resources */,
 				43BAD6B818959EFE0016F3B2 /* att532.tsp in Resources */,
 				43BAD6B318959EFE0016F3B2 /* a280.opt.tour in Resources */,
 				43BAD70F18959EFE0016F3B2 /* pr76.opt.tour in Resources */,
 				43BAD72518959EFE0016F3B2 /* rl1304.tsp in Resources */,
 				43BAD72018959EFE0016F3B2 /* rat575.tsp in Resources */,
+				434AC5D418A15197004AF327 /* curvedLines.jpg in Resources */,
 				43BAD72118959EFE0016F3B2 /* rat783.tsp in Resources */,
 				43BAD6D318959EFE0016F3B2 /* eil51.opt.tour in Resources */,
 				43BAD70518959EFE0016F3B2 /* p654.tsp in Resources */,

@@ -13,23 +13,30 @@ typedef enum TSPVisualizationStyle {
     TSPVisualizationStyleDark,
     TSPVisualizationStyleLight,
     TSPVisualizationStyleGrayScale,
+    TSPVisualizationStyleOcean,
     TSPVisualizationStyleDefault = TSPVisualizationStyleLight
 } TSPVisualizationStyle;
 
 @interface TSPVisualizer : NSObject
 
-/**
- *  ImageView on which image is drawn
- */
-@property UIImageView *imageView;
+@property UIImageView *backgroundImaveView;
+@property UIImageView *optimalPathImageView;
+@property UIImageView *globalBestPathImageView;
+@property UIImageView *additionalImageView;
+@property UIImageView *nodeImageView;
+
 
 - (BOOL)drawPath:(Tour)path ofTSP:(TSP *)tsp withStyle:(TSPVisualizationStyle)style;
-- (BOOL)PNGWithPath:(Tour)path ofTSP:(TSP *)tsp toFileNamed:(NSString *)fileName withStyle:(TSPVisualizationStyle)style;
 
 - (void)drawNodesWithTSP:(TSP *)tsp withStyle:(TSPVisualizationStyle)style;
 
-@end
+- (void)drawBackgroundWithStyle:(TSPVisualizationStyle)style;
 
-/*
- TODO: パスはパス、ノードはノードだけ描画する。背景も別。全部のせもあり。
-*/
+/// Clear all layer but background.
+- (void)clearTSPVisualization;
+
+
+#pragma mark - Export
+- (BOOL)PNGWithPath:(Tour)path ofTSP:(TSP *)tsp toFileNamed:(NSString *)fileName withStyle:(TSPVisualizationStyle)style;
+
+@end

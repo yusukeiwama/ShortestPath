@@ -8,10 +8,12 @@
 
 #import "TSPVisualizer.h"
 
+static const UIEdgeInsets margin = {40.0, 40.0, 40.0, 40.0};
 static UIEdgeInsets padding = {20.0, 20.0, 20.0, 20.0};
 static CGPoint offset = {0.0, 0.0};
 static CGSize  scale  = {1.0, 1.0};
 static CGFloat height;
+static CGFloat dimensionFactor = 1.00075;
 
 Coordinate correctedPoint(Coordinate point, UIEdgeInsets margin)
 {
@@ -24,7 +26,11 @@ Coordinate correctedPoint(Coordinate point, UIEdgeInsets margin)
 @implementation TSPVisualizer {
     CGColorRef _backgroundColor;
     CGColorRef _nodeColor;
+    CGColorRef _startNodeColor;
     CGColorRef _edgeColor;
+    CGFloat    _lineWidthFactor;
+    CGFloat    _nodeRadiusFactor;
+    CGFloat    _startNodeRadiusFactor;
 }
 
 - (void)prepareForCorrectionWithTSP:(TSP *)tsp margin:(UIEdgeInsets)margin
@@ -40,38 +46,51 @@ Coordinate correctedPoint(Coordinate point, UIEdgeInsets margin)
 	
 	// Compute constants for size correction
 	offset = CGPointMake(left, top);
-	scale  = CGSizeMake((self.imageView.frame.size.width - margin.left - margin.right) / (right - left),
-						(self.imageView.frame.size.height - margin.top - margin.bottom) / (bottom - top));
+	scale  = CGSizeMake((self.globalBestPathImageView.frame.size.width - margin.left - margin.right) / (right - left),
+						(self.globalBestPathImageView.frame.size.height - margin.top - margin.bottom) / (bottom - top));
 
     // Keep aspect ratio and centering.
     if (scale.width > scale.height) { // Vertically long
         scale.width = scale.height;
         CGFloat displayWidth = (right - left) * scale.width;
-        padding.left = padding.right = (self.imageView.frame.size.width - (margin.left + margin.right) - displayWidth) / 2.0;
+        padding.left = padding.right = (self.globalBestPathImageView.frame.size.width - (margin.left + margin.right) - displayWidth) / 2.0;
         padding.top = padding.bottom = 0.0;
     } else { // Horizontally long
         scale.height = scale.width;
         CGFloat displayHeight = (bottom - top) * scale.height;
-        padding.top = padding.bottom = (self.imageView.frame.size.height - (margin.top + margin.bottom) - displayHeight) / 2.0;
+        padding.top = padding.bottom = (self.globalBestPathImageView.frame.size.height - (margin.top + margin.bottom) - displayHeight) / 2.0;
         padding.left = padding.right = 0.0;
     }
 
     // Prepare height to use in C function.
-    height = self.imageView.frame.size.height;
+    height = self.globalBestPathImageView.frame.size.height;
 }
 
-- (void)prepareColorsWithStyle:(TSPVisualizationStyle)style
+- (void)prepareColorsWithStyle:(TSPVisualizationStyle)style TSP:(TSP *)tsp;
 {
+    _lineWidthFactor       = 0.010;
+    _nodeRadiusFactor      = 0.005;
+    _startNodeRadiusFactor = 0.010;
+
     switch (style) {
         case TSPVisualizationStyleDark:
             _backgroundColor = [[UIColor blackColor] CGColor];
             _nodeColor       = [[UIColor whiteColor] CGColor];
-            _edgeColor       = [[UIColor yellowColor] CGColor];
+            _startNodeColor  = [[UIColor whiteColor] CGColor];
+            _edgeColor       = [[UIColor whiteColor] CGColor];
+            _lineWidthFactor = 0.0075;
             break;
         case TSPVisualizationStyleLight:
             _backgroundColor = [[UIColor colorWithWhite:0.98 alpha:1.0] CGColor];
             _nodeColor       = [[UIColor blackColor]  CGColor];
             _edgeColor       = [[UIColor blueColor] CGColor];
+            break;
+        case TSPVisualizationStyleOcean:
+            _backgroundColor = [[UIColor colorWithRed:0.0 green:0.3 blue:0.5 alpha:1.0] CGColor];
+            _nodeColor       = [[UIColor whiteColor] CGColor];
+            _edgeColor       = [[UIColor whiteColor] CGColor];
+            _startNodeColor  = [[UIColor whiteColor] CGColor];
+            _lineWidthFactor = 0.003;
             break;
         case TSPVisualizationStyleGrayScale:
         default:
@@ -80,27 +99,27 @@ Coordinate correctedPoint(Coordinate point, UIEdgeInsets margin)
             _edgeColor       = [[UIColor blackColor] CGColor];
             break;
     }
+    
+    double scale = pow(dimensionFactor, -tsp.dimension);
+    _lineWidthFactor       *= scale;
+    _nodeRadiusFactor      *= scale;
+    _startNodeRadiusFactor *= scale;
 }
 
 - (BOOL)drawPath:(Tour)path ofTSP:(TSP *)tsp withStyle:(TSPVisualizationStyle)style
 {
 	if (path.route == NULL || tsp == nil || tsp.nodes == NULL) return NO;
 	
-    UIEdgeInsets margin  = {40.0, 40.0, 40.0, 40.0};
 	[self prepareForCorrectionWithTSP:tsp margin:margin];
-    [self prepareColorsWithStyle:style];
+    [self prepareColorsWithStyle:style TSP:tsp];
     
 	// Start drawing
-	UIGraphicsBeginImageContextWithOptions((self.imageView.frame.size), NO, 0);
+	UIGraphicsBeginImageContextWithOptions((self.globalBestPathImageView.frame.size), NO, 0);
 	CGContextRef context = UIGraphicsGetCurrentContext();
     
-    // Draw background
-//    CGContextSetFillColorWithColor(context, _backgroundColor);
-//    CGContextFillRect(context, CGRectMake(0.0, 0.0, self.imageView.frame.size.width, self.imageView.frame.size.height));
-	
 	// Draw path
 	Coordinate startPoint = correctedPoint(tsp.nodes[path.route[0] - 1].coord, margin);
-	CGContextSetLineWidth(context, 10.0);
+	CGContextSetLineWidth(context, self.globalBestPathImageView.frame.size.width * _lineWidthFactor); // 1% of width;
 	CGContextMoveToPoint(context, startPoint.x, startPoint.y);
 	for (int i = 1; i < tsp.dimension; i++) {
 		Coordinate aPoint = correctedPoint(tsp.nodes[path.route[i] - 1].coord, margin);
@@ -115,24 +134,8 @@ Coordinate correctedPoint(Coordinate point, UIEdgeInsets margin)
 	}
 	CGContextAddLineToPoint(context, startPoint.x, startPoint.y);
 	CGContextStrokePath(context);
-	
-	// Draw nodes
-	CGFloat r = 5.0;
-	CGContextSetFillColorWithColor(context, _nodeColor);
-	for (int i = 0; i < tsp.dimension; i++) {
-		Coordinate aPoint = correctedPoint(tsp.nodes[i].coord, margin);
-		CGContextFillEllipseInRect(context, CGRectMake(aPoint.x - r, aPoint.y - r, 2 * r, 2 * r));
-	}
-	
-	// Draw start node
-    r = 10.0;
-	CGContextSetFillColorWithColor(context, [[UIColor yellowColor] CGColor]);
-	CGContextFillEllipseInRect(context, CGRectMake(startPoint.x - r, startPoint.y - r, 2 * r, 2 * r));
-    CGContextSetStrokeColorWithColor(context, [[UIColor blackColor] CGColor]);
-    CGContextSetLineWidth(context, 1.0);
-    CGContextStrokeEllipseInRect(context, CGRectMake(startPoint.x - r, startPoint.y - r, 2 * r, 2 * r));
-	
-	self.imageView.image = UIGraphicsGetImageFromCurrentImageContext();
+		
+	self.globalBestPathImageView.image = UIGraphicsGetImageFromCurrentImageContext();
 	UIGraphicsEndImageContext();
 	
 	return YES;
@@ -147,7 +150,7 @@ Coordinate correctedPoint(Coordinate point, UIEdgeInsets margin)
 	// Example Path: /Users/yusukeiwama/Library/Application Support/iPhone Simulator/7.0.3/Applications/85BB258F-2ED0-464C-AD92-1C5D11012E67/Documents
 	
 	if ([self drawPath:path ofTSP:tsp withStyle:style]) {
-		NSData *imageData = UIImagePNGRepresentation(self.imageView.image);
+		NSData *imageData = UIImagePNGRepresentation(self.globalBestPathImageView.image);
 		if ([imageData writeToURL:outputURL atomically:YES]) {
 			NSLog(@"%@ is saved", fileName);
 			return YES;
@@ -165,28 +168,56 @@ Coordinate correctedPoint(Coordinate point, UIEdgeInsets margin)
 {
     if (tsp == nil) return;
 	
-    UIEdgeInsets margin = {40.0, 40.0, 40.0, 40.0};
 	[self prepareForCorrectionWithTSP:tsp margin:margin];
-    [self prepareColorsWithStyle:style];
+    [self prepareColorsWithStyle:style TSP:tsp];
     
 	// Start drawing
-	UIGraphicsBeginImageContextWithOptions((self.imageView.frame.size), NO, 0);
+	UIGraphicsBeginImageContextWithOptions((self.nodeImageView.frame.size), NO, 0);
 	CGContextRef context = UIGraphicsGetCurrentContext();
-    
-    // Draw background
-//    CGContextSetFillColorWithColor(context, _backgroundColor);
-//    CGContextFillRect(context, CGRectMake(0.0, 0.0, self.imageView.frame.size.width, self.imageView.frame.size.height));
 		
 	// Draw nodes
-	CGFloat r = 5.0;
+	CGFloat r = self.nodeImageView.frame.size.width * _nodeRadiusFactor; // 0.5% of width
 	CGContextSetFillColorWithColor(context, _nodeColor);
 	for (int i = 0; i < tsp.dimension; i++) {
 		Coordinate aPoint = correctedPoint(tsp.nodes[i].coord, margin);
 		CGContextFillEllipseInRect(context, CGRectMake(aPoint.x - r, aPoint.y - r, 2 * r, 2 * r));
 	}
+    
+    // Draw start node
+    r = self.globalBestPathImageView.frame.size.width * _startNodeRadiusFactor; // 1% of width
+	CGContextSetFillColorWithColor(context, _startNodeColor);
+    Coordinate startPoint = correctedPoint(tsp.nodes[0].coord, margin);
+	CGContextFillEllipseInRect(context, CGRectMake(startPoint.x - r, startPoint.y - r, 2 * r, 2 * r));
+
+    // Draw start node's border.
+//    CGContextSetStrokeColorWithColor(context, [[UIColor blackColor] CGColor]);
+//    CGContextSetLineWidth(context, 1.0);
+//    CGContextStrokeEllipseInRect(context, CGRectMake(startPoint.x - r, startPoint.y - r, 2 * r, 2 * r));
 		
-	self.imageView.image = UIGraphicsGetImageFromCurrentImageContext();
+	self.nodeImageView.image = UIGraphicsGetImageFromCurrentImageContext();
 	UIGraphicsEndImageContext();
+}
+
+- (void)drawBackgroundWithStyle:(TSPVisualizationStyle)style
+{
+	// Start drawing
+	UIGraphicsBeginImageContextWithOptions((self.backgroundImaveView.frame.size), NO, 0);
+	CGContextRef context = UIGraphicsGetCurrentContext();
+    
+    // Draw background
+    CGContextSetFillColorWithColor(context, _backgroundColor);
+    CGContextFillRect(context, CGRectMake(0.0, 0.0, self.backgroundImaveView.frame.size.width, self.backgroundImaveView.frame.size.height));
+    
+	self.backgroundImaveView.image = UIGraphicsGetImageFromCurrentImageContext();
+	UIGraphicsEndImageContext();
+}
+
+- (void)clearTSPVisualization
+{
+    self.optimalPathImageView.image    = nil;
+    self.globalBestPathImageView.image = nil;
+    self.additionalImageView.image     = nil;
+    self.nodeImageView.image           = nil;
 }
 
 @end

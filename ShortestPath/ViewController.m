@@ -65,6 +65,9 @@ typedef enum _ExpandingPanel {
 
 // Control buttons
 @property (weak, nonatomic) IBOutlet UIButton *solveButton;
+@property (weak, nonatomic) IBOutlet UIButton *stopButton;
+@property (weak, nonatomic) IBOutlet UIButton *stepButton;
+@property (weak, nonatomic) IBOutlet UIButton *saveButton;
 
 @end
 
@@ -102,6 +105,20 @@ typedef enum _ExpandingPanel {
 //    [self.visualizer drawBackgroundWithStyle:self.currentVisualizationStyle];
     [self.visualizer drawPath:tour ofTSP:self.currentTSP withStyle:self.currentVisualizationStyle];
     [self.visualizer drawNodesWithTSP:self.currentTSP withStyle:self.currentVisualizationStyle];
+
+    self.saveButton.layer.cornerRadius  =
+    self.stepButton.layer.cornerRadius  =
+    self.stopButton.layer.cornerRadius  = 30.0;
+    self.solveButton.layer.cornerRadius = 50.0;
+    self.saveButton.layer.borderWidth   =
+    self.stepButton.layer.borderWidth   =
+    self.stopButton.layer.borderWidth   =
+    self.solveButton.layer.borderWidth  = 1.0;
+    self.saveButton.layer.borderColor   =
+    self.stepButton.layer.borderColor   =
+    self.stopButton.layer.borderColor   =
+    self.solveButton.layer.borderColor  = [[UIColor colorWithWhite:1.0 alpha:0.5] CGColor];
+    
 }
 
 - (void)didReceiveMemoryWarning
@@ -204,9 +221,10 @@ typedef enum _ExpandingPanel {
 }
 
 #pragma mark - Button Actions
-- (IBAction)solve:(id)sender {
+- (IBAction)solve:(id)sender
+{
     Tour tour;
-
+    
     switch (self.currentSolverType) {
         case TSPSolverTypeNN: {
             tour = [self.currentTSP tourByNNFrom:rand() % self.currentTSP.dimension + 1
@@ -228,25 +246,28 @@ typedef enum _ExpandingPanel {
         }
         case TSPSolverTypeMMAS: {
             tour = [self.currentTSP tourByMMASWithNumberOfAnt:25
-                                                    pheromoneInfluence:1
-                                                   transitionInfluence:4
-                                                  pheromoneEvaporation:0.2
-                                                       probabilityBest:0.01
-                                                                  seed:rand()
-                                                        noImproveLimit:200
-                                                     candidateListSize:20
-                                                          use2opt:YES
-                                                          CSVLogString:nil];
+                                           pheromoneInfluence:1
+                                          transitionInfluence:4
+                                         pheromoneEvaporation:0.2
+                                              probabilityBest:0.01
+                                                         seed:rand()
+                                               noImproveLimit:200
+                                            candidateListSize:20
+                                                      use2opt:YES
+                                                 CSVLogString:nil];
             break;
         }
         default:
             break;
     }
+    
     [self.visualizer drawNodesWithTSP:self.currentTSP withStyle:self.currentVisualizationStyle];
     [self.visualizer drawPath:tour ofTSP:self.currentTSP withStyle:self.currentVisualizationStyle];
+
 }
 
-- (IBAction)expandPanel:(id)sender {
+- (IBAction)expandPanel:(id)sender
+{
     if (self.expandingPanel) {
         [UIView animateWithDuration:0.2
                          animations:^{

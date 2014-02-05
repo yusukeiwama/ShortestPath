@@ -78,7 +78,7 @@ void swap2opt(int *route, int d, int i, int j)
 	if (self) {
 		if ([self readTSPDataFromFile:path]) {
             [self computeNeighborMatrix];
-			[self printInformation];
+//			[self printInformation];
 //            [self printNodes];
 //			[self printAdjecencyMatrix];
 //            [self printNeighborMatrix];
@@ -642,6 +642,7 @@ void evaporatePheromone(double r, int n, double *P)
 void depositPheromone(Tour tour, int n, double *P)
 {
     double pheromone = 1.0 / tour.distance;
+    
     for (int i = 0; i < n; i++) {
         int from = tour.route[i];
         int to   = tour.route[i + 1];
@@ -683,17 +684,17 @@ void depositPheromone(Tour tour, int n, double *P)
     int  noImproveCount  = 0;
     int  loop            = 0;
     NSMutableString *csv = [@"LOOP, DISTANCE\n" mutableCopy];
+    Tour *tours = calloc(m, sizeof(Tour));
     while (noImproveCount < limit) { // improve loop
         loop++;
         
         // Do ant tours.
-        Tour tours[m];
-        for (int k = 0; k < m; k++) {
+        dispatch_apply(m, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(size_t k){
             tours[k] = antTour(k, n, A, NN, P, a, b, c);
             if (use2opt) {
                 [self improveTourBy2opt:&(tours[k])];
             }
-        }
+        });
         
         // Update pheromone
         evaporatePheromone(r, n, P);
@@ -716,6 +717,7 @@ void depositPheromone(Tour tour, int n, double *P)
 
         [csv appendFormat:@"%d, %d\n", loop, globalBest.distance];
     }
+    free(tours);
     
     // Export iteration best tour distances in CSV format.
     if (log) {
@@ -778,17 +780,17 @@ void limitPheromoneRange(int opt, double r, int n, double pB, double *P)
     int  noImproveCount  = 0;
     int  loop            = 0;
     NSMutableString *csv = [@"LOOP, DISTANCE\n" mutableCopy];
+//    Tour tours[m]; // Cannot refer to declaration with a variably modified type inside block.
+    Tour *tours = calloc(m, sizeof(Tour));
     while (noImproveCount < limit) {
-
-        // Do ant tours.
-        Tour tours[m];
-        for (int k = 0; k < m; k++) {
+        
+        // Do ant tours concurrently.
+        dispatch_apply(m, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(size_t k){
             tours[k] = antTour(k, n, A, NN, P, a, b, c);
-
             if (use2opt) {
                 [self improveTourBy2opt:&(tours[k])];
             }
-        }
+        });
         
         // Find iteration best tour.
         Tour iterationBest = {INT32_MAX, calloc(n + 1, sizeof(int))};
@@ -809,6 +811,7 @@ void limitPheromoneRange(int opt, double r, int n, double pB, double *P)
         }
         [csv appendFormat:@"%d, %d\n", ++loop, globalBest.distance];
     }
+    free(tours);
     
     // Export iteration best tour distances in CSV format.
     if (log) {

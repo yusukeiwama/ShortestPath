@@ -112,8 +112,8 @@ typedef enum _ExpandingPanel {
     self.solveButton.layer.cornerRadius = 50.0;
     self.saveButton.layer.borderWidth   =
     self.stepButton.layer.borderWidth   =
-    self.stopButton.layer.borderWidth   =
-    self.solveButton.layer.borderWidth  = 1.0;
+    self.stopButton.layer.borderWidth   = 1.0;
+    self.solveButton.layer.borderWidth  = 1.5;
     self.saveButton.layer.borderColor   =
     self.stepButton.layer.borderColor   =
     self.stopButton.layer.borderColor   =

@@ -52,7 +52,6 @@ typedef enum _ExpandingPanel {
 
 // Current TSP information
 @property TSP           *currentTSP;
-@property TSPSolverType currentSolverType;
 @property (weak, nonatomic) IBOutlet UILabel *currentTSPLabel;
 @property (weak, nonatomic) IBOutlet UILabel *currentTSPSolverTypeLabel;
 
@@ -72,6 +71,9 @@ typedef enum _ExpandingPanel {
 @end
 
 @implementation ViewController
+
+// synthesize to override setter to set TSP's client property.
+@synthesize currentTSP = _currentTSP;
 
 - (void)viewDidLoad
 {
@@ -131,6 +133,17 @@ typedef enum _ExpandingPanel {
 - (UIStatusBarStyle)preferredStatusBarStyle
 {
     return UIStatusBarStyleLightContent;
+}
+
+- (TSP *)currentTSP
+{
+    return _currentTSP;
+}
+
+- (void)setCurrentTSP:(TSP *)currentTSP
+{
+    _currentTSP = currentTSP;
+    _currentTSP.client = self;
 }
 
 
@@ -216,6 +229,7 @@ typedef enum _ExpandingPanel {
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
     if ([tableView isEqual:self.problemTableView]) {
+        [self.currentTSP flushTours];
         NSString *sampleName = self.experimentManager.sampleNames[indexPath.row];
         self.currentTSPLabel.text = sampleName;
         self.currentTSP = [TSP TSPWithFile:[[NSBundle mainBundle] pathForResource:sampleName ofType:@"tsp"]];
@@ -232,9 +246,9 @@ typedef enum _ExpandingPanel {
         }
         
     } else if ([tableView isEqual:self.solverTableView]) {
+        [self.currentTSP flushTours];
         NSString *solverName = self.experimentManager.solverNames[indexPath.row];
         self.currentTSPSolverTypeLabel.text = solverName;
-        [self.currentTSP flushTours];
         
         switch (indexPath.row) {
             case 0:
@@ -296,6 +310,28 @@ typedef enum _ExpandingPanel {
 //    [self.visualizer drawNodesWithTSP:self.currentTSP withStyle:self.currentVisualizationStyle];
 //    [self.visualizer drawPath:tour toIndex:self.currentTSP.dimension - 1 ofTSP:self.currentTSP withStyle:self.currentVisualizationStyle];
 
+}
+
+
+
+- (IBAction)hideControls:(id)sender {
+    [UIView animateWithDuration:0.2
+                     animations:^{
+                         self.controlView.frame = CGRectMake(1024, 32, 330, 708);
+                         self.monitorView.frame = CGRectMake( 192, 64, 640, 640);
+                     }
+                     completion:^(BOOL finished){
+                     }];
+}
+
+- (IBAction)showControls:(id)sender {
+    [UIView animateWithDuration:0.2
+                     animations:^{
+                         self.controlView.frame = CGRectMake(674, 32, 330, 708);
+                         self.monitorView.frame = CGRectMake( 20, 32, 640, 640);
+                     }
+                     completion:^(BOOL finished){
+                     }];
 }
 
 - (IBAction)expandPanel:(id)sender
@@ -378,27 +414,5 @@ typedef enum _ExpandingPanel {
         }
     }
 }
-
-- (IBAction)hideControls:(id)sender {
-    [UIView animateWithDuration:0.2
-                     animations:^{
-                         self.controlView.frame = CGRectMake(1024, 32, 330, 708);
-                         self.monitorView.frame = CGRectMake( 192, 64, 640, 640);
-                     }
-                     completion:^(BOOL finished){
-                     }];
-}
-
-- (IBAction)showControls:(id)sender {
-    [UIView animateWithDuration:0.2
-                     animations:^{
-                         self.controlView.frame = CGRectMake(674, 32, 330, 708);
-                         self.monitorView.frame = CGRectMake( 20, 32, 640, 640);
-                     }
-                     completion:^(BOOL finished){
-                     }];
-}
-
-
 
 @end

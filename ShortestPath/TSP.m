@@ -9,6 +9,7 @@
 #import "TSP.h"
 #import "USKTrimmer.h"
 #import "TSPTourQueue.h"
+#import "ViewController.h"
 
 typedef struct _Neighbor {
 	int	number;
@@ -56,14 +57,11 @@ void swap2opt(int *route, int d, int i, int j)
 
 @property (readonly) int	  *adjacencyMatrix;
 @property (readonly) Neighbor *neighborMatrix;
+@property TSPTourQueue *tourQueue;
 
 @end
 
-@implementation TSP {
-    TSPTourQueue *_NNTourQueue;
-    TSPTourQueue *_twoOptTourQueue;
-    TSPTourQueue *_ASTourQueue;
-}
+@implementation TSP
 
 @synthesize dimension       = n;
 @synthesize nodes           = N;
@@ -83,7 +81,7 @@ void swap2opt(int *route, int d, int i, int j)
 	if (self) {
 		if ([self readTSPDataFromFile:path]) {
             [self computeNeighborMatrix];
-            [self prepareQueues];
+            self.tourQueue = [TSPTourQueue new];
 //			[self printInformation];
 //            [self printNodes];
 //			[self printAdjecencyMatrix];
@@ -94,7 +92,7 @@ void swap2opt(int *route, int d, int i, int j)
 	return self;
 }
 
-+ (id)randomTSPWithDimension:(NSInteger)dimension seed:(unsigned int)seed
++ (id)randomTSPWithDimension:(int)dimension seed:(unsigned int)seed
 {
     if (dimension > MAX_DIMENSION) {
         dimension = MAX_DIMENSION;
@@ -104,7 +102,7 @@ void swap2opt(int *route, int d, int i, int j)
 	return [[TSP alloc] initRandomTSPWithDimension:dimension seed:seed];
 }
 
-- (id)initRandomTSPWithDimension:(NSInteger)dimension seed:(unsigned int)seed
+- (id)initRandomTSPWithDimension:(int)dimension seed:(unsigned int)seed
 {
 	self = [super init];
 	if (self) {
@@ -118,16 +116,9 @@ void swap2opt(int *route, int d, int i, int j)
 			N[i].coord   = p;
 		}
         [self computeNeighborMatrix];
-        [self prepareQueues];
+        self.tourQueue = [TSPTourQueue new];
 	}
 	return self;
-}
-
-- (void)prepareQueues
-{
-    _NNTourQueue     = [TSPTourQueue new];
-    _twoOptTourQueue = [TSPTourQueue new];
-    _ASTourQueue     = [TSPTourQueue new];
 }
 
 #pragma mark - read file
@@ -376,30 +367,15 @@ void swap2opt(int *route, int d, int i, int j)
 }
 
 #pragma mark - Queue management
-/**
- Tour.route has to be calloc and sized n+1 * sizeof(int).
- If route has 0 at index i, route ended at route[i-1]. 
- */
-- (void)enqueueTour:(Tour *)tour routeSize:(int)size toQueue:(TSPTourQueue *)queue
-{
-    [queue enqueueTour:tour routeSize:size];
-}
 
 - (Tour *)dequeueTourFromQueueType:(TSPTourQueueType)queueType
 {
-    switch (queueType) {
-        case TSPTourQueueTypeNN:   return [_NNTourQueue dequeueTour];
-        case TSPTourQueueType2opt: return [_twoOptTourQueue dequeueTour];
-        case TSPTourQueueTypeAS:   return [_ASTourQueue dequeueTour];
-        default:                   return NULL;
-    }
+    return [self.tourQueue dequeueTour];
 }
 
 - (void)flushTours
 {
-    [_NNTourQueue flush];
-    [_twoOptTourQueue flush];
-    [_ASTourQueue flush];
+    [self.tourQueue flush];
 }
 
 #pragma mark - Algorithms
@@ -436,13 +412,17 @@ int nearestNodeNumber(bool *visited, int from, int n, Neighbor *NN)
         tour.route[i]   =  to;
         visited[to - 1] =  true;
         from = to;
-        [self enqueueTour:&tour routeSize:(i + 1) toQueue:_NNTourQueue];
+        if (self.client.currentSolverType == TSPSolverTypeNN) {
+            [self.tourQueue enqueueTour:&tour routeSize:(i + 1)];
+        }
     }
     free(visited);
     // Go back to the start node.
     tour.distance += A[(from - 1) * n + (start - 1)];
     tour.route[n] =  start;
-    [self enqueueTour:&tour routeSize:(n + 1) toQueue:_NNTourQueue];
+    if (self.client.currentSolverType == TSPSolverTypeNN) {
+        [self.tourQueue enqueueTour:&tour routeSize:(n + 1)];
+    }
     
     if (use2opt) {
         [self improveTourBy2opt:&tour];
@@ -463,7 +443,9 @@ int nearestNodeNumber(bool *visited, int from, int n, Neighbor *NN)
 					swap2opt(tour_p->route, n, i, j);
 					tour_p->distance = newLength;
 					improved = true;
-                    [self enqueueTour:tour_p routeSize:(n + 1) toQueue:_twoOptTourQueue];
+                    if (self.client.currentSolverType == TSPSolverTypeNN) {
+                        [self.tourQueue enqueueTour:tour_p routeSize:(n + 1)];
+                    }
 				}
 			}
 		}
@@ -761,7 +743,9 @@ void depositPheromone(Tour tour, int n, double *P)
         } else {
             noImproveCount++;
         }
-        [self enqueueTour:&globalBest routeSize:n+1 toQueue:_ASTourQueue];
+        if (self.client.currentSolverType == TSPSolverTypeAS) {
+            [self.tourQueue enqueueTour:&globalBest routeSize:(n + 1)];
+        }
 
         [csv appendFormat:@"%d, %d\n", loop, globalBest.distance];
     }
@@ -813,6 +797,7 @@ void limitPheromoneRange(int opt, double r, int n, double pB, double *P)
     
     // Compute initial best tour by NN.
     Tour initialBest = {INT32_MAX, calloc(n + 1, sizeof(int))};
+
     for (int i = 0; i < n; i++) {
         Tour aTour = [self tourByNNFrom:i + 1 use2opt:use2opt];
         takeBetterTour(aTour, &initialBest);
@@ -857,7 +842,9 @@ void limitPheromoneRange(int opt, double r, int n, double pB, double *P)
         } else {
             noImproveCount++;
         }
-        [self enqueueTour:&globalBest routeSize:n+1 toQueue:_ASTourQueue];
+        if (self.client.currentSolverType == TSPSolverTypeMMAS) {
+            [self.tourQueue enqueueTour:&globalBest routeSize:(n + 1)];
+        }
         [csv appendFormat:@"%d, %d\n", ++loop, globalBest.distance];
     }
     free(tours);

@@ -11,4 +11,7 @@
 #import "TSP.h"
 
 @interface ViewController : UIViewController <UITableViewDelegate, UITableViewDataSource>
+
+@property TSPSolverType currentSolverType;
+
 @end

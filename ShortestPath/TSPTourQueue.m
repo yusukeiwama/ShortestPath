@@ -53,10 +53,10 @@ typedef struct _LinkedTour {
 - (void)flush
 {
     while (_head != NULL) {
-        LinkedTour *freeTarget = _head;
+        LinkedTour *target = _head;
         _head = _head->next;
-        free(freeTarget->tour.route);
-        free(freeTarget);
+        free(target->tour.route);
+        free(target);
     }
 }
 

@@ -10,6 +10,8 @@
 
 #define MAX_DIMENSION 3000
 
+@class ViewController;
+
 /*
  Optimal solution can be different according to which type used.
  i.e. tsp225.tsp (float:3919, double:3916)
@@ -46,6 +48,9 @@ typedef enum _TSPTourQueueType {
 @property (readonly) NSDictionary *information;
 @property (readonly) int		  dimension;
 @property (readonly) Node         *nodes;
+
+// client must have one TSPSolverType.
+@property ViewController *client;
 
 #pragma mark - Constructors
 

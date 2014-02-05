@@ -14,4 +14,9 @@
 
 - (void)enqueueTour:(Tour)tour toIndex:(int)index;
 
+// Caller must free MidTour->tour.route
+- (MidTour *)dequeueTour;
+
+- (void)flush;
+
 @end

@@ -32,7 +32,7 @@
 		434D6F16185A13530068D753 /* ShortestPathTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 434D6F15185A13530068D753 /* ShortestPathTests.m */; };
 		434D6F26185A22B10068D753 /* TSP.m in Sources */ = {isa = PBXBuildFile; fileRef = 434D6F25185A22B10068D753 /* TSP.m */; };
 		4357AFDB189F2A360077B456 /* login_background.png in Resources */ = {isa = PBXBuildFile; fileRef = 4357AFDA189F2A360077B456 /* login_background.png */; };
-		438D8FC118A2303200B2C8E1 /* TSPTourQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = 438D8FC018A2303200B2C8E1 /* TSPTourQueue.m */; };
+		438D8FC418A236E200B2C8E1 /* TSPTourQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = 438D8FC318A236E200B2C8E1 /* TSPTourQueue.m */; };
 		43BAD61D18950C430016F3B2 /* TSPExperimentManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 43BAD61C18950C430016F3B2 /* TSPExperimentManager.m */; };
 		43BAD62018951BEF0016F3B2 /* TSPVisualizer.m in Sources */ = {isa = PBXBuildFile; fileRef = 43BAD61F18951BEF0016F3B2 /* TSPVisualizer.m */; };
 		43BAD6B318959EFE0016F3B2 /* a280.opt.tour in Resources */ = {isa = PBXBuildFile; fileRef = 43BAD62218959EFE0016F3B2 /* a280.opt.tour */; };
@@ -226,8 +226,8 @@
 		434D6F24185A22B10068D753 /* TSP.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TSP.h; sourceTree = "<group>"; };
 		434D6F25185A22B10068D753 /* TSP.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TSP.m; sourceTree = "<group>"; };
 		4357AFDA189F2A360077B456 /* login_background.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = login_background.png; sourceTree = "<group>"; };
-		438D8FBF18A2303200B2C8E1 /* TSPTourQueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TSPTourQueue.h; sourceTree = "<group>"; };
-		438D8FC018A2303200B2C8E1 /* TSPTourQueue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TSPTourQueue.m; sourceTree = "<group>"; };
+		438D8FC218A236E200B2C8E1 /* TSPTourQueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TSPTourQueue.h; sourceTree = "<group>"; };
+		438D8FC318A236E200B2C8E1 /* TSPTourQueue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TSPTourQueue.m; sourceTree = "<group>"; };
 		43BAD61B18950C430016F3B2 /* TSPExperimentManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TSPExperimentManager.h; sourceTree = "<group>"; };
 		43BAD61C18950C430016F3B2 /* TSPExperimentManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TSPExperimentManager.m; sourceTree = "<group>"; };
 		43BAD61E18951BEF0016F3B2 /* TSPVisualizer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TSPVisualizer.h; sourceTree = "<group>"; };
@@ -682,8 +682,8 @@
 			children = (
 				434D6F24185A22B10068D753 /* TSP.h */,
 				434D6F25185A22B10068D753 /* TSP.m */,
-				438D8FBF18A2303200B2C8E1 /* TSPTourQueue.h */,
-				438D8FC018A2303200B2C8E1 /* TSPTourQueue.m */,
+				438D8FC218A236E200B2C8E1 /* TSPTourQueue.h */,
+				438D8FC318A236E200B2C8E1 /* TSPTourQueue.m */,
 				43BAD61B18950C430016F3B2 /* TSPExperimentManager.h */,
 				43BAD61C18950C430016F3B2 /* TSPExperimentManager.m */,
 				43BAD61E18951BEF0016F3B2 /* TSPVisualizer.h */,
@@ -957,7 +957,7 @@
 				43BAD61D18950C430016F3B2 /* TSPExperimentManager.m in Sources */,
 				434D6EF4185A13530068D753 /* main.m in Sources */,
 				43BAD62018951BEF0016F3B2 /* TSPVisualizer.m in Sources */,
-				438D8FC118A2303200B2C8E1 /* TSPTourQueue.m in Sources */,
+				438D8FC418A236E200B2C8E1 /* TSPTourQueue.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

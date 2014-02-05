@@ -396,12 +396,12 @@ int nearestNodeNumber(bool *visited, int from, int n, Neighbor *NN)
         tour.route[i]   =  to;
         visited[to - 1] =  true;
         from = to;
-        [self.delegate updatePath:tour toIndex:i];
+        [self.delegate enqueuePath:tour toIndex:i];
     }
     // Go back to the start node.
     tour.distance += A[(from - 1) * n + (start - 1)];
     tour.route[n] =  start;
-    [self.delegate updatePath:tour toIndex:n];
+    [self.delegate enqueuePath:tour toIndex:n];
     
     if (use2opt) {
         [self improveTourBy2opt:&tour];
@@ -422,7 +422,7 @@ int nearestNodeNumber(bool *visited, int from, int n, Neighbor *NN)
 					swap2opt(tour->route, n, i, j);
 					tour->distance = newLength;
 					improved = true;
-                    [self.delegate updatePath:*tour toIndex:n];
+                    [self.delegate enqueuePath:*tour toIndex:n];
 				}
 			}
 		}

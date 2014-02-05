@@ -9,6 +9,7 @@
 #import "ViewController.h"
 #import "TSPExperimentManager.h"
 #import "TSPVisualizer.h"
+#import "TSPTourQueue.h"
 
 typedef enum _ExpandingPanel {
     ExpandingPanelNone = 0,
@@ -74,6 +75,10 @@ typedef enum _ExpandingPanel {
     MidTour *_headTour;
     MidTour *_tailTour;
     NSTimer *_pathImageUpdateTimer;
+    
+    TSPTourQueue *NNTourQueue;
+    TSPTourQueue *twoOptTourQueue;
+    TSPTourQueue *ASTourQueue;
 }
 
 @synthesize currentTSP = _currentTSP;
@@ -98,6 +103,11 @@ typedef enum _ExpandingPanel {
     self.logString = [NSMutableString string];
 
 //    [self.experimentManager doExperiment:USKTSPExperimentMMAS2opt];
+
+    // Prepare Queue
+    NNTourQueue     = [TSPTourQueue new];
+    twoOptTourQueue = [TSPTourQueue new];
+    ASTourQueue     = [TSPTourQueue new];
     
     // Default Setting
     NSString *defaultSampleName = @"tsp225";
@@ -125,10 +135,8 @@ typedef enum _ExpandingPanel {
     self.stopButton.layer.borderColor   =
     self.solveButton.layer.borderColor  = [[UIColor colorWithWhite:1.0 alpha:0.5] CGColor];
     
-    _pathImageUpdateTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 / 60.0 target:self selector:@selector(updatePathImageView) userInfo:nil repeats:YES];
+    _pathImageUpdateTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 / 60.0 target:self selector:@selector(dequeuePathToDrawPathImage) userInfo:nil repeats:YES];
 }
-
-
 
 - (void)didReceiveMemoryWarning
 {
@@ -152,37 +160,26 @@ typedef enum _ExpandingPanel {
     return UIStatusBarStyleLightContent;
 }
 
-- (void)updatePathImageView
+
+- (void)dequeuePathToDrawPathImage
 {
-    if (_headTour == NULL) {
+    // Choose which queue to enqueue according to current solver type.
+    MidTour *tourPointer = [NNTourQueue dequeueTour];
+    if (tourPointer == NULL) {
         return;
     }
 
     // Consume a MidTour to draw path.
-    [self.visualizer drawPath:_headTour->tour toIndex:_headTour->index ofTSP:self.currentTSP withStyle:self.currentVisualizationStyle];
-    free(_headTour->tour.route);
-    _headTour = _headTour->next;
+    [self.visualizer drawPath:tourPointer->tour toIndex:tourPointer->index ofTSP:self.currentTSP withStyle:self.currentVisualizationStyle];
+    free(tourPointer->tour.route);
+    free(tourPointer);
 }
 
 #pragma mark - TSPDelegate
-- (void)updatePath:(Tour)tour toIndex:(int)index
+- (void)enqueuePath:(Tour)tour toIndex:(int)index
 {
-    // Create new MidTour.
-    MidTour *newTour = calloc(1, sizeof(MidTour));
-    newTour->index = index;
-    int routeSize = index + 1;
-    newTour->tour.route = calloc(routeSize, sizeof(int));
-    memcpy(newTour->tour.route, tour.route, routeSize * sizeof(int));
-    newTour->next  = NULL;
-
-    // Add new MidTour to the MidTour list.
-    if (_headTour == NULL) {
-        _headTour = newTour;
-        _tailTour = _headTour;
-    } else {
-        _tailTour->next = newTour;
-        _tailTour = newTour;
-    }
+    // Choose which queue to enqueue according to current solver type.
+    [NNTourQueue enqueueTour:tour toIndex:index];
 }
 
 

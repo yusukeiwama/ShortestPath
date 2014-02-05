@@ -43,7 +43,7 @@ typedef enum _TSPSolverType {
 
 @protocol TSPDelegate <NSObject>
 
-- (void)updatePath:(Tour)tour toIndex:(int)index;
+- (void)enqueuePath:(Tour)tour toIndex:(int)index;
 
 @end
 

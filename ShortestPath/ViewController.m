@@ -7,7 +7,6 @@
 //
 
 #import "ViewController.h"
-#import "TSP.h"
 #import "TSPExperimentManager.h"
 #import "TSPVisualizer.h"
 
@@ -26,7 +25,6 @@ typedef enum _ExpandingPanel {
 @property (weak, nonatomic) IBOutlet UIImageView *globalBestPathImageView;
 @property (weak, nonatomic) IBOutlet UIImageView *additionalImageView;
 @property (weak, nonatomic) IBOutlet UIImageView *nodeImageView;
-
 
 @property (weak, nonatomic) IBOutlet UIView *monitorView;
 
@@ -71,7 +69,14 @@ typedef enum _ExpandingPanel {
 
 @end
 
-@implementation ViewController
+@implementation ViewController {
+    // Tour list for animated visualization.
+    MidTour *_headTour;
+    MidTour *_tailTour;
+    NSTimer *_pathImageUpdateTimer;
+}
+
+@synthesize currentTSP = _currentTSP;
 
 - (void)viewDidLoad
 {
@@ -85,6 +90,7 @@ typedef enum _ExpandingPanel {
     self.visualizer.optimalPathImageView    = self.optimalPathImageView;
     self.visualizer.additionalImageView     = self.additionalImageView;
     self.visualizer.nodeImageView           = self.nodeImageView;
+    _headTour = NULL;
     
     self.experimentManager = [[TSPExperimentManager alloc] init];
     self.experimentManager.visualizer = self.visualizer;
@@ -100,10 +106,10 @@ typedef enum _ExpandingPanel {
     self.currentTSPSolverTypeLabel.text = @"Nearest Neighbor";
     
     self.currentTSP = [TSP TSPWithFile:[[NSBundle mainBundle] pathForResource:defaultSampleName ofType:@"tsp"]];
-    Tour tour = [TSP optimalSolutionWithName:defaultSampleName];
+    Tour optimalTour = [TSP optimalSolutionWithName:defaultSampleName];
     self.currentVisualizationStyle = TSPVisualizationStyleOcean;
 //    [self.visualizer drawBackgroundWithStyle:self.currentVisualizationStyle];
-    [self.visualizer drawPath:tour ofTSP:self.currentTSP withStyle:self.currentVisualizationStyle];
+    [self.visualizer drawPath:optimalTour toIndex:self.currentTSP.dimension ofTSP:self.currentTSP withStyle:self.currentVisualizationStyle];
     [self.visualizer drawNodesWithTSP:self.currentTSP withStyle:self.currentVisualizationStyle];
 
     self.saveButton.layer.cornerRadius  =
@@ -119,7 +125,10 @@ typedef enum _ExpandingPanel {
     self.stopButton.layer.borderColor   =
     self.solveButton.layer.borderColor  = [[UIColor colorWithWhite:1.0 alpha:0.5] CGColor];
     
+    _pathImageUpdateTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 / 60.0 target:self selector:@selector(updatePathImageView) userInfo:nil repeats:YES];
 }
+
+
 
 - (void)didReceiveMemoryWarning
 {
@@ -127,10 +136,55 @@ typedef enum _ExpandingPanel {
     // Dispose of any resources that can be recreated.
 }
 
+- (TSP *)currentTSP
+{
+    return _currentTSP;
+}
+
+- (void)setCurrentTSP:(TSP *)currentTSP
+{
+    _currentTSP = currentTSP;
+    _currentTSP.delegate = self;
+}
+
 - (UIStatusBarStyle)preferredStatusBarStyle
 {
     return UIStatusBarStyleLightContent;
 }
+
+- (void)updatePathImageView
+{
+    if (_headTour == NULL) {
+        return;
+    }
+
+    // Consume a MidTour to draw path.
+    [self.visualizer drawPath:_headTour->tour toIndex:_headTour->index ofTSP:self.currentTSP withStyle:self.currentVisualizationStyle];
+    free(_headTour->tour.route);
+    _headTour = _headTour->next;
+}
+
+#pragma mark - TSPDelegate
+- (void)updatePath:(Tour)tour toIndex:(int)index
+{
+    // Create new MidTour.
+    MidTour *newTour = calloc(1, sizeof(MidTour));
+    newTour->index = index;
+    int routeSize = index + 1;
+    newTour->tour.route = calloc(routeSize, sizeof(int));
+    memcpy(newTour->tour.route, tour.route, routeSize * sizeof(int));
+    newTour->next  = NULL;
+
+    // Add new MidTour to the MidTour list.
+    if (_headTour == NULL) {
+        _headTour = newTour;
+        _tailTour = _headTour;
+    } else {
+        _tailTour->next = newTour;
+        _tailTour = newTour;
+    }
+}
+
 
 #pragma mark - TableViewDataSource
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
@@ -261,8 +315,8 @@ typedef enum _ExpandingPanel {
             break;
     }
     
-    [self.visualizer drawNodesWithTSP:self.currentTSP withStyle:self.currentVisualizationStyle];
-    [self.visualizer drawPath:tour ofTSP:self.currentTSP withStyle:self.currentVisualizationStyle];
+//    [self.visualizer drawNodesWithTSP:self.currentTSP withStyle:self.currentVisualizationStyle];
+//    [self.visualizer drawPath:tour toIndex:self.currentTSP.dimension - 1 ofTSP:self.currentTSP withStyle:self.currentVisualizationStyle];
 
 }
 
@@ -351,7 +405,7 @@ typedef enum _ExpandingPanel {
     [UIView animateWithDuration:0.2
                      animations:^{
                          self.controlView.frame = CGRectMake(1024, 32, 330, 708);
-                         self.monitorView.frame = CGRectMake(192, 64, 640, 640);
+                         self.monitorView.frame = CGRectMake( 192, 64, 640, 640);
                      }
                      completion:^(BOOL finished){
                      }];
@@ -361,7 +415,7 @@ typedef enum _ExpandingPanel {
     [UIView animateWithDuration:0.2
                      animations:^{
                          self.controlView.frame = CGRectMake(674, 32, 330, 708);
-                         self.monitorView.frame = CGRectMake(20, 32, 640, 640);
+                         self.monitorView.frame = CGRectMake( 20, 32, 640, 640);
                      }
                      completion:^(BOOL finished){
                      }];

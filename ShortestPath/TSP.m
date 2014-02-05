@@ -299,8 +299,7 @@ void swap2opt(int *route, int d, int i, int j)
 					dimension = [[USKTrimmer trimmedStringWithString:components[1]] intValue];
 				
 				// Read path
-				optimalPath.route = calloc(dimension, sizeof(int));
-				// Read path
+				optimalPath.route = calloc(dimension + 1, sizeof(int));
 				NSMutableArray *path = [NSMutableArray array];
 				while (TRUE) {
 					l++;
@@ -314,6 +313,8 @@ void swap2opt(int *route, int d, int i, int j)
 					}
 					[path addObjectsFromArray:aPath];
 				}
+                // Go back to the first node. (cycle's end node is the same as start node.)
+                [path addObject:path[0]];
 				// Set optimal path.
 				optimalPath.route = [TSP intArrayFromArray:path];
 			}
@@ -389,14 +390,18 @@ int nearestNodeNumber(bool *visited, int from, int n, Neighbor *NN)
     
     int from = start;
     for (int i = 1; i < n; i++) {
+        // Look up the nearest node number.
         int to = nearestNodeNumber(visited, from, n, NN);
         tour.distance   += A[(from - 1) * n + (to - 1)];
         tour.route[i]   =  to;
         visited[to - 1] =  true;
         from = to;
+        [self.delegate updatePath:tour toIndex:i];
     }
+    // Go back to the start node.
     tour.distance += A[(from - 1) * n + (start - 1)];
     tour.route[n] =  start;
+    [self.delegate updatePath:tour toIndex:n];
     
     if (use2opt) {
         [self improveTourBy2opt:&tour];
@@ -417,6 +422,7 @@ int nearestNodeNumber(bool *visited, int from, int n, Neighbor *NN)
 					swap2opt(tour->route, n, i, j);
 					tour->distance = newLength;
 					improved = true;
+                    [self.delegate updatePath:*tour toIndex:n];
 				}
 			}
 		}

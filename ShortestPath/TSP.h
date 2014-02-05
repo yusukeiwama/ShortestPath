@@ -20,8 +20,8 @@ typedef struct _Coordinate {
 } Coordinate;
 
 typedef struct _Node {
-	int		number;
-	Coordinate   coord;
+	int	       number;
+	Coordinate coord;
 } Node;
 
 typedef struct _Tour {
@@ -29,17 +29,31 @@ typedef struct _Tour {
 	int	*route;
 } Tour;
 
+typedef struct _MidTour {
+    Tour tour;
+    int  index;
+    struct _MidTour *next; // for list data structure
+} MidTour;
+
 typedef enum _TSPSolverType {
     TSPSolverTypeNN = 1,
     TSPSolverTypeAS,
     TSPSolverTypeMMAS,
 } TSPSolverType;
 
+@protocol TSPDelegate <NSObject>
+
+- (void)updatePath:(Tour)tour toIndex:(int)index;
+
+@end
+
 @interface TSP : NSObject
 
 @property (readonly) NSDictionary *information;
 @property (readonly) int		  dimension;
 @property (readonly) Node         *nodes;
+
+@property id<TSPDelegate> delegate;
 
 #pragma mark - Constructors
 

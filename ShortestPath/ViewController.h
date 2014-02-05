@@ -8,5 +8,7 @@
 
 #import <UIKit/UIKit.h>
 
-@interface ViewController : UIViewController <UITableViewDelegate, UITableViewDataSource>
+#import "TSP.h"
+
+@interface ViewController : UIViewController <UITableViewDelegate, UITableViewDataSource, TSPDelegate>
 @end

@@ -10,5 +10,5 @@
 
 #import "TSP.h"
 
-@interface ViewController : UIViewController <UITableViewDelegate, UITableViewDataSource, TSPDelegate>
+@interface ViewController : UIViewController <UITableViewDelegate, UITableViewDataSource>
 @end

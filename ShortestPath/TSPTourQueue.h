@@ -12,10 +12,10 @@
 
 @interface TSPTourQueue : NSObject
 
-- (void)enqueueTour:(Tour)tour toIndex:(int)index;
+- (void)enqueueTour:(Tour *)tour routeSize:(int)size;
 
 // Caller must free MidTour->tour.route
-- (MidTour *)dequeueTour;
+- (Tour *)dequeueTour;
 
 - (void)flush;
 

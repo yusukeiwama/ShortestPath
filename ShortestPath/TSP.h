@@ -29,31 +29,23 @@ typedef struct _Tour {
 	int	*route;
 } Tour;
 
-typedef struct _MidTour {
-    Tour tour;
-    int  index;
-    struct _MidTour *next; // for list data structure
-} MidTour;
-
 typedef enum _TSPSolverType {
     TSPSolverTypeNN = 1,
     TSPSolverTypeAS,
     TSPSolverTypeMMAS,
 } TSPSolverType;
 
-@protocol TSPDelegate <NSObject>
-
-- (void)enqueuePath:(Tour)tour toIndex:(int)index;
-
-@end
+typedef enum _TSPTourQueueType {
+    TSPTourQueueTypeNN = 1,
+    TSPTourQueueType2opt,
+    TSPTourQueueTypeAS,
+} TSPTourQueueType;
 
 @interface TSP : NSObject
 
 @property (readonly) NSDictionary *information;
 @property (readonly) int		  dimension;
 @property (readonly) Node         *nodes;
-
-@property id<TSPDelegate> delegate;
 
 #pragma mark - Constructors
 
@@ -143,5 +135,11 @@ typedef enum _TSPSolverType {
 #pragma mark - log
 - (NSString *)informationString;
 
+/**
+ Dequeue a tour to visualize.
+ @return An tour.
+ */
+- (Tour *)dequeueTourFromQueueType:(TSPTourQueueType)queueType;
+- (void)flushTours;
 
 @end

@@ -26,6 +26,7 @@ typedef enum _ExpandingPanel {
 @property (weak, nonatomic) IBOutlet UIImageView *globalBestPathImageView;
 @property (weak, nonatomic) IBOutlet UIImageView *additionalImageView;
 @property (weak, nonatomic) IBOutlet UIImageView *nodeImageView;
+@property NSTimer *pathImageUpdateTimer;
 
 @property (weak, nonatomic) IBOutlet UIView *monitorView;
 
@@ -70,18 +71,7 @@ typedef enum _ExpandingPanel {
 
 @end
 
-@implementation ViewController {
-    // Tour list for animated visualization.
-    MidTour *_headTour;
-    MidTour *_tailTour;
-    NSTimer *_pathImageUpdateTimer;
-    
-    TSPTourQueue *NNTourQueue;
-    TSPTourQueue *twoOptTourQueue;
-    TSPTourQueue *ASTourQueue;
-}
-
-@synthesize currentTSP = _currentTSP;
+@implementation ViewController
 
 - (void)viewDidLoad
 {
@@ -95,7 +85,6 @@ typedef enum _ExpandingPanel {
     self.visualizer.optimalPathImageView    = self.optimalPathImageView;
     self.visualizer.additionalImageView     = self.additionalImageView;
     self.visualizer.nodeImageView           = self.nodeImageView;
-    _headTour = NULL;
     
     self.experimentManager = [[TSPExperimentManager alloc] init];
     self.experimentManager.visualizer = self.visualizer;
@@ -103,11 +92,6 @@ typedef enum _ExpandingPanel {
     self.logString = [NSMutableString string];
 
 //    [self.experimentManager doExperiment:USKTSPExperimentMMAS2opt];
-
-    // Prepare Queue
-    NNTourQueue     = [TSPTourQueue new];
-    twoOptTourQueue = [TSPTourQueue new];
-    ASTourQueue     = [TSPTourQueue new];
     
     // Default Setting
     NSString *defaultSampleName = @"tsp225";
@@ -119,7 +103,7 @@ typedef enum _ExpandingPanel {
     Tour optimalTour = [TSP optimalSolutionWithName:defaultSampleName];
     self.currentVisualizationStyle = TSPVisualizationStyleOcean;
 //    [self.visualizer drawBackgroundWithStyle:self.currentVisualizationStyle];
-    [self.visualizer drawPath:optimalTour toIndex:self.currentTSP.dimension ofTSP:self.currentTSP withStyle:self.currentVisualizationStyle];
+    [self.visualizer drawPath:optimalTour ofTSP:self.currentTSP withStyle:self.currentVisualizationStyle];
     [self.visualizer drawNodesWithTSP:self.currentTSP withStyle:self.currentVisualizationStyle];
 
     self.saveButton.layer.cornerRadius  =
@@ -135,24 +119,13 @@ typedef enum _ExpandingPanel {
     self.stopButton.layer.borderColor   =
     self.solveButton.layer.borderColor  = [[UIColor colorWithWhite:1.0 alpha:0.5] CGColor];
     
-    _pathImageUpdateTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 / 60.0 target:self selector:@selector(dequeuePathToDrawPathImage) userInfo:nil repeats:YES];
+    self.pathImageUpdateTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 / 60.0 target:self selector:@selector(dequeuePathToDrawPathImage) userInfo:nil repeats:YES];
 }
 
 - (void)didReceiveMemoryWarning
 {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
-}
-
-- (TSP *)currentTSP
-{
-    return _currentTSP;
-}
-
-- (void)setCurrentTSP:(TSP *)currentTSP
-{
-    _currentTSP = currentTSP;
-    _currentTSP.delegate = self;
 }
 
 - (UIStatusBarStyle)preferredStatusBarStyle
@@ -163,25 +136,32 @@ typedef enum _ExpandingPanel {
 
 - (void)dequeuePathToDrawPathImage
 {
-    // Choose which queue to enqueue according to current solver type.
-    MidTour *tourPointer = [NNTourQueue dequeueTour];
-    if (tourPointer == NULL) {
+    // Choose which dequeue to enqueue according to current solver type.
+    Tour *tour_p = NULL;
+    switch (self.currentSolverType) {
+        case TSPSolverTypeNN:
+            tour_p = [self.currentTSP dequeueTourFromQueueType:TSPTourQueueTypeNN];
+            if (tour_p == NULL) {
+                tour_p = [self.currentTSP dequeueTourFromQueueType:TSPTourQueueType2opt];
+            }
+            break;
+        case TSPSolverTypeAS:
+            tour_p = [self.currentTSP dequeueTourFromQueueType:TSPTourQueueTypeAS];
+            break;
+        case TSPSolverTypeMMAS:
+            tour_p = [self.currentTSP dequeueTourFromQueueType:TSPTourQueueTypeAS];
+            break;
+        default:
+            break;
+    }
+    
+    if (tour_p == NULL) {
         return;
     }
-
-    // Consume a MidTour to draw path.
-    [self.visualizer drawPath:tourPointer->tour toIndex:tourPointer->index ofTSP:self.currentTSP withStyle:self.currentVisualizationStyle];
-    free(tourPointer->tour.route);
-    free(tourPointer);
+    
+    [self.visualizer drawPath:*tour_p ofTSP:self.currentTSP withStyle:self.currentVisualizationStyle];
+    free(tour_p->route);
 }
-
-#pragma mark - TSPDelegate
-- (void)enqueuePath:(Tour)tour toIndex:(int)index
-{
-    // Choose which queue to enqueue according to current solver type.
-    [NNTourQueue enqueueTour:tour toIndex:index];
-}
-
 
 #pragma mark - TableViewDataSource
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
@@ -254,6 +234,7 @@ typedef enum _ExpandingPanel {
     } else if ([tableView isEqual:self.solverTableView]) {
         NSString *solverName = self.experimentManager.solverNames[indexPath.row];
         self.currentTSPSolverTypeLabel.text = solverName;
+        [self.currentTSP flushTours];
         
         switch (indexPath.row) {
             case 0:

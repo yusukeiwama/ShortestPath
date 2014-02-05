@@ -106,7 +106,7 @@ Coordinate correctedPoint(Coordinate point, UIEdgeInsets margin)
     _startNodeRadiusFactor *= scale;
 }
 
-- (BOOL)drawPath:(Tour)path toIndex:(int)index ofTSP:(TSP *)tsp withStyle:(TSPVisualizationStyle)style
+- (BOOL)drawPath:(Tour)path ofTSP:(TSP *)tsp withStyle:(TSPVisualizationStyle)style
 {
     @autoreleasepool {
         if (path.route == NULL || tsp == nil || tsp.nodes == NULL) return NO;
@@ -122,8 +122,12 @@ Coordinate correctedPoint(Coordinate point, UIEdgeInsets margin)
         Coordinate startPoint = correctedPoint(tsp.nodes[path.route[0] - 1].coord, margin);
         CGContextSetLineWidth(context, self.globalBestPathImageView.frame.size.width * _lineWidthFactor); // 1% of width;
         CGContextMoveToPoint(context, startPoint.x, startPoint.y);
-        for (int i = 1; i <= index; i++) {
-            Coordinate aPoint = correctedPoint(tsp.nodes[path.route[i] - 1].coord, margin);
+        for (int i = 1; i <= tsp.dimension; i++) {
+            int nodeNumber = path.route[i];
+            if (nodeNumber <  1 || nodeNumber > tsp.dimension) { // Tour ends.
+                break;
+            }
+            Coordinate aPoint = correctedPoint(tsp.nodes[nodeNumber - 1].coord, margin);
             CGContextAddLineToPoint(context, aPoint.x, aPoint.y);
             if (style == TSPVisualizationStyleDark || style == TSPVisualizationStyleLight) {
                 CGContextSetStrokeColorWithColor(context, [[UIColor colorWithHue:((double)i / tsp.dimension) saturation:1.0 brightness:1.0 alpha:1.0] CGColor]);
@@ -150,7 +154,7 @@ Coordinate correctedPoint(Coordinate point, UIEdgeInsets margin)
 	NSURL    *outputURL   = [NSURL fileURLWithPath:outputPath];
 	// Example Path: /Users/yusukeiwama/Library/Application Support/iPhone Simulator/7.0.3/Applications/85BB258F-2ED0-464C-AD92-1C5D11012E67/Documents
 	
-	if ([self drawPath:path toIndex:tsp.dimension ofTSP:tsp withStyle:style]) {
+	if ([self drawPath:path ofTSP:tsp withStyle:style]) {
 		NSData *imageData = UIImagePNGRepresentation(self.globalBestPathImageView.image);
 		if ([imageData writeToURL:outputURL atomically:YES]) {
 			NSLog(@"%@ is saved", fileName);

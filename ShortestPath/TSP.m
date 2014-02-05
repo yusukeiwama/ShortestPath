@@ -8,6 +8,7 @@
 
 #import "TSP.h"
 #import "USKTrimmer.h"
+#import "TSPTourQueue.h"
 
 typedef struct _Neighbor {
 	int	number;
@@ -58,7 +59,11 @@ void swap2opt(int *route, int d, int i, int j)
 
 @end
 
-@implementation TSP
+@implementation TSP {
+    TSPTourQueue *_NNTourQueue;
+    TSPTourQueue *_twoOptTourQueue;
+    TSPTourQueue *_ASTourQueue;
+}
 
 @synthesize dimension       = n;
 @synthesize nodes           = N;
@@ -78,6 +83,7 @@ void swap2opt(int *route, int d, int i, int j)
 	if (self) {
 		if ([self readTSPDataFromFile:path]) {
             [self computeNeighborMatrix];
+            [self prepareQueues];
 //			[self printInformation];
 //            [self printNodes];
 //			[self printAdjecencyMatrix];
@@ -112,8 +118,16 @@ void swap2opt(int *route, int d, int i, int j)
 			N[i].coord   = p;
 		}
         [self computeNeighborMatrix];
+        [self prepareQueues];
 	}
 	return self;
+}
+
+- (void)prepareQueues
+{
+    _NNTourQueue     = [TSPTourQueue new];
+    _twoOptTourQueue = [TSPTourQueue new];
+    _ASTourQueue     = [TSPTourQueue new];
 }
 
 #pragma mark - read file
@@ -161,7 +175,7 @@ void swap2opt(int *route, int d, int i, int j)
 		} else if ([lines[l] rangeOfString:@"EDGE_WEIGHT_SECTION"].location != NSNotFound) { // Found
 			l++;
 			// Read adjacency matrix.
-			A = calloc(n * n, sizeof(double));
+			A = calloc(n * n, sizeof(int));
 			// Read edge weights.
 			NSMutableArray *edgeWeights = [NSMutableArray array];
 			while (TRUE) {
@@ -361,8 +375,34 @@ void swap2opt(int *route, int d, int i, int j)
 	}
 }
 
-#pragma mark - Algorithms
+#pragma mark - Queue management
+/**
+ Tour.route has to be calloc and sized n+1 * sizeof(int).
+ If route has 0 at index i, route ended at route[i-1]. 
+ */
+- (void)enqueueTour:(Tour *)tour routeSize:(int)size toQueue:(TSPTourQueue *)queue
+{
+    [queue enqueueTour:tour routeSize:size];
+}
 
+- (Tour *)dequeueTourFromQueueType:(TSPTourQueueType)queueType
+{
+    switch (queueType) {
+        case TSPTourQueueTypeNN:   return [_NNTourQueue dequeueTour];
+        case TSPTourQueueType2opt: return [_twoOptTourQueue dequeueTour];
+        case TSPTourQueueTypeAS:   return [_ASTourQueue dequeueTour];
+        default:                   return NULL;
+    }
+}
+
+- (void)flushTours
+{
+    [_NNTourQueue flush];
+    [_twoOptTourQueue flush];
+    [_ASTourQueue flush];
+}
+
+#pragma mark - Algorithms
 /*
  For performance reason, NN is computed in advance.
  i.e. pr2392 NN:1.7sec A:68sec
@@ -396,12 +436,13 @@ int nearestNodeNumber(bool *visited, int from, int n, Neighbor *NN)
         tour.route[i]   =  to;
         visited[to - 1] =  true;
         from = to;
-        [self.delegate enqueuePath:tour toIndex:i];
+        [self enqueueTour:&tour routeSize:(i + 1) toQueue:_NNTourQueue];
     }
+    free(visited);
     // Go back to the start node.
     tour.distance += A[(from - 1) * n + (start - 1)];
     tour.route[n] =  start;
-    [self.delegate enqueuePath:tour toIndex:n];
+    [self enqueueTour:&tour routeSize:(n + 1) toQueue:_NNTourQueue];
     
     if (use2opt) {
         [self improveTourBy2opt:&tour];
@@ -410,19 +451,19 @@ int nearestNodeNumber(bool *visited, int from, int n, Neighbor *NN)
     return tour;
 }
 
-- (void)improveTourBy2opt:(Tour *)tour
+- (void)improveTourBy2opt:(Tour *)tour_p
 {
 	bool improved = true;
 	while (improved) {
 		improved = false;
 		for (int i = 0; i < n - 1; i++) {
 			for (int j = i + 1; j < n ; j++) {
-				int newLength = length2opt(tour, A, n, i, j);
-				if (newLength < tour->distance) {
-					swap2opt(tour->route, n, i, j);
-					tour->distance = newLength;
+				int newLength = length2opt(tour_p, A, n, i, j);
+				if (newLength < tour_p->distance) {
+					swap2opt(tour_p->route, n, i, j);
+					tour_p->distance = newLength;
 					improved = true;
-                    [self.delegate enqueuePath:*tour toIndex:n];
+                    [self enqueueTour:tour_p routeSize:(n + 1) toQueue:_twoOptTourQueue];
 				}
 			}
 		}
@@ -720,6 +761,7 @@ void depositPheromone(Tour tour, int n, double *P)
         } else {
             noImproveCount++;
         }
+        [self enqueueTour:&globalBest routeSize:n+1 toQueue:_ASTourQueue];
 
         [csv appendFormat:@"%d, %d\n", loop, globalBest.distance];
     }
@@ -815,6 +857,7 @@ void limitPheromoneRange(int opt, double r, int n, double pB, double *P)
         } else {
             noImproveCount++;
         }
+        [self enqueueTour:&globalBest routeSize:n+1 toQueue:_ASTourQueue];
         [csv appendFormat:@"%d, %d\n", ++loop, globalBest.distance];
     }
     free(tours);

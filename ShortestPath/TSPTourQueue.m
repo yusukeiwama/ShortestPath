@@ -8,50 +8,54 @@
 
 #import "TSPTourQueue.h"
 
+typedef struct _LinkedTour {
+    Tour               tour;
+    int                routeSize;
+    struct _LinkedTour *next;
+} LinkedTour;
 
 @implementation TSPTourQueue {
-    MidTour *_headTour;
-    MidTour *_tailTour;
+    LinkedTour *_head;
+    LinkedTour *_tail;
 }
     
-- (void)enqueueTour:(Tour)tour toIndex:(int)index
+- (void)enqueueTour:(Tour *)tour routeSize:(int)size
 {
     // Create new MidTour.
-    MidTour *newTour = calloc(1, sizeof(MidTour));
-    newTour->index = index;
-    int routeSize = index + 1;
-    newTour->tour.route = calloc(routeSize, sizeof(int));
-    memcpy(newTour->tour.route, tour.route, routeSize * sizeof(int));
+    LinkedTour *newTour = calloc(1, sizeof(LinkedTour));
+    newTour->routeSize  = size;
+    newTour->tour.route = calloc(size + 1, sizeof(int)); // +1 ... exceeded element work as a sentinel.
+    memcpy(newTour->tour.route, tour->route, size * sizeof(int));
     newTour->next  = NULL;
     
     // Add new MidTour to the MidTour list.
-    if (_headTour == NULL) {
-        _headTour = newTour;
-        _tailTour = _headTour;
+    if (_head == NULL) {
+        _head = newTour;
+        _tail = _head;
     } else {
-        _tailTour->next = newTour;
-        _tailTour = newTour;
+        _tail->next = newTour;
+        _tail       = newTour;
     }
 }
 
-- (MidTour *)dequeueTour
+- (Tour *)dequeueTour
 {
-    if (_headTour == NULL) {
+    if (_head == NULL) {
         return NULL;
     }
-    MidTour *dequeuedTour = _headTour;
-    _headTour = _headTour->next;
+    LinkedTour *dequeuedTour = _head;
+    _head = _head->next;
     
-    return dequeuedTour;
+    return &(dequeuedTour->tour);
 }
 
 
 - (void)flush
 {
-    while (_headTour != NULL) {
-        free(_headTour->tour.route);
-        MidTour *freeTarget = _headTour;
-        _headTour = _headTour->next;
+    while (_head != NULL) {
+        LinkedTour *freeTarget = _head;
+        _head = _head->next;
+        free(freeTarget->tour.route);
         free(freeTarget);
     }
 }

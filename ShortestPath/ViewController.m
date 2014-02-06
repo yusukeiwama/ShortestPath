@@ -179,6 +179,16 @@ typedef enum _ExpandingPanel {
 
 - (void)visualizeLog
 {
+    // Suspend solving operation when log queue have enough data to visualize. (prevent memory pressure.)
+    // Limit memory allocation for pheromone matrix in 200MB.
+    int n = self.currentTSP.dimension;
+    int capacity = 200000000 / (n * n * sizeof(double));
+    if ([self.currentTSP.logQueue count] > capacity) {
+        [self.currentTSP.operationQueue setSuspended:YES];
+    } else if ([self.currentTSP.operationQueue isSuspended] == YES && [self.currentTSP.logQueue count] < 10) {
+        [self.currentTSP.operationQueue setSuspended:NO];
+    }
+    
     NSDictionary *logDictionary = [self.currentTSP.logQueue dequeue];
     if (logDictionary == nil) {
         return;

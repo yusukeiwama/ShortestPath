@@ -18,7 +18,6 @@
 @end
 
 /**
- TODO: add log
- TODO: suspend solving operation when log queue have enough data to visualize. (prevent memory pressure.)
+
  TODO: Human mode
 */

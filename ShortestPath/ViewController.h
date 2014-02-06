@@ -12,7 +12,8 @@
 
 @interface ViewController : UIViewController <UITableViewDelegate, UITableViewDataSource>
 
-@property TSPSolverType currentSolverType;
+@property TSPSolverType   currentSolverType;
+@property NSMutableString *log;
 
 @end
 

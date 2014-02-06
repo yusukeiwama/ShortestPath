@@ -10,14 +10,15 @@
 
 #import "TSP.h"
 
-@interface ViewController : UIViewController <UITableViewDelegate, UITableViewDataSource>
+@interface ViewController : UIViewController <UITableViewDelegate, UITableViewDataSource, UITextViewDelegate>
 
 @property TSPSolverType   currentSolverType;
-@property NSMutableString *log;
+@property NSMutableString *logString;
 
 @end
 
 /**
  TODO: add log
+ TODO: suspend solving operation when log queue have enough data to visualize. (prevent memory pressure.)
  TODO: Human mode
 */

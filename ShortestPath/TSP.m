@@ -84,8 +84,7 @@ void swap2opt(int *route, int d, int i, int j)
 	if (self) {
 		if ([self readTSPDataFromFile:path]) {
             [self computeNeighborMatrix];
-            self.tourQueue   = [TSPTourQueue new];
-            self.matrixQueue = [TSPMatrixQueue new];
+            [self prepareQueues];
 //			[self printInformation];
 //            [self printNodes];
 //			[self printAdjecencyMatrix];
@@ -120,11 +119,41 @@ void swap2opt(int *route, int d, int i, int j)
 			N[i].coord   = p;
 		}
         [self computeNeighborMatrix];
-        self.tourQueue   = [TSPTourQueue new];
-        self.matrixQueue = [TSPMatrixQueue new];
+        [self prepareQueues];
 	}
 	return self;
 }
+
+#pragma mark - Queue management
+
+-(void)prepareQueues
+{
+    self.tourQueue   = [TSPTourQueue new];
+    self.matrixQueue = [TSPMatrixQueue new];
+    self.operationQueue = [NSOperationQueue new];
+    self.logQueue    = [USKQueue queueWithCapacity:50000];
+}
+
+- (Tour *)dequeueTour
+{
+    return [self.tourQueue dequeueTour];
+}
+
+- (void)flushTours
+{
+    [self.tourQueue flush];
+}
+
+- (double *)dequeueMatrix
+{
+    return [self.matrixQueue dequeueMatrix];
+}
+
+- (void)flushMatrices
+{
+    [self.matrixQueue flush];
+}
+
 
 #pragma mark - read file
 
@@ -371,28 +400,6 @@ void swap2opt(int *route, int d, int i, int j)
 	}
 }
 
-#pragma mark - Queue management
-
-- (Tour *)dequeueTour
-{
-    return [self.tourQueue dequeueTour];
-}
-
-- (void)flushTours
-{
-    [self.tourQueue flush];
-}
-
-- (double *)dequeueMatrix
-{
-    return [self.matrixQueue dequeueMatrix];
-}
-
-- (void)flushMatrices
-{
-    [self.matrixQueue flush];
-}
-
 #pragma mark - Algorithms
 /*
  For performance reason, NN is computed in advance.
@@ -428,6 +435,11 @@ int nearestNodeNumber(bool *visited, int from, int n, Neighbor *NN)
         visited[to - 1] =  true;
         from = to;
         if (self.client.currentSolverType == TSPSolverTypeNN) {
+            if (i == 1) {
+                [self.logQueue enqueue:[NSString stringWithFormat:@"The nearest neighbor algorithm executed.\nroute: %d %d ", start, to]];
+            } else {
+                [self.logQueue enqueue:[NSString stringWithFormat:@"%d ", to]];
+            }
             [self.tourQueue enqueueTour:&tour routeSize:(i + 1)];
         }
     }
@@ -435,12 +447,23 @@ int nearestNodeNumber(bool *visited, int from, int n, Neighbor *NN)
     // Go back to the start node.
     tour.distance += A[(from - 1) * n + (start - 1)];
     tour.route[n] =  start;
+
     if (self.client.currentSolverType == TSPSolverTypeNN) {
+        [self.logQueue enqueue:[NSString stringWithFormat:@"%d \nDistance: %d\n\n2-opt can start.\n", start, tour.distance]];
         [self.tourQueue enqueueTour:&tour routeSize:(n + 1)];
     }
     
     if (use2opt) {
         [self improveTourBy2opt:&tour];
+    }
+    
+    if (self.client.currentSolverType == TSPSolverTypeNN) {
+        NSMutableString *routeString = [NSMutableString string];
+        for (int i = 0; i <= n; i++) {
+            [routeString appendFormat:@" %d", tour.route[i]];
+        }
+        [self.logQueue enqueue:[NSString stringWithFormat:@"Improved route:%@\nDistance: %d\n\n", routeString, tour.distance]];
+        [self.tourQueue enqueueTour:&tour routeSize:(n + 1)];
     }
     
     return tour;
@@ -459,6 +482,7 @@ int nearestNodeNumber(bool *visited, int from, int n, Neighbor *NN)
 					tour_p->distance = newLength;
 					improved = true;
                     if (self.client.currentSolverType == TSPSolverTypeNN) {
+                        [self.logQueue enqueue:[NSString stringWithFormat:@"Reverse order between %d and %d.\n", tour_p->route[j], tour_p->route[i+1]]];
                         [self.tourQueue enqueueTour:tour_p routeSize:(n + 1)];
                     }
 				}
@@ -731,17 +755,20 @@ void depositPheromone(Tour tour, int n, double *P)
     NSMutableString *csv = [@"LOOP, DISTANCE\n" mutableCopy];
     Tour *tours = calloc(m, sizeof(Tour));
     while (noImproveCount < limit) { // improve loop
-        loop++;
         
-        // Do ant tours.
-//        for (int k = 0; k < m; k++) {
+        // Do ant tours concurrently.
         dispatch_apply(m, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(size_t k){
-            tours[k] = antTour(k, n, A, NN, P, a, b, c);
+            [self.operationQueue addOperationWithBlock:^{
+            tours[k] = antTour((int)k, n, A, NN, P, a, b, c);
             if (use2opt) {
                 [self improveTourBy2opt:&(tours[k])];
             }
+            }];
         });
-//        }
+        [self.operationQueue waitUntilAllOperationsAreFinished];
+        if (self.aborted) {
+            return globalBest;
+        }
         
         // Update pheromone
         evaporatePheromone(r, n, P);
@@ -770,7 +797,7 @@ void depositPheromone(Tour tour, int n, double *P)
             [self.tourQueue enqueueTour:&globalBest routeSize:(n + 1)];
         }
 
-        [csv appendFormat:@"%d, %d\n", loop, globalBest.distance];
+        [csv appendFormat:@"%d, %d\n", ++loop, globalBest.distance];
     }
     free(tours);
     
@@ -841,14 +868,18 @@ void limitPheromoneRange(int opt, double r, int n, double pB, double *P)
     while (noImproveCount < limit) {
         
         // Do ant tours concurrently.
-//        for (int k = 0; k < m; k++) {
         dispatch_apply(m, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(size_t k){
-            tours[k] = antTour(k, n, A, NN, P, a, b, c);
-            if (use2opt) {
-                [self improveTourBy2opt:&(tours[k])];
-            }
+            [self.operationQueue addOperationWithBlock:^{
+                tours[k] = antTour((int)k, n, A, NN, P, a, b, c);
+                if (use2opt) {
+                    [self improveTourBy2opt:&(tours[k])];
+                }
+            }];
         });
-//        }
+        [self.operationQueue waitUntilAllOperationsAreFinished];
+        if (self.aborted) {
+            return globalBest;
+        }
         
         // Find iteration best tour.
         Tour iterationBest = {INT32_MAX, calloc(n + 1, sizeof(int))};
@@ -918,13 +949,14 @@ void limitPheromoneRange(int opt, double r, int n, double pB, double *P)
 {
     NSMutableString *string = [NSMutableString string];
 
-    [string appendString:@"\n=============== TSP INFORMATION ================\n"];
+    [string appendString:@"=============== TSP INFORMATION ================\n"];
     [string appendString:[NSString stringWithFormat:@"%s: %s\n", "NAME", [[self.information objectForKey:@"NAME"] cStringUsingEncoding:NSUTF8StringEncoding]]];
 	[self.information enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop){
         if ([key isEqualToString:@"NAME"] == NO) {
             [string appendString:[NSString stringWithFormat:@"%@: %@\n", key, obj]];
         }
 	}];
+    [string appendString:@"================================================\n\n"];
 
     return string;
 }
@@ -995,6 +1027,9 @@ void limitPheromoneRange(int opt, double r, int n, double pB, double *P)
 
 - (void)dealloc
 {
+    [self.tourQueue flush];
+    [self.matrixQueue flush];
+    
 	if (N)  free(N);
 	if (A)	free(A);
 }

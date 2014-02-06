@@ -7,6 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "USKQueue.h"
 
 #define MAX_DIMENSION 3000
 
@@ -43,8 +44,14 @@ typedef enum _TSPSolverType {
 @property (readonly) int		  dimension;
 @property (readonly) Node         *nodes;
 
+@property NSOperationQueue        *operationQueue;
+
+@property USKQueue                *logQueue;
+
 // client must have one TSPSolverType.
 @property ViewController *client;
+
+@property BOOL aborted;
 
 #pragma mark - Constructors
 

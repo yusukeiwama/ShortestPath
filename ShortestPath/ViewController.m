@@ -50,8 +50,14 @@ typedef enum _ExpandingPanel {
 @property TSPVisualizer        *visualizer;
 @property TSPExperimentManager *experimentManager;
 
+// Queue for cancellation.
+@property NSOperationQueue *solverExecutionQueue;
+@property NSBlockOperation *currentSolverOperation;
+
+
 // Current TSP information
 @property TSP           *currentTSP;
+@property NSString      *currentTSPName;
 @property (weak, nonatomic) IBOutlet UILabel *currentTSPLabel;
 @property (weak, nonatomic) IBOutlet UILabel *currentTSPSolverTypeLabel;
 
@@ -60,7 +66,7 @@ typedef enum _ExpandingPanel {
 
 // Log View
 @property (weak, nonatomic) IBOutlet UITextView *logTextView;
-@property NSMutableString *logString;
+@property UITextView *fixedLogTextView;
 
 // Control buttons
 @property (weak, nonatomic) IBOutlet UIButton *solveButton;
@@ -80,6 +86,10 @@ typedef enum _ExpandingPanel {
     [super viewDidLoad];
     
     [self setNeedsStatusBarAppearanceUpdate];
+    
+    self.solverExecutionQueue   = [NSOperationQueue new];
+    self.solverExecutionQueue.maxConcurrentOperationCount = 1;
+    self.currentSolverOperation = [NSBlockOperation new];
 	
     self.visualizer = [[TSPVisualizer alloc] init];
     self.visualizer.backgroundImaveView     = self.backgroundImageView;
@@ -92,30 +102,51 @@ typedef enum _ExpandingPanel {
     self.experimentManager.visualizer = self.visualizer;
     
     self.logString = [NSMutableString string];
+    
+    // Workaround until Apple fixes the choppy UITextView bug.
+    NSString *reqSysVer = @"7.0";
+    NSString *currSysVer = [[UIDevice currentDevice] systemVersion];
+    BOOL osVersionSupported = ([currSysVer compare:reqSysVer  options:NSNumericSearch] != NSOrderedAscending);
+    
+    if (osVersionSupported) {
+        NSTextStorage* textStorage = [[NSTextStorage alloc] init];
+        NSLayoutManager* layoutManager = [NSLayoutManager new];
+        [textStorage addLayoutManager:layoutManager];
+        NSTextContainer *textContainer = [[NSTextContainer alloc] initWithSize:self.view.bounds.size];
+        [layoutManager addTextContainer:textContainer];
+        self.fixedLogTextView = [[UITextView alloc] initWithFrame:self.logTextView.frame
+                                                    textContainer:textContainer];
+        self.fixedLogTextView.font = [UIFont fontWithName:@"menlo" size:11.0];
+        self.fixedLogTextView.editable = NO;
+        self.fixedLogTextView.backgroundColor = [UIColor clearColor];
+        self.fixedLogTextView.textColor = [UIColor whiteColor];
+        [self.logView addSubview:self.fixedLogTextView];
+        [self.logTextView removeFromSuperview];
+    }
 
 //    [self.experimentManager doExperiment:USKTSPExperimentMMAS2opt];
     
     // Default Setting
-    NSString *defaultSampleName = @"tsp225";
+    self.currentTSPName = @"st70";
+    self.currentTSPLabel.text = self.currentTSPName;
+    
     self.currentSolverType = TSPSolverTypeNN;
-    self.currentTSPLabel.text = defaultSampleName;
     self.currentTSPSolverTypeLabel.text = @"Nearest Neighbor";
     
-    self.currentTSP = [TSP TSPWithFile:[[NSBundle mainBundle] pathForResource:defaultSampleName ofType:@"tsp"]];
-    Tour optimalTour = [TSP optimalSolutionWithName:defaultSampleName];
-    self.currentVisualizationStyle = TSPVisualizationStyleOcean;
-//    [self.visualizer drawBackgroundWithStyle:self.currentVisualizationStyle];
-    [self.visualizer drawPath:optimalTour ofTSP:self.currentTSP withStyle:self.currentVisualizationStyle];
+    self.currentVisualizationStyle = TSPVisualizationStyleDark;
+    self.currentTSP = [TSP TSPWithFile:[[NSBundle mainBundle] pathForResource:self.currentTSPName ofType:@"tsp"]];
+    [self.logString appendString:[self.currentTSP informationString]];
+    self.fixedLogTextView.text = self.logString;
     [self.visualizer drawNodesWithTSP:self.currentTSP withStyle:self.currentVisualizationStyle];
 
     self.saveButton.layer.cornerRadius  =
     self.stepButton.layer.cornerRadius  =
-    self.stopButton.layer.cornerRadius  = 30.0;
-    self.solveButton.layer.cornerRadius = 50.0;
+    self.stopButton.layer.cornerRadius  = self.stopButton.frame.size.width / 2.0;
+    self.solveButton.layer.cornerRadius = self.solveButton.frame.size.width / 2.0;
     self.saveButton.layer.borderWidth   =
     self.stepButton.layer.borderWidth   =
-    self.stopButton.layer.borderWidth   = 1.0;
-    self.solveButton.layer.borderWidth  = 1.5;
+    self.stopButton.layer.borderWidth   =
+    self.solveButton.layer.borderWidth  = 1.0;
     self.saveButton.layer.borderColor   =
     self.stepButton.layer.borderColor   =
     self.stopButton.layer.borderColor   =
@@ -149,7 +180,6 @@ typedef enum _ExpandingPanel {
 
 - (void)dequeuePathToDrawPathImage
 {
-    // Choose which dequeue to enqueue according to current solver type.
     Tour *tour_p = [self.currentTSP dequeueTour];
     double *P = [self.currentTSP dequeueMatrix];
     if (tour_p == NULL) {
@@ -158,6 +188,17 @@ typedef enum _ExpandingPanel {
     
     [self.visualizer drawPath:*tour_p ofTSP:self.currentTSP withStyle:self.currentVisualizationStyle];
     [self.visualizer drawPheromone:P ofTSP:self.currentTSP withStyle:self.currentVisualizationStyle];
+
+    NSString *aLog = [self.currentTSP.logQueue dequeue];
+    if (aLog) {
+        [self.logString appendString:aLog];
+    }
+    self.fixedLogTextView.text = self.logString;
+    if (self.fixedLogTextView.text.length > 0) {
+        NSRange bottomRange = NSMakeRange(self.fixedLogTextView.text.length - 1, 1);
+        [self.fixedLogTextView scrollRangeToVisible:bottomRange];
+    }
+    
     free(tour_p->route);
     free(P);
 }
@@ -214,37 +255,46 @@ typedef enum _ExpandingPanel {
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    if ([tableView isEqual:self.problemTableView]) {
-        [self clearMonitorImage];
-        NSString *sampleName = self.experimentManager.sampleNames[indexPath.row];
-        self.currentTSPLabel.text = sampleName;
-        self.currentTSP = [TSP TSPWithFile:[[NSBundle mainBundle] pathForResource:sampleName ofType:@"tsp"]];
+    [self clearCurrentSolvingContext];
+    
+    if ([tableView isEqual:self.problemTableView]) { // Change current problem.
+        self.currentTSP.aborted = YES;
+        self.currentTSPName = self.experimentManager.sampleNames[indexPath.row];
+        self.currentTSPLabel.text = self.currentTSPName;
+        self.currentTSP = [TSP TSPWithFile:[[NSBundle mainBundle] pathForResource:self.currentTSPName ofType:@"tsp"]];
+        [self.logString setString:@""];
+        
         // Draw nodes
         [self.visualizer clearTSPVisualization];
         [self.visualizer drawNodesWithTSP:self.currentTSP withStyle:self.currentVisualizationStyle];
         
         // Display TSP information
         [self.logString appendString:[self.currentTSP informationString]];
-        self.logTextView.text = self.logString;
-        if (self.logTextView.text.length > 0) {
-            NSRange bottomRange = NSMakeRange(self.logTextView.text.length - 1, 1);
-            [self.logTextView scrollRangeToVisible:bottomRange];
+        self.fixedLogTextView.text = self.logString;
+        // Scroll to bottom.
+        if (self.fixedLogTextView.text.length > 0) {
+            NSRange bottomRange = NSMakeRange(self.fixedLogTextView.text.length - 1, 1);
+            [self.fixedLogTextView scrollRangeToVisible:bottomRange];
         }
         
-    } else if ([tableView isEqual:self.solverTableView]) {
-        [self clearMonitorImage];
+    } else if ([tableView isEqual:self.solverTableView]) { // Change current solver.
         NSString *solverName = self.experimentManager.solverNames[indexPath.row];
         self.currentTSPSolverTypeLabel.text = solverName;
         
+        self.currentTSP.aborted = YES;
+        self.currentTSP = [TSP TSPWithFile:[[NSBundle mainBundle] pathForResource:self.currentTSPName ofType:@"tsp"]];
         switch (indexPath.row) {
             case 0:
                 self.currentSolverType = TSPSolverTypeNN;
+                self.currentVisualizationStyle = TSPVisualizationStyleDark;
                 break;
             case 1:
                 self.currentSolverType = TSPSolverTypeAS;
+                self.currentVisualizationStyle = TSPVisualizationStyleOcean;
                 break;
             case 2:
                 self.currentSolverType = TSPSolverTypeMMAS;
+                self.currentVisualizationStyle = TSPVisualizationStyleOcean;
                 break;
             default:
                 break;
@@ -255,29 +305,38 @@ typedef enum _ExpandingPanel {
 #pragma mark - Button Actions
 - (IBAction)solve:(id)sender
 {
-    Tour tour;
-    
+    [self clearCurrentSolvingContext];
+
+    self.currentTSP.aborted = YES;
+    self.currentTSP = [TSP TSPWithFile:[[NSBundle mainBundle] pathForResource:self.currentTSPName ofType:@"tsp"]];
+   
     switch (self.currentSolverType) {
         case TSPSolverTypeNN: {
-            tour = [self.currentTSP tourByNNFrom:rand() % self.currentTSP.dimension + 1
-                                         use2opt:YES];
-            [self.currentTSP improveTourBy2opt:&tour];
+            NSBlockOperation *operation = [NSBlockOperation blockOperationWithBlock:^{
+                [self.currentTSP tourByNNFrom:rand() % self.currentTSP.dimension + 1
+                                      use2opt:YES];
+            }];
+            [self.solverExecutionQueue addOperation:operation];
             break;
         }
         case TSPSolverTypeAS: {
-            tour = [self.currentTSP tourByASWithNumberOfAnt:self.currentTSP.dimension
+            NSBlockOperation *operation = [NSBlockOperation blockOperationWithBlock:^{
+            [self.currentTSP tourByASWithNumberOfAnt:self.currentTSP.dimension
                                          pheromoneInfluence:1
                                         transitionInfluence:2
                                        pheromoneEvaporation:0.5
                                                        seed:rand()
-                                             noImproveLimit:1000
+                                             noImproveLimit:200
                                           candidateListSize:20
                                                     use2opt:YES
                                                CSVLogString:nil];
+            }];
+            [self.solverExecutionQueue addOperation:operation];
             break;
         }
         case TSPSolverTypeMMAS: {
-            tour = [self.currentTSP tourByMMASWithNumberOfAnt:25
+            NSBlockOperation *operation = [NSBlockOperation blockOperationWithBlock:^{
+            [self.currentTSP tourByMMASWithNumberOfAnt:25
                                            pheromoneInfluence:1
                                           transitionInfluence:4
                                          pheromoneEvaporation:0.2
@@ -287,22 +346,24 @@ typedef enum _ExpandingPanel {
                                             candidateListSize:20
                                                       use2opt:YES
                                                  CSVLogString:nil];
+            }];
+            [self.solverExecutionQueue addOperation:operation];
             break;
         }
         default:
             break;
     }
-    
-//    [self.visualizer drawNodesWithTSP:self.currentTSP withStyle:self.currentVisualizationStyle];
-//    [self.visualizer drawPath:tour toIndex:self.currentTSP.dimension - 1 ofTSP:self.currentTSP withStyle:self.currentVisualizationStyle];
-
 }
 
-- (void)clearMonitorImage
+- (void)clearCurrentSolvingContext
 {
+    [self.solverExecutionQueue cancelAllOperations];
+
+    // maybe not necessary (TSP is responsible for flush queue when dealloc.)
+//    [self.currentTSP flushTours];
+//    [self.currentTSP flushMatrices];
+    
     [self.visualizer clearTSPTour];
-    [self.currentTSP flushTours];
-    [self.currentTSP flushMatrices];
 }
 
 
@@ -328,7 +389,7 @@ typedef enum _ExpandingPanel {
 
 - (IBAction)expandPanel:(id)sender
 {
-    if (self.expandingPanel) {
+    if (self.expandingPanel) { // expanding.
         [UIView animateWithDuration:0.2
                          animations:^{
                              self.problemView.frame = CGRectMake(0, 0, 330, 211);
@@ -350,15 +411,23 @@ typedef enum _ExpandingPanel {
                                      self.problemExpandIndicatorImageView.transform = CGAffineTransformRotate(self.problemExpandIndicatorImageView.transform, +M_PI_2);
                                      self.solverExpandIndicatorImaveView.transform = CGAffineTransformRotate(self.solverExpandIndicatorImaveView.transform, +M_PI_2);
                                      self.logExpandIndicatorImageView.transform = CGAffineTransformRotate(self.logExpandIndicatorImageView.transform, -M_PI_2);
+                                     
                                      break;
                                  default:
                                      break;
                              }
                          }
                          completion:^(BOOL finished){
+                             self.fixedLogTextView.frame = CGRectMake(0, 46, 330, 156);
+                             // Scroll to bottom.
+                             if (self.fixedLogTextView.text.length > 0) {
+                                 NSRange bottomRange = NSMakeRange(self.fixedLogTextView.text.length - 1, 1);
+                                 [self.fixedLogTextView scrollRangeToVisible:bottomRange];
+                             }
+
                          }];
         self.expandingPanel = ExpandingPanelNone;
-    } else {
+    } else { // not expanding.
         if ([sender isEqual:self.problemTableButton]) {
             [UIView animateWithDuration:0.2
                              animations:^{
@@ -400,7 +469,13 @@ typedef enum _ExpandingPanel {
                                  self.logExpandIndicatorImageView.transform = CGAffineTransformRotate(self.logExpandIndicatorImageView.transform, +M_PI_2);
                              }
                              completion:^(BOOL finished){
-                                 self.logTextView.frame = CGRectMake(0, 46, 330, 486);
+                                 self.fixedLogTextView.frame = CGRectMake(0, 46, 330, 486);
+                                 // Scroll to bottom.
+                                 if (self.fixedLogTextView.text.length > 0) {
+                                     NSRange bottomRange = NSMakeRange(self.fixedLogTextView.text.length - 1, 1);
+                                     [self.fixedLogTextView scrollRangeToVisible:bottomRange];
+                                 }
+
                              }];
             self.expandingPanel = ExpandingPanelLog;
         }

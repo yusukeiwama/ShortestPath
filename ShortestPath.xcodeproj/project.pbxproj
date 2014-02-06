@@ -183,6 +183,7 @@
 		43BAD7491895A4620016F3B2 /* USKTrimmer.m in Sources */ = {isa = PBXBuildFile; fileRef = 43BAD7481895A4620016F3B2 /* USKTrimmer.m */; };
 		43D05D511895EFF6003E7268 /* DOC.PS in Resources */ = {isa = PBXBuildFile; fileRef = 43D05D501895EFF6003E7268 /* DOC.PS */; };
 		43E8F43E18A29CF5009D7635 /* TSPMatrixQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = 43E8F43D18A29CF5009D7635 /* TSPMatrixQueue.m */; };
+		43E8F44518A3750F009D7635 /* USKQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = 43E8F44418A3750F009D7635 /* USKQueue.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -383,6 +384,8 @@
 		43D05D501895EFF6003E7268 /* DOC.PS */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = DOC.PS; sourceTree = "<group>"; };
 		43E8F43C18A29CF5009D7635 /* TSPMatrixQueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TSPMatrixQueue.h; sourceTree = "<group>"; };
 		43E8F43D18A29CF5009D7635 /* TSPMatrixQueue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TSPMatrixQueue.m; sourceTree = "<group>"; };
+		43E8F44318A3750F009D7635 /* USKQueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = USKQueue.h; sourceTree = "<group>"; };
+		43E8F44418A3750F009D7635 /* USKQueue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = USKQueue.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -685,10 +688,7 @@
 			children = (
 				434D6F24185A22B10068D753 /* TSP.h */,
 				434D6F25185A22B10068D753 /* TSP.m */,
-				438D8FC218A236E200B2C8E1 /* TSPTourQueue.h */,
-				438D8FC318A236E200B2C8E1 /* TSPTourQueue.m */,
-				43E8F43C18A29CF5009D7635 /* TSPMatrixQueue.h */,
-				43E8F43D18A29CF5009D7635 /* TSPMatrixQueue.m */,
+				43E8F44218A37355009D7635 /* Queues for Visualization */,
 				43BAD61B18950C430016F3B2 /* TSPExperimentManager.h */,
 				43BAD61C18950C430016F3B2 /* TSPExperimentManager.m */,
 				43BAD61E18951BEF0016F3B2 /* TSPVisualizer.h */,
@@ -696,6 +696,19 @@
 				43BAD74A1895B22D0016F3B2 /* Support Class */,
 			);
 			name = TSP;
+			sourceTree = "<group>";
+		};
+		43E8F44218A37355009D7635 /* Queues for Visualization */ = {
+			isa = PBXGroup;
+			children = (
+				43E8F44318A3750F009D7635 /* USKQueue.h */,
+				43E8F44418A3750F009D7635 /* USKQueue.m */,
+				438D8FC218A236E200B2C8E1 /* TSPTourQueue.h */,
+				438D8FC318A236E200B2C8E1 /* TSPTourQueue.m */,
+				43E8F43C18A29CF5009D7635 /* TSPMatrixQueue.h */,
+				43E8F43D18A29CF5009D7635 /* TSPMatrixQueue.m */,
+			);
+			name = "Queues for Visualization";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -959,6 +972,7 @@
 				434D6F26185A22B10068D753 /* TSP.m in Sources */,
 				434D6EF8185A13530068D753 /* AppDelegate.m in Sources */,
 				43BAD7491895A4620016F3B2 /* USKTrimmer.m in Sources */,
+				43E8F44518A3750F009D7635 /* USKQueue.m in Sources */,
 				43BAD61D18950C430016F3B2 /* TSPExperimentManager.m in Sources */,
 				434D6EF4185A13530068D753 /* main.m in Sources */,
 				43BAD62018951BEF0016F3B2 /* TSPVisualizer.m in Sources */,

@@ -28,6 +28,7 @@ Coordinate correctedPoint(Coordinate point, UIEdgeInsets margin)
     CGColorRef _nodeColor;
     CGColorRef _startNodeColor;
     CGColorRef _edgeColor;
+    CGColorRef _pheromoneColor;
     CGFloat    _lineWidthFactor;
     CGFloat    _nodeRadiusFactor;
     CGFloat    _startNodeRadiusFactor;
@@ -74,7 +75,14 @@ Coordinate correctedPoint(Coordinate point, UIEdgeInsets margin)
     _lineWidthFactor       = 0.010;
     _nodeRadiusFactor      = 0.005;
     _startNodeRadiusFactor = 0.010;
-    _pheromoneFactor       = 3.0;
+    _pheromoneFactor       = 1.0;
+    
+    // Set default colors
+    _backgroundColor = [[UIColor blackColor] CGColor];
+    _nodeColor       = [[UIColor whiteColor] CGColor];
+    _startNodeColor  = [[UIColor whiteColor] CGColor];
+    _edgeColor       = [[UIColor whiteColor] CGColor];
+    _pheromoneColor  = [[UIColor colorWithRed:0.5 green:0.0 blue:1 alpha:1.0] CGColor];
 
     switch (style) {
         case TSPVisualizationStyleDark:
@@ -82,12 +90,13 @@ Coordinate correctedPoint(Coordinate point, UIEdgeInsets margin)
             _nodeColor       = [[UIColor whiteColor] CGColor];
             _startNodeColor  = [[UIColor whiteColor] CGColor];
             _edgeColor       = [[UIColor whiteColor] CGColor];
-            _lineWidthFactor = 0.0075;
+            _lineWidthFactor = 0.005;
             break;
         case TSPVisualizationStyleLight:
             _backgroundColor = [[UIColor colorWithWhite:0.98 alpha:1.0] CGColor];
             _nodeColor       = [[UIColor blackColor]  CGColor];
             _edgeColor       = [[UIColor blueColor] CGColor];
+            _pheromoneColor  = [[UIColor colorWithWhite:1.0 alpha:0.3] CGColor];
             break;
         case TSPVisualizationStyleOcean:
             _backgroundColor = [[UIColor colorWithRed:0.0 green:0.3 blue:0.5 alpha:1.0] CGColor];
@@ -128,7 +137,6 @@ Coordinate correctedPoint(Coordinate point, UIEdgeInsets margin)
             break;
         }
         if (i == tsp.dimension) {
-            printf("no change\n");
             return YES;
         }
     }
@@ -152,7 +160,8 @@ Coordinate correctedPoint(Coordinate point, UIEdgeInsets margin)
         }
         Coordinate aPoint = correctedPoint(tsp.nodes[nodeNumber - 1].coord, margin);
         CGContextAddLineToPoint(context, aPoint.x, aPoint.y);
-        if (style == TSPVisualizationStyleDark || style == TSPVisualizationStyleLight) {
+        if (style == TSPVisualizationStyleDark
+            || style == TSPVisualizationStyleLight) {
             CGContextSetStrokeColorWithColor(context, [[UIColor colorWithHue:((double)i / tsp.dimension) saturation:1.0 brightness:1.0 alpha:1.0] CGColor]);
         } else {
             CGContextSetStrokeColorWithColor(context, _edgeColor);
@@ -203,14 +212,18 @@ Coordinate correctedPoint(Coordinate point, UIEdgeInsets margin)
         CGContextRef context = UIGraphicsGetCurrentContext();
         
         // Draw matrix
-        CGContextSetStrokeColorWithColor(context, [[UIColor colorWithRed:0.5 green:0.0 blue:0.8 alpha:0.5] CGColor]);
+        if (_pheromoneFactor > 1.0) {
+            CGContextSetLineCap(context, kCGLineCapRound);
+        }
+        CGContextSetStrokeColorWithColor(context, _pheromoneColor);
+//        CGContextSetStrokeColorWithColor(context, [[UIColor colorWithRed:0.5 green:0.0 blue:0.8 alpha:0.5] CGColor]);
         k = 0;
         for (int i = 0; i < n; i++) {
             Coordinate from = correctedPoint(tsp.nodes[i].coord, margin);
             for (int j = i + 1; j < n; j++) {
                 Coordinate to = correctedPoint(tsp.nodes[j].coord, margin);
                 double pheromone = P[k++];
-                CGContextSetLineWidth(context, self.additionalImageView.frame.size.width * _nodeRadiusFactor * ((pheromone - min) / range) * _pheromoneFactor);
+                CGContextSetLineWidth(context, self.additionalImageView.frame.size.width * (_nodeRadiusFactor * 2) * ((pheromone - min) / range) * _pheromoneFactor);
                 CGContextMoveToPoint(context, from.x, from.y);
                 CGContextAddLineToPoint(context, to.x, to.y);
                 CGContextStrokePath(context);
@@ -267,10 +280,10 @@ Coordinate correctedPoint(Coordinate point, UIEdgeInsets margin)
 	}
     
     // Draw start node
-    r = self.globalBestPathImageView.frame.size.width * _startNodeRadiusFactor; // 1% of width
-	CGContextSetFillColorWithColor(context, _startNodeColor);
-    Coordinate startPoint = correctedPoint(tsp.nodes[0].coord, margin);
-	CGContextFillEllipseInRect(context, CGRectMake(startPoint.x - r, startPoint.y - r, 2 * r, 2 * r));
+//    r = self.globalBestPathImageView.frame.size.width * _startNodeRadiusFactor; // 1% of width
+//	CGContextSetFillColorWithColor(context, _startNodeColor);
+//    Coordinate startPoint = correctedPoint(tsp.nodes[0].coord, margin);
+//	CGContextFillEllipseInRect(context, CGRectMake(startPoint.x - r, startPoint.y - r, 2 * r, 2 * r));
 
     // Draw start node's border.
 //    CGContextSetStrokeColorWithColor(context, [[UIColor blackColor] CGColor]);

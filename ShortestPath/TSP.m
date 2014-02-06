@@ -114,8 +114,11 @@ void swap2opt(int *route, int d, int i, int j)
             Tour tour = [TSP optimalSolutionWithName:_information[@"NAME"]];
             if (tour.route != NULL && [_information[@"EDGE_WEIGHT_TYPE"] isEqualToString:@"EUC_2D"]) {
                 [_information setValue:[NSNumber numberWithInt:tour.distance] forKey:@"OPTIMAL_LENGTH"];
+                _optimalTour = tour;
+            } else {
+                [_information setValue:@"N/A" forKey:@"OPTIMAL_LENGTH"];
+                _optimalTour.route = NULL;
             }
-            _optimalTour = tour;
             
 //			[self printInformation];
 //            [self printNodes];

@@ -137,6 +137,9 @@ typedef enum _ExpandingPanel {
     [self.logString appendString:[self.currentTSP informationString]];
     self.fixedLogTextView.text = self.logString;
     [self.visualizer drawNodesWithTSP:self.currentTSP withStyle:self.currentVisualizationStyle];
+//    if (self.currentTSP.optimalTour.route != NULL) {
+//        [self.visualizer drawPath:self.currentTSP.optimalTour ofTSP:self.currentTSP withStyle:TSPVisualizationStyleDark onImageView:self.optimalPathImageView];
+//    }
 
     self.saveButton.layer.cornerRadius  =
     self.stepButton.layer.cornerRadius  =
@@ -196,7 +199,7 @@ typedef enum _ExpandingPanel {
 
     Tour *tour_p = [((NSValue *)logDictionary[@"Tour"]) pointerValue];
     if (tour_p != NULL) {
-        [self.visualizer drawPath:*tour_p ofTSP:self.currentTSP withStyle:self.currentVisualizationStyle];
+        [self.visualizer drawPath:*tour_p ofTSP:self.currentTSP withStyle:self.currentVisualizationStyle onImageView:self.globalBestPathImageView];
         free(tour_p->route);
         free(tour_p);
     }

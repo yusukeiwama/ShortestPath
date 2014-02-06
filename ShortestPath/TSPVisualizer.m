@@ -119,7 +119,7 @@ Coordinate correctedPoint(Coordinate point, UIEdgeInsets margin)
     _startNodeRadiusFactor *= scale;
 }
 
-- (BOOL)drawPath:(Tour)path ofTSP:(TSP *)tsp withStyle:(TSPVisualizationStyle)style
+- (BOOL)drawPath:(Tour)path ofTSP:(TSP *)tsp withStyle:(TSPVisualizationStyle)style onImageView:(UIImageView *)imageView
 {
     if (path.route == NULL || tsp == nil || tsp.nodes == NULL) return NO;
 
@@ -128,12 +128,12 @@ Coordinate correctedPoint(Coordinate point, UIEdgeInsets margin)
     [self prepareColorsWithStyle:style TSP:tsp];
     
     // Start drawing
-    UIGraphicsBeginImageContextWithOptions((self.globalBestPathImageView.frame.size), NO, 0);
+    UIGraphicsBeginImageContextWithOptions((imageView.frame.size), NO, 0);
     CGContextRef context = UIGraphicsGetCurrentContext();
     
     // Draw path
     Coordinate startPoint = correctedPoint(tsp.nodes[path.route[0] - 1].coord, margin);
-    CGContextSetLineWidth(context, self.globalBestPathImageView.frame.size.width * _lineWidthFactor); // 1% of width;
+    CGContextSetLineWidth(context, imageView.frame.size.width * _lineWidthFactor); // 1% of width;
     CGContextMoveToPoint(context, startPoint.x, startPoint.y);
     for (int i = 1; i <= tsp.dimension; i++) {
         int nodeNumber = path.route[i];
@@ -154,7 +154,7 @@ Coordinate correctedPoint(Coordinate point, UIEdgeInsets margin)
     
     // Update image.
     UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
-    self.globalBestPathImageView.image = image;
+    imageView.image = image;
     UIGraphicsEndImageContext();
 	
 	return YES;
@@ -223,7 +223,7 @@ Coordinate correctedPoint(Coordinate point, UIEdgeInsets margin)
 	NSURL    *outputURL   = [NSURL fileURLWithPath:outputPath];
 	// Example Path: /Users/yusukeiwama/Library/Application Support/iPhone Simulator/7.0.3/Applications/85BB258F-2ED0-464C-AD92-1C5D11012E67/Documents
 	
-	if ([self drawPath:path ofTSP:tsp withStyle:style]) {
+	if ([self drawPath:path ofTSP:tsp withStyle:style onImageView:self.globalBestPathImageView]) {
 		NSData *imageData = UIImagePNGRepresentation(self.globalBestPathImageView.image);
 		if ([imageData writeToURL:outputURL atomically:YES]) {
 			NSLog(@"%@ is saved", fileName);

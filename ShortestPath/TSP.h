@@ -43,6 +43,7 @@ typedef enum _TSPSolverType {
 @property (readonly) NSDictionary *information;
 @property (readonly) int		  dimension;
 @property (readonly) Node         *nodes;
+@property (readonly) Tour         optimalTour;
 
 @property NSOperationQueue        *operationQueue;
 

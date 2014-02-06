@@ -22,6 +22,36 @@ int euc2D(Coordinate P, Coordinate Q)
 	return (int)(sqrt(dx * dx + dy * dy) + 0.5);
 }
 
+// FIXME: something wrong...
+int geo(Coordinate P, Coordinate Q)
+{
+    int deg, min;
+    Coordinate geoP, geoQ;
+    
+    deg = (int)(P.x + 0.5);
+    min = P.x - deg;
+    geoP.x = M_PI * (deg + 5.0 * min / 3.0) / 180.0;
+    
+    deg = (int)(P.y + 0.5);
+    min = P.y - deg;
+    geoP.y = M_PI * (deg + 5.0 * min / 3.0) / 180.0;
+    
+    deg = (int)(Q.x + 0.5);
+    min = Q.x - deg;
+    geoQ.x = M_PI * (deg + 5.0 * min / 3.0) / 180.0;
+    
+    deg = (int)(Q.y + 0.5);
+    min = Q.y - deg;
+    geoQ.y = M_PI * (deg + 5.0 * min / 3.0) / 180.0;
+    
+    double RRR = 6378.388;
+    double q1 = cos(geoP.y - geoQ.y);
+    double q2 = cos(geoP.x - geoQ.x);
+    double q3 = cos(geoP.x + geoQ.x);
+    
+    return (int)(RRR * acos(0.5 * ((1.0 + q1) * q2 - (1.0 - q1) * q3)) + 1.0);
+}
+
 int compareDistances(const Neighbor *n1, const Neighbor *n2)
 {
 	return n1->distance - n2->distance;
@@ -81,6 +111,12 @@ void swap2opt(int *route, int d, int i, int j)
 		if ([self readTSPDataFromFile:path]) {
             [self computeNeighborMatrix];
             [self prepareQueues];
+            Tour tour = [TSP optimalSolutionWithName:_information[@"NAME"]];
+            if (tour.route != NULL && [_information[@"EDGE_WEIGHT_TYPE"] isEqualToString:@"EUC_2D"]) {
+                [_information setValue:[NSNumber numberWithInt:tour.distance] forKey:@"OPTIMAL_LENGTH"];
+            }
+            _optimalTour = tour;
+            
 //			[self printInformation];
 //            [self printNodes];
 //			[self printAdjecencyMatrix];
@@ -166,9 +202,6 @@ void swap2opt(int *route, int d, int i, int j)
 					l++;
 					nodeIndex++;
 				}
-			}
-			if (nodeCodeSection) {
-				[self computeAdjacencyMatrix];
 			}
 		} else if ([lines[l] rangeOfString:@"EDGE_WEIGHT_SECTION"].location != NSNotFound) { // Found
 			l++;
@@ -345,7 +378,11 @@ void swap2opt(int *route, int d, int i, int j)
 		A = calloc(n * n, sizeof(int));
 		for (int i = 0; i < n; i++) {
 			for (int j = 0; j < n; j++) {
-				A[i * n + j] = euc2D(N[i].coord, N[j].coord);
+                if ([self.information[@"EDGE_WEIGHT_TYPE"] isEqualToString:@"GEO"]) {
+                    A[i * n + j] = geo(N[i].coord, N[j].coord);
+                } else { // EUC2D
+                    A[i * n + j] = euc2D(N[i].coord, N[j].coord);
+                }
 			}
 		}
 	}
@@ -433,27 +470,35 @@ int nearestNodeNumber(bool *visited, int from, int n, Neighbor *NN)
         tourLog_p->route = calloc(n + 1, sizeof(int));
         tourLog_p->distance = tour.distance;
         memcpy(tourLog_p->route, tour.route, (n + 1) * sizeof(int));
-        [self.logQueue enqueue:@{@"Log":  [NSString stringWithFormat:@"%d \nDistance: %d\n\n", start, tour.distance],
+        NSString *resultString = @"";
+        if (self.optimalTour.route != NULL) {
+            resultString = [NSString stringWithFormat:@"(%+5.2f%% from optimal: %d)", tour.distance * 100.0 / self.optimalTour.distance - 100.0, self.optimalTour.distance];
+        }
+        [self.logQueue enqueue:@{@"Log":  [NSString stringWithFormat:@"%d \nDistance: %d%@\n\n", start, tour.distance, resultString],
                                  @"Tour": [NSValue valueWithPointer:tourLog_p]}];
     }
     
     if (use2opt) {
         [self improveTourBy2opt:&tour];
-    }
-    
-    // Enqueue log.
-    if (self.client.currentSolverType == TSPSolverTypeNN) {
-        NSMutableString *routeString = [NSMutableString string];
-        for (int i = 0; i <= n; i++) {
-            [routeString appendFormat:@" %d", tour.route[i]];
+        
+        // Enqueue log.
+        if (self.client.currentSolverType == TSPSolverTypeNN) {
+            NSMutableString *routeString = [NSMutableString string];
+            for (int i = 0; i <= n; i++) {
+                [routeString appendFormat:@" %d", tour.route[i]];
+            }
+            // Copy tour
+            Tour *tourLog_p  = calloc(1,     sizeof(Tour));
+            tourLog_p->route = calloc(n + 1, sizeof(int));
+            tourLog_p->distance = tour.distance;
+            memcpy(tourLog_p->route, tour.route, (n + 1) * sizeof(int));
+            NSString *resultString = @"";
+            if (self.optimalTour.route != NULL) {
+                resultString = [NSString stringWithFormat:@"(%+5.2f%% from optimal: %d)", tour.distance * 100.0 / self.optimalTour.distance - 100.0, self.optimalTour.distance];
+            }
+            [self.logQueue enqueue:@{@"Log": [NSString stringWithFormat:@"Improved route:%@\nDistance: %d%@\n\n", routeString, tour.distance, resultString],
+                                     @"Tour": [NSValue valueWithPointer:tourLog_p]}];
         }
-        // Copy tour
-        Tour *tourLog_p  = calloc(1,     sizeof(Tour));
-        tourLog_p->route = calloc(n + 1, sizeof(int));
-        tourLog_p->distance = tour.distance;
-        memcpy(tourLog_p->route, tour.route, (n + 1) * sizeof(int));
-        [self.logQueue enqueue:@{@"Log": [NSString stringWithFormat:@"Improved route:%@\nDistance: %d\n\n", routeString, tour.distance],
-                                 @"Tour": [NSValue valueWithPointer:tourLog_p]}];
     }
     
     return tour;
@@ -537,21 +582,6 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
             }
         }
         
-        // Get intersection.
-        int intersectionIndex = 0;
-        int intersection[numberOfElementsInIntersection];
-        for (int i = 0; i < candidateListSize; i++) {
-            if (visited[candidates[i] - 1] == false) {
-                intersection[intersectionIndex++] = candidates[i];
-            }
-        }
-        
-        // Compute sum weight of intersection.
-        double sumWeight = 0.0;
-        for (int i = 0; i < numberOfElementsInIntersection; i++) {
-            sumWeight += pheromoneWeight(from, intersection[i], n, a, b, P, A);
-        }
-        
         if (numberOfElementsInIntersection == 0) { // Intersection is empty.
             // case 1: select the unused edge which has the most pheromone weight.
             // Find the node to which the edge has the most pheromone weight.
@@ -592,6 +622,22 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
             return targetNodeNumber;
             
         } else { // Intersection exists.
+            // Get intersection.
+            int intersectionIndex = 0;
+            int intersection[numberOfElementsInIntersection];
+            bzero(intersection, numberOfElementsInIntersection * sizeof(int));
+            for (int i = 0; i < candidateListSize; i++) {
+                if (visited[candidates[i] - 1] == false) {
+                    intersection[intersectionIndex++] = candidates[i];
+                }
+            }
+            
+            // Compute sum weight of intersection.
+            double sumWeight = 0.0;
+            for (int i = 0; i < numberOfElementsInIntersection; i++) {
+                sumWeight += pheromoneWeight(from, intersection[i], n, a, b, P, A);
+            }
+            
             if (sumWeight < DBL_MIN) { // No pheromone.
                 // case 3: select node randomly from intersection.
                 int targetIndex = numberOfElementsInIntersection * (double)rand() / (RAND_MAX + 1.0);
@@ -820,6 +866,11 @@ void depositPheromone(Tour tour, int n, double *P)
         }
 
         [csv appendFormat:@"%d, %d\n", ++loop, globalBest.distance];
+        // Break if optimal solution is found.
+        if (globalBest.distance == self.optimalTour.distance) {
+            [self.logQueue enqueue:@{@"Log": @"Found optimal solution!\n"}];
+            break;
+        }
     }
     free(tours);
     
@@ -832,7 +883,11 @@ void depositPheromone(Tour tour, int n, double *P)
         for (int i = 0; i <= n; i++) {
             [routeString appendFormat:@" %d", globalBest.route[i]];
         }
-        [self.logQueue enqueue:@{@"Log": [NSString stringWithFormat:@"Best route: %@\nDistance: %d\n\n", routeString, globalBest.distance]}];
+        NSString *resultString = @"";
+        if (self.optimalTour.route != NULL) {
+            resultString = [NSString stringWithFormat:@"(%+5.2f%% from optimal: %d)", globalBest.distance * 100.0 / self.optimalTour.distance - 100.0, self.optimalTour.distance];
+        }
+        [self.logQueue enqueue:@{@"Log": [NSString stringWithFormat:@"Best route: %@\nDistance: %d%@\n\n", routeString, globalBest.distance, resultString]}];
     }
     
     return globalBest;
@@ -956,6 +1011,11 @@ void limitPheromoneRange(int opt, double r, int n, double pB, double *P)
         }
         
         [csv appendFormat:@"%d, %d\n", ++loop, globalBest.distance];
+        // Break if optimal solution is found.
+        if (globalBest.distance == self.optimalTour.distance) {
+            [self.logQueue enqueue:@{@"Log": @"Found optimal solution!\n"}];
+            break;
+        }
     }
     free(tours);
     
@@ -968,7 +1028,11 @@ void limitPheromoneRange(int opt, double r, int n, double pB, double *P)
         for (int i = 0; i <= n; i++) {
             [routeString appendFormat:@" %d", globalBest.route[i]];
         }
-        [self.logQueue enqueue:@{@"Log": [NSString stringWithFormat:@"Best route: %@\nDistance: %d\n\n", routeString, globalBest.distance]}];
+        NSString *resultString = @"";
+        if (self.optimalTour.route != NULL) {
+            resultString = [NSString stringWithFormat:@"(%+5.2f%% from optimal: %d)", globalBest.distance * 100.0 / self.optimalTour.distance - 100.0, self.optimalTour.distance];
+        }
+        [self.logQueue enqueue:@{@"Log": [NSString stringWithFormat:@"Best route: %@\nDistance: %d%@\n\n", routeString, globalBest.distance, resultString]}];
     }
     
     return globalBest;

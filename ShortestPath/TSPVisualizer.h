@@ -26,7 +26,7 @@ typedef enum TSPVisualizationStyle {
 @property UIImageView *nodeImageView;
 
 
-- (BOOL)drawPath:(Tour)path ofTSP:(TSP *)tsp withStyle:(TSPVisualizationStyle)style;
+- (BOOL)drawPath:(Tour)path ofTSP:(TSP *)tsp withStyle:(TSPVisualizationStyle)style onImageView:(UIImageView *)imageView;
 
 - (void)drawNodesWithTSP:(TSP *)tsp withStyle:(TSPVisualizationStyle)style;
 

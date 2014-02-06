@@ -15,3 +15,8 @@
 @property TSPSolverType currentSolverType;
 
 @end
+
+/**
+ TODO: add log
+ TODO: Human mode
+*/

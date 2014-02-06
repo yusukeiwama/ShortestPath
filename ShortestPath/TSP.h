@@ -37,12 +37,6 @@ typedef enum _TSPSolverType {
     TSPSolverTypeMMAS,
 } TSPSolverType;
 
-typedef enum _TSPTourQueueType {
-    TSPTourQueueTypeNN = 1,
-    TSPTourQueueType2opt,
-    TSPTourQueueTypeAS,
-} TSPTourQueueType;
-
 @interface TSP : NSObject
 
 @property (readonly) NSDictionary *information;
@@ -144,7 +138,10 @@ typedef enum _TSPTourQueueType {
  Dequeue a tour to visualize.
  @return An tour.
  */
-- (Tour *)dequeueTourFromQueueType:(TSPTourQueueType)queueType;
+- (Tour *)dequeueTour;
 - (void)flushTours;
+
+- (double *)dequeueMatrix;
+- (void)flushMatrices;
 
 @end

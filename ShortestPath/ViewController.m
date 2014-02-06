@@ -150,30 +150,16 @@ typedef enum _ExpandingPanel {
 - (void)dequeuePathToDrawPathImage
 {
     // Choose which dequeue to enqueue according to current solver type.
-    Tour *tour_p = NULL;
-    switch (self.currentSolverType) {
-        case TSPSolverTypeNN:
-            tour_p = [self.currentTSP dequeueTourFromQueueType:TSPTourQueueTypeNN];
-            if (tour_p == NULL) {
-                tour_p = [self.currentTSP dequeueTourFromQueueType:TSPTourQueueType2opt];
-            }
-            break;
-        case TSPSolverTypeAS:
-            tour_p = [self.currentTSP dequeueTourFromQueueType:TSPTourQueueTypeAS];
-            break;
-        case TSPSolverTypeMMAS:
-            tour_p = [self.currentTSP dequeueTourFromQueueType:TSPTourQueueTypeAS];
-            break;
-        default:
-            break;
-    }
-    
+    Tour *tour_p = [self.currentTSP dequeueTour];
+    double *P = [self.currentTSP dequeueMatrix];
     if (tour_p == NULL) {
         return;
     }
     
     [self.visualizer drawPath:*tour_p ofTSP:self.currentTSP withStyle:self.currentVisualizationStyle];
+    [self.visualizer drawPheromone:P ofTSP:self.currentTSP withStyle:self.currentVisualizationStyle];
     free(tour_p->route);
+    free(P);
 }
 
 #pragma mark - TableViewDataSource
@@ -229,7 +215,7 @@ typedef enum _ExpandingPanel {
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
     if ([tableView isEqual:self.problemTableView]) {
-        [self.currentTSP flushTours];
+        [self clearMonitorImage];
         NSString *sampleName = self.experimentManager.sampleNames[indexPath.row];
         self.currentTSPLabel.text = sampleName;
         self.currentTSP = [TSP TSPWithFile:[[NSBundle mainBundle] pathForResource:sampleName ofType:@"tsp"]];
@@ -246,7 +232,7 @@ typedef enum _ExpandingPanel {
         }
         
     } else if ([tableView isEqual:self.solverTableView]) {
-        [self.currentTSP flushTours];
+        [self clearMonitorImage];
         NSString *solverName = self.experimentManager.solverNames[indexPath.row];
         self.currentTSPSolverTypeLabel.text = solverName;
         
@@ -312,6 +298,12 @@ typedef enum _ExpandingPanel {
 
 }
 
+- (void)clearMonitorImage
+{
+    [self.visualizer clearTSPTour];
+    [self.currentTSP flushTours];
+    [self.currentTSP flushMatrices];
+}
 
 
 - (IBAction)hideControls:(id)sender {

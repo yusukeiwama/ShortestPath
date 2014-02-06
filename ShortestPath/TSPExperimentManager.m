@@ -28,7 +28,7 @@ static const int seeds[NUMBER_OF_SEEDS] = {469049721, 2053676357, 1781357515, 12
         
         // Selected samples for app
         self.sampleNames = @[@"ali535", @"att48", @"att532", @"berlin52", @"bier127", @"burma14", @"ch130", @"ch150", @"d198", @"d493", @"dsj1000", @"eil51", @"eil76", @"eil101", @"gr96", @"gr120", @"gr137", @"gr202", @"gr229", @"gr431", @"gr666", @"kroA100", @"kroB100", @"kroC100", @"kroD100", @"kroE100", @"kroA150", @"kroB150", @"kroA200", @"kroB200", @"lin105", @"linhp318", @"nrw1379", @"pr76", @"pr152", @"pr226", @"pr264", @"pr299", @"pr439", @"rat99", @"rat195", @"rd100", @"rd400", @"st70", @"ts225", @"tsp225", @"u159", @"u574", @"u724", @"u1060", @"u1432", @"u1817", @"ulysses16", @"ulysses22", @"vm1084", @"vm1748"];
-        self.solverNames = @[@"Nearest Neighbor", @"Ant System", @"Max-Min Ant System", @"Human"];
+        self.solverNames = @[@"Nearest Neighbor", @"Ant System", @"Max-Min Ant System"];
     }
     return self;
 }

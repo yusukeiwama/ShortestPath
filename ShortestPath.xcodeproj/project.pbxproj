@@ -182,6 +182,7 @@
 		43BAD74318959EFE0016F3B2 /* xray.problems in Resources */ = {isa = PBXBuildFile; fileRef = 43BAD6B218959EFE0016F3B2 /* xray.problems */; };
 		43BAD7491895A4620016F3B2 /* USKTrimmer.m in Sources */ = {isa = PBXBuildFile; fileRef = 43BAD7481895A4620016F3B2 /* USKTrimmer.m */; };
 		43D05D511895EFF6003E7268 /* DOC.PS in Resources */ = {isa = PBXBuildFile; fileRef = 43D05D501895EFF6003E7268 /* DOC.PS */; };
+		43E8F43E18A29CF5009D7635 /* TSPMatrixQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = 43E8F43D18A29CF5009D7635 /* TSPMatrixQueue.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -380,6 +381,8 @@
 		43BAD7471895A4620016F3B2 /* USKTrimmer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = USKTrimmer.h; sourceTree = "<group>"; };
 		43BAD7481895A4620016F3B2 /* USKTrimmer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = USKTrimmer.m; sourceTree = "<group>"; };
 		43D05D501895EFF6003E7268 /* DOC.PS */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = DOC.PS; sourceTree = "<group>"; };
+		43E8F43C18A29CF5009D7635 /* TSPMatrixQueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TSPMatrixQueue.h; sourceTree = "<group>"; };
+		43E8F43D18A29CF5009D7635 /* TSPMatrixQueue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TSPMatrixQueue.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -684,6 +687,8 @@
 				434D6F25185A22B10068D753 /* TSP.m */,
 				438D8FC218A236E200B2C8E1 /* TSPTourQueue.h */,
 				438D8FC318A236E200B2C8E1 /* TSPTourQueue.m */,
+				43E8F43C18A29CF5009D7635 /* TSPMatrixQueue.h */,
+				43E8F43D18A29CF5009D7635 /* TSPMatrixQueue.m */,
 				43BAD61B18950C430016F3B2 /* TSPExperimentManager.h */,
 				43BAD61C18950C430016F3B2 /* TSPExperimentManager.m */,
 				43BAD61E18951BEF0016F3B2 /* TSPVisualizer.h */,
@@ -742,7 +747,7 @@
 				ORGANIZATIONNAME = "Yusuke Iwama";
 				TargetAttributes = {
 					434D6EE3185A13530068D753 = {
-						DevelopmentTeam = RM3N4N4RRF;
+						DevelopmentTeam = VV4XJ6D4G4;
 					};
 					434D6F07185A13530068D753 = {
 						TestTargetID = 434D6EE3185A13530068D753;
@@ -957,6 +962,7 @@
 				43BAD61D18950C430016F3B2 /* TSPExperimentManager.m in Sources */,
 				434D6EF4185A13530068D753 /* main.m in Sources */,
 				43BAD62018951BEF0016F3B2 /* TSPVisualizer.m in Sources */,
+				43E8F43E18A29CF5009D7635 /* TSPMatrixQueue.m in Sources */,
 				438D8FC418A236E200B2C8E1 /* TSPTourQueue.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1036,7 +1042,7 @@
 				COPY_PHASE_STRIP = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_OPTIMIZATION_LEVEL = fast;
+				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
 					"$(inherited)",
@@ -1095,7 +1101,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				GCC_OPTIMIZATION_LEVEL = fast;
+				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "ShortestPath/ShortestPath-Prefix.pch";
 				INFOPLIST_FILE = "ShortestPath/ShortestPath-Info.plist";

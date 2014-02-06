@@ -31,6 +31,9 @@ Coordinate correctedPoint(Coordinate point, UIEdgeInsets margin)
     CGFloat    _lineWidthFactor;
     CGFloat    _nodeRadiusFactor;
     CGFloat    _startNodeRadiusFactor;
+    CGFloat    _pheromoneFactor;
+    
+    int *previousRoute;
 }
 
 - (void)prepareForCorrectionWithTSP:(TSP *)tsp margin:(UIEdgeInsets)margin
@@ -71,6 +74,7 @@ Coordinate correctedPoint(Coordinate point, UIEdgeInsets margin)
     _lineWidthFactor       = 0.010;
     _nodeRadiusFactor      = 0.005;
     _startNodeRadiusFactor = 0.010;
+    _pheromoneFactor       = 3.0;
 
     switch (style) {
         case TSPVisualizationStyleDark:
@@ -108,42 +112,116 @@ Coordinate correctedPoint(Coordinate point, UIEdgeInsets margin)
 
 - (BOOL)drawPath:(Tour)path ofTSP:(TSP *)tsp withStyle:(TSPVisualizationStyle)style
 {
+    // Prepare previous route holder.
+    if (previousRoute == NULL) {
+        previousRoute = calloc(tsp.dimension + 1, sizeof(int));
+        for (int i = 0; i < tsp.dimension + 1; i++) {
+            previousRoute[i] = -1;
+        }
+    }
+    
+    if (path.route == NULL || tsp == nil || tsp.nodes == NULL) return NO;
+    
+    // If no path change, no image change.
+    for (int i = 0; i < tsp.dimension + 1; i++) {
+        if (path.route[i] != previousRoute[i]) {
+            break;
+        }
+        if (i == tsp.dimension) {
+            printf("no change\n");
+            return YES;
+        }
+    }
+
+    // Prepare colors and scale.
+    [self prepareForCorrectionWithTSP:tsp margin:margin];
+    [self prepareColorsWithStyle:style TSP:tsp];
+    
+    // Start drawing
+    UIGraphicsBeginImageContextWithOptions((self.globalBestPathImageView.frame.size), NO, 0);
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    
+    // Draw path
+    Coordinate startPoint = correctedPoint(tsp.nodes[path.route[0] - 1].coord, margin);
+    CGContextSetLineWidth(context, self.globalBestPathImageView.frame.size.width * _lineWidthFactor); // 1% of width;
+    CGContextMoveToPoint(context, startPoint.x, startPoint.y);
+    for (int i = 1; i <= tsp.dimension; i++) {
+        int nodeNumber = path.route[i];
+        if (nodeNumber <  1 || nodeNumber > tsp.dimension) { // Tour ends.
+            break;
+        }
+        Coordinate aPoint = correctedPoint(tsp.nodes[nodeNumber - 1].coord, margin);
+        CGContextAddLineToPoint(context, aPoint.x, aPoint.y);
+        if (style == TSPVisualizationStyleDark || style == TSPVisualizationStyleLight) {
+            CGContextSetStrokeColorWithColor(context, [[UIColor colorWithHue:((double)i / tsp.dimension) saturation:1.0 brightness:1.0 alpha:1.0] CGColor]);
+        } else {
+            CGContextSetStrokeColorWithColor(context, _edgeColor);
+        }
+        CGContextStrokePath(context);
+        CGContextMoveToPoint(context, aPoint.x, aPoint.y);
+    }
+    
+    // Update image.
+    UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+    self.globalBestPathImageView.image = image;
+    UIGraphicsEndImageContext();
+
+    // Update previous route
+    previousRoute = calloc(tsp.dimension + 1, sizeof(int));
+    memcpy(previousRoute, path.route, (tsp.dimension + 1) * sizeof(int));
+	
+	return YES;
+}
+
+- (BOOL)drawPheromone:(double *)P ofTSP:(TSP *)tsp withStyle:(TSPVisualizationStyle)style
+{
     @autoreleasepool {
-        if (path.route == NULL || tsp == nil || tsp.nodes == NULL) return NO;
+        if (P == NULL || tsp == nil || tsp.nodes == NULL) return NO;
         
         [self prepareForCorrectionWithTSP:tsp margin:margin];
         [self prepareColorsWithStyle:style TSP:tsp];
         
+        int n = tsp.dimension;
+        
+        // Find max pheromone
+        double max = DBL_MIN;
+        double min = DBL_MAX;
+        int k = 0;
+        for (int i = 0; i < n * (n - 1) / 2; i++) {
+            if (P[k] > max) {
+                max = P[k];
+            }
+            if (P[k] < min) {
+                min = P[k];
+            }
+            k++;
+        }
+        double range = max - min;
+        
         // Start drawing
-        UIGraphicsBeginImageContextWithOptions((self.globalBestPathImageView.frame.size), NO, 0);
+        UIGraphicsBeginImageContextWithOptions((self.additionalImageView.frame.size), NO, 0);
         CGContextRef context = UIGraphicsGetCurrentContext();
         
-        // Draw path
-        Coordinate startPoint = correctedPoint(tsp.nodes[path.route[0] - 1].coord, margin);
-        CGContextSetLineWidth(context, self.globalBestPathImageView.frame.size.width * _lineWidthFactor); // 1% of width;
-        CGContextMoveToPoint(context, startPoint.x, startPoint.y);
-        for (int i = 1; i <= tsp.dimension; i++) {
-            int nodeNumber = path.route[i];
-            if (nodeNumber <  1 || nodeNumber > tsp.dimension) { // Tour ends.
-                break;
+        // Draw matrix
+        CGContextSetStrokeColorWithColor(context, [[UIColor colorWithRed:0.5 green:0.0 blue:0.8 alpha:0.5] CGColor]);
+        k = 0;
+        for (int i = 0; i < n; i++) {
+            Coordinate from = correctedPoint(tsp.nodes[i].coord, margin);
+            for (int j = i + 1; j < n; j++) {
+                Coordinate to = correctedPoint(tsp.nodes[j].coord, margin);
+                double pheromone = P[k++];
+                CGContextSetLineWidth(context, self.additionalImageView.frame.size.width * _nodeRadiusFactor * ((pheromone - min) / range) * _pheromoneFactor);
+                CGContextMoveToPoint(context, from.x, from.y);
+                CGContextAddLineToPoint(context, to.x, to.y);
+                CGContextStrokePath(context);
             }
-            Coordinate aPoint = correctedPoint(tsp.nodes[nodeNumber - 1].coord, margin);
-            CGContextAddLineToPoint(context, aPoint.x, aPoint.y);
-            if (style == TSPVisualizationStyleDark || style == TSPVisualizationStyleLight) {
-                CGContextSetStrokeColorWithColor(context, [[UIColor colorWithHue:((double)i / tsp.dimension) saturation:1.0 brightness:1.0 alpha:1.0] CGColor]);
-            } else {
-                CGContextSetStrokeColorWithColor(context, _edgeColor);
-            }
-            CGContextStrokePath(context);
-            CGContextMoveToPoint(context, aPoint.x, aPoint.y);
         }
 		
         UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
-        self.globalBestPathImageView.image = image;
+        self.additionalImageView.image = image;
         UIGraphicsEndImageContext();
     }
-	
-	return YES;
+    return YES;
 }
 
 - (BOOL)PNGWithPath:(Tour)path ofTSP:(TSP *)tsp toFileNamed:(NSString *)fileName withStyle:(TSPVisualizationStyle)style
@@ -223,6 +301,13 @@ Coordinate correctedPoint(Coordinate point, UIEdgeInsets margin)
     self.globalBestPathImageView.image = nil;
     self.additionalImageView.image     = nil;
     self.nodeImageView.image           = nil;
+}
+
+- (void)clearTSPTour
+{
+    self.optimalPathImageView.image    = nil;
+    self.globalBestPathImageView.image = nil;
+    self.additionalImageView.image     = nil;
 }
 
 @end

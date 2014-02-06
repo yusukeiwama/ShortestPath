@@ -10,6 +10,7 @@
 #import "USKTrimmer.h"
 #import "TSPTourQueue.h"
 #import "ViewController.h"
+#import "TSPMatrixQueue.h"
 
 typedef struct _Neighbor {
 	int	number;
@@ -57,7 +58,8 @@ void swap2opt(int *route, int d, int i, int j)
 
 @property (readonly) int	  *adjacencyMatrix;
 @property (readonly) Neighbor *neighborMatrix;
-@property TSPTourQueue *tourQueue;
+@property TSPTourQueue        *tourQueue;
+@property TSPMatrixQueue      *matrixQueue;
 
 @end
 
@@ -67,6 +69,7 @@ void swap2opt(int *route, int d, int i, int j)
 @synthesize nodes           = N;
 @synthesize adjacencyMatrix = A;
 @synthesize neighborMatrix  = NN;
+// P means pheromone matrix.
 
 #pragma mark - Constructors
 
@@ -81,7 +84,8 @@ void swap2opt(int *route, int d, int i, int j)
 	if (self) {
 		if ([self readTSPDataFromFile:path]) {
             [self computeNeighborMatrix];
-            self.tourQueue = [TSPTourQueue new];
+            self.tourQueue   = [TSPTourQueue new];
+            self.matrixQueue = [TSPMatrixQueue new];
 //			[self printInformation];
 //            [self printNodes];
 //			[self printAdjecencyMatrix];
@@ -116,7 +120,8 @@ void swap2opt(int *route, int d, int i, int j)
 			N[i].coord   = p;
 		}
         [self computeNeighborMatrix];
-        self.tourQueue = [TSPTourQueue new];
+        self.tourQueue   = [TSPTourQueue new];
+        self.matrixQueue = [TSPMatrixQueue new];
 	}
 	return self;
 }
@@ -368,7 +373,7 @@ void swap2opt(int *route, int d, int i, int j)
 
 #pragma mark - Queue management
 
-- (Tour *)dequeueTourFromQueueType:(TSPTourQueueType)queueType
+- (Tour *)dequeueTour
 {
     return [self.tourQueue dequeueTour];
 }
@@ -376,6 +381,16 @@ void swap2opt(int *route, int d, int i, int j)
 - (void)flushTours
 {
     [self.tourQueue flush];
+}
+
+- (double *)dequeueMatrix
+{
+    return [self.matrixQueue dequeueMatrix];
+}
+
+- (void)flushMatrices
+{
+    [self.matrixQueue flush];
 }
 
 #pragma mark - Algorithms
@@ -485,6 +500,7 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
      case 4: Intersection is not empty and pheromone exist => select node with probability from intersection.
      */
 
+    // FIXME: Analyze and fix bug in this function. iPad mini crash in it.
     if (candidateListSize > 0) { // Use candidate list.
         // Get candidate list and the number of elements in intersection.
         int candidates[candidateListSize];
@@ -718,17 +734,24 @@ void depositPheromone(Tour tour, int n, double *P)
         loop++;
         
         // Do ant tours.
+//        for (int k = 0; k < m; k++) {
         dispatch_apply(m, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(size_t k){
             tours[k] = antTour(k, n, A, NN, P, a, b, c);
             if (use2opt) {
                 [self improveTourBy2opt:&(tours[k])];
             }
         });
+//        }
         
         // Update pheromone
         evaporatePheromone(r, n, P);
         for (int k = 0; k < m; k++) {
             depositPheromone(tours[k], n, P);
+        }
+        
+        // Enqueue pheromone matrix.
+        if (self.client.currentSolverType == TSPSolverTypeAS) {
+            [self.matrixQueue enqueueMatrix:P size:n];
         }
         
         // Find iteration best tour.
@@ -818,12 +841,14 @@ void limitPheromoneRange(int opt, double r, int n, double pB, double *P)
     while (noImproveCount < limit) {
         
         // Do ant tours concurrently.
+//        for (int k = 0; k < m; k++) {
         dispatch_apply(m, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(size_t k){
             tours[k] = antTour(k, n, A, NN, P, a, b, c);
             if (use2opt) {
                 [self improveTourBy2opt:&(tours[k])];
             }
         });
+//        }
         
         // Find iteration best tour.
         Tour iterationBest = {INT32_MAX, calloc(n + 1, sizeof(int))};
@@ -836,12 +861,19 @@ void limitPheromoneRange(int opt, double r, int n, double pB, double *P)
         depositPheromone(iterationBest, n, P);
         limitPheromoneRange(iterationBest.distance, r, n, pB, P);
         
+        // Enqueue pheromone matrix.
+        if (self.client.currentSolverType == TSPSolverTypeMMAS) {
+            [self.matrixQueue enqueueMatrix:P size:n];
+        }
+        
         // Update global best tour.
         if (takeBetterTour(iterationBest, &globalBest)) {
             noImproveCount = 0;
         } else {
             noImproveCount++;
         }
+        
+        // Enqueue the global best tour.
         if (self.client.currentSolverType == TSPSolverTypeMMAS) {
             [self.tourQueue enqueueTour:&globalBest routeSize:(n + 1)];
         }

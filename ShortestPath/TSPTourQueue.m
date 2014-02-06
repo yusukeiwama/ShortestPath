@@ -60,4 +60,9 @@ typedef struct _LinkedTour {
     }
 }
 
+- (void)dealloc
+{
+    [self flush];
+}
+
 @end

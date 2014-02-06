@@ -32,9 +32,13 @@ typedef enum TSPVisualizationStyle {
 
 - (void)drawBackgroundWithStyle:(TSPVisualizationStyle)style;
 
+- (BOOL)drawPheromone:(double *)P ofTSP:(TSP *)tsp withStyle:(TSPVisualizationStyle)style;
+
 /// Clear all layer but background.
 - (void)clearTSPVisualization;
 
+/// Clear path and pheromone.
+- (void)clearTSPTour;
 
 #pragma mark - Export
 - (BOOL)PNGWithPath:(Tour)path ofTSP:(TSP *)tsp toFileNamed:(NSString *)fileName withStyle:(TSPVisualizationStyle)style;

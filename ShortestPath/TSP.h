@@ -56,6 +56,12 @@ typedef enum _TSPSolverType {
 #pragma mark - Constructors
 
 + (id)TSPWithFile:(NSString *)path;
+
+/**
+ Return basic information of TSP sample file.
+ */
+- (NSString *)informationString;
+
 + (id)randomTSPWithDimension:(int)dimension seed:(unsigned)seed;
 
 /**
@@ -137,18 +143,5 @@ typedef enum _TSPSolverType {
                               use2opt:(BOOL)use2opt
                          CSVLogString:(NSString *__autoreleasing *)log;
 
-
-#pragma mark - log
-- (NSString *)informationString;
-
-/**
- Dequeue a tour to visualize.
- @return An tour.
- */
-- (Tour *)dequeueTour;
-- (void)flushTours;
-
-- (double *)dequeueMatrix;
-- (void)flushMatrices;
 
 @end

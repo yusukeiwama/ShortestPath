@@ -9,7 +9,6 @@
 #import "ViewController.h"
 #import "TSPExperimentManager.h"
 #import "TSPVisualizer.h"
-#import "TSPTourQueue.h"
 
 typedef enum _ExpandingPanel {
     ExpandingPanelNone = 0,
@@ -152,7 +151,7 @@ typedef enum _ExpandingPanel {
     self.stopButton.layer.borderColor   =
     self.solveButton.layer.borderColor  = [[UIColor colorWithWhite:1.0 alpha:0.5] CGColor];
     
-    self.pathImageUpdateTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 / 60.0 target:self selector:@selector(dequeuePathToDrawPathImage) userInfo:nil repeats:YES];
+    self.pathImageUpdateTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 / 60.0 target:self selector:@selector(visualizeLog) userInfo:nil repeats:YES];
 }
 
 - (void)didReceiveMemoryWarning
@@ -178,18 +177,27 @@ typedef enum _ExpandingPanel {
 }
 
 
-- (void)dequeuePathToDrawPathImage
+- (void)visualizeLog
 {
-    Tour *tour_p = [self.currentTSP dequeueTour];
-    double *P = [self.currentTSP dequeueMatrix];
-    if (tour_p == NULL) {
+    NSDictionary *logDictionary = [self.currentTSP.logQueue dequeue];
+    if (logDictionary == nil) {
         return;
     }
-    
-    [self.visualizer drawPath:*tour_p ofTSP:self.currentTSP withStyle:self.currentVisualizationStyle];
-    [self.visualizer drawPheromone:P ofTSP:self.currentTSP withStyle:self.currentVisualizationStyle];
 
-    NSString *aLog = [self.currentTSP.logQueue dequeue];
+    Tour *tour_p = [((NSValue *)logDictionary[@"Tour"]) pointerValue];
+    if (tour_p != NULL) {
+        [self.visualizer drawPath:*tour_p ofTSP:self.currentTSP withStyle:self.currentVisualizationStyle];
+        free(tour_p->route);
+        free(tour_p);
+    }
+
+    double *P      = [((NSValue *)logDictionary[@"Pheromone"]) pointerValue];
+    if (P != NULL) {
+        [self.visualizer drawPheromone:P ofTSP:self.currentTSP withStyle:self.currentVisualizationStyle];
+        free(P);
+    }
+    
+    NSString *aLog = logDictionary[@"Log"];
     if (aLog) {
         [self.logString appendString:aLog];
     }
@@ -198,9 +206,6 @@ typedef enum _ExpandingPanel {
         NSRange bottomRange = NSMakeRange(self.fixedLogTextView.text.length - 1, 1);
         [self.fixedLogTextView scrollRangeToVisible:bottomRange];
     }
-    
-    free(tour_p->route);
-    free(P);
 }
 
 #pragma mark - TableViewDataSource

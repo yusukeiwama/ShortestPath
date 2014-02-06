@@ -121,25 +121,7 @@ Coordinate correctedPoint(Coordinate point, UIEdgeInsets margin)
 
 - (BOOL)drawPath:(Tour)path ofTSP:(TSP *)tsp withStyle:(TSPVisualizationStyle)style
 {
-    // Prepare previous route holder.
-    if (previousRoute == NULL) {
-        previousRoute = calloc(tsp.dimension + 1, sizeof(int));
-        for (int i = 0; i < tsp.dimension + 1; i++) {
-            previousRoute[i] = -1;
-        }
-    }
-    
     if (path.route == NULL || tsp == nil || tsp.nodes == NULL) return NO;
-    
-    // If no path change, no image change.
-    for (int i = 0; i < tsp.dimension + 1; i++) {
-        if (path.route[i] != previousRoute[i]) {
-            break;
-        }
-        if (i == tsp.dimension) {
-            return YES;
-        }
-    }
 
     // Prepare colors and scale.
     [self prepareForCorrectionWithTSP:tsp margin:margin];
@@ -174,10 +156,6 @@ Coordinate correctedPoint(Coordinate point, UIEdgeInsets margin)
     UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
     self.globalBestPathImageView.image = image;
     UIGraphicsEndImageContext();
-
-    // Update previous route
-    previousRoute = calloc(tsp.dimension + 1, sizeof(int));
-    memcpy(previousRoute, path.route, (tsp.dimension + 1) * sizeof(int));
 	
 	return YES;
 }

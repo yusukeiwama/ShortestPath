@@ -8,9 +8,7 @@
 
 #import "TSP.h"
 #import "USKTrimmer.h"
-#import "TSPTourQueue.h"
 #import "ViewController.h"
-#import "TSPMatrixQueue.h"
 
 typedef struct _Neighbor {
 	int	number;
@@ -58,8 +56,6 @@ void swap2opt(int *route, int d, int i, int j)
 
 @property (readonly) int	  *adjacencyMatrix;
 @property (readonly) Neighbor *neighborMatrix;
-@property TSPTourQueue        *tourQueue;
-@property TSPMatrixQueue      *matrixQueue;
 
 @end
 
@@ -128,32 +124,9 @@ void swap2opt(int *route, int d, int i, int j)
 
 -(void)prepareQueues
 {
-    self.tourQueue   = [TSPTourQueue new];
-    self.matrixQueue = [TSPMatrixQueue new];
     self.operationQueue = [NSOperationQueue new];
     self.logQueue    = [USKQueue queueWithCapacity:50000];
 }
-
-- (Tour *)dequeueTour
-{
-    return [self.tourQueue dequeueTour];
-}
-
-- (void)flushTours
-{
-    [self.tourQueue flush];
-}
-
-- (double *)dequeueMatrix
-{
-    return [self.matrixQueue dequeueMatrix];
-}
-
-- (void)flushMatrices
-{
-    [self.matrixQueue flush];
-}
-
 
 #pragma mark - read file
 
@@ -420,6 +393,10 @@ int nearestNodeNumber(bool *visited, int from, int n, Neighbor *NN)
 
 - (Tour)tourByNNFrom:(int)start use2opt:(BOOL)use2opt
 {
+    if (self.client.currentSolverType == TSPSolverTypeNN) {
+        [self.logQueue enqueue:@{@"Log": [NSString stringWithFormat:@"The nearest neighbor algorithm began.\nRoute: %d ", start]}];
+    }
+    
     Tour tour     = {0, calloc(n + 1, sizeof(int))};
     bool *visited = calloc(n, sizeof(bool));
     
@@ -435,12 +412,13 @@ int nearestNodeNumber(bool *visited, int from, int n, Neighbor *NN)
         visited[to - 1] =  true;
         from = to;
         if (self.client.currentSolverType == TSPSolverTypeNN) {
-            if (i == 1) {
-                [self.logQueue enqueue:[NSString stringWithFormat:@"The nearest neighbor algorithm executed.\nroute: %d %d ", start, to]];
-            } else {
-                [self.logQueue enqueue:[NSString stringWithFormat:@"%d ", to]];
-            }
-            [self.tourQueue enqueueTour:&tour routeSize:(i + 1)];
+            // Copy current tour
+            Tour *tourLog_p  = calloc(1,     sizeof(Tour));
+            tourLog_p->route = calloc(n + 1, sizeof(int));
+            tourLog_p->distance = tour.distance;
+            memcpy(tourLog_p->route, tour.route, (n + 1) * sizeof(int));
+            [self.logQueue enqueue:@{@"Log":  [NSString stringWithFormat:@"%d ", to],
+                                     @"Tour": [NSValue valueWithPointer:tourLog_p]}];
         }
     }
     free(visited);
@@ -448,22 +426,34 @@ int nearestNodeNumber(bool *visited, int from, int n, Neighbor *NN)
     tour.distance += A[(from - 1) * n + (start - 1)];
     tour.route[n] =  start;
 
+    // Enqueue log.
     if (self.client.currentSolverType == TSPSolverTypeNN) {
-        [self.logQueue enqueue:[NSString stringWithFormat:@"%d \nDistance: %d\n\n2-opt can start.\n", start, tour.distance]];
-        [self.tourQueue enqueueTour:&tour routeSize:(n + 1)];
+        // Copy current tour
+        Tour *tourLog_p  = calloc(1,     sizeof(Tour));
+        tourLog_p->route = calloc(n + 1, sizeof(int));
+        tourLog_p->distance = tour.distance;
+        memcpy(tourLog_p->route, tour.route, (n + 1) * sizeof(int));
+        [self.logQueue enqueue:@{@"Log":  [NSString stringWithFormat:@"%d \nDistance: %d\n\n", start, tour.distance],
+                                 @"Tour": [NSValue valueWithPointer:tourLog_p]}];
     }
     
     if (use2opt) {
         [self improveTourBy2opt:&tour];
     }
     
+    // Enqueue log.
     if (self.client.currentSolverType == TSPSolverTypeNN) {
         NSMutableString *routeString = [NSMutableString string];
         for (int i = 0; i <= n; i++) {
             [routeString appendFormat:@" %d", tour.route[i]];
         }
-        [self.logQueue enqueue:[NSString stringWithFormat:@"Improved route:%@\nDistance: %d\n\n", routeString, tour.distance]];
-        [self.tourQueue enqueueTour:&tour routeSize:(n + 1)];
+        // Copy tour
+        Tour *tourLog_p  = calloc(1,     sizeof(Tour));
+        tourLog_p->route = calloc(n + 1, sizeof(int));
+        tourLog_p->distance = tour.distance;
+        memcpy(tourLog_p->route, tour.route, (n + 1) * sizeof(int));
+        [self.logQueue enqueue:@{@"Log": [NSString stringWithFormat:@"Improved route:%@\nDistance: %d\n\n", routeString, tour.distance],
+                                 @"Tour": [NSValue valueWithPointer:tourLog_p]}];
     }
     
     return tour;
@@ -471,6 +461,11 @@ int nearestNodeNumber(bool *visited, int from, int n, Neighbor *NN)
 
 - (void)improveTourBy2opt:(Tour *)tour_p
 {
+    // Enqueue log.
+    if (self.client.currentSolverType == TSPSolverTypeNN) {
+        [self.logQueue enqueue:@{@"Log": @"2-opt algorithm began.\n"}];
+    }
+    
 	bool improved = true;
 	while (improved) {
 		improved = false;
@@ -481,9 +476,15 @@ int nearestNodeNumber(bool *visited, int from, int n, Neighbor *NN)
 					swap2opt(tour_p->route, n, i, j);
 					tour_p->distance = newLength;
 					improved = true;
+                    // Enqueue log.
                     if (self.client.currentSolverType == TSPSolverTypeNN) {
-                        [self.logQueue enqueue:[NSString stringWithFormat:@"Reverse order between %d and %d.\n", tour_p->route[j], tour_p->route[i+1]]];
-                        [self.tourQueue enqueueTour:tour_p routeSize:(n + 1)];
+                        // Copy tour
+                        Tour *tourLog_p  = calloc(1,     sizeof(Tour));
+                        tourLog_p->route = calloc(n + 1, sizeof(int));
+                        tourLog_p->distance = tour_p->distance;
+                        memcpy(tourLog_p->route, tour_p->route, (n + 1) * sizeof(int));
+                        [self.logQueue enqueue:@{@"Log": [NSString stringWithFormat:@"Reverse order between %d and %d.\n", tour_p->route[j], tour_p->route[i+1]],
+                                                 @"Tour": [NSValue valueWithPointer:tourLog_p]}];
                     }
 				}
 			}
@@ -730,6 +731,10 @@ void depositPheromone(Tour tour, int n, double *P)
                    CSVLogString:(NSString *__autoreleasing *)log
 
 {
+    if (self.client.currentSolverType == TSPSolverTypeAS) {
+        [self.logQueue enqueue:@{@"Log": @"Ant System algorism began.\n"}];
+    }
+    
     srand(seed);
     if (c > n) {
         c = n;
@@ -778,7 +783,15 @@ void depositPheromone(Tour tour, int n, double *P)
         
         // Enqueue pheromone matrix.
         if (self.client.currentSolverType == TSPSolverTypeAS) {
-            [self.matrixQueue enqueueMatrix:P size:n];
+            // Copy upper triangle matrix of current pheromone.
+            double *PLog = calloc(n * (n - 1) / 2, sizeof(double));
+            int p = 0;
+            for (int i = 0; i < n; i++) {
+                for (int j = i + 1; j < n; j++) {
+                    PLog[p++] = P[i * n + j];
+                }
+            }
+            [self.logQueue enqueue:@{@"Pheromone": [NSValue valueWithPointer:PLog]}];
         }
         
         // Find iteration best tour.
@@ -790,11 +803,20 @@ void depositPheromone(Tour tour, int n, double *P)
         // Update global best tour.
         if (takeBetterTour(iterationBest, &globalBest)) {
             noImproveCount = 0;
+            // Enqueue tour log.
+            if (self.client.currentSolverType == TSPSolverTypeAS) {
+                // Copy global best.
+                Tour *tourLog_p     = calloc(1, sizeof(Tour));
+                tourLog_p->route    = calloc(n + 1, sizeof(int));
+                tourLog_p->distance = globalBest.distance;
+                for (int i = 0; i <= n; i++) {
+                    tourLog_p->route[i] = globalBest.route[i];
+                }
+                [self.logQueue enqueue:@{@"Log": [NSString stringWithFormat:@"New global best distance: %d.\n", tourLog_p->distance],
+                                         @"Tour": [NSValue valueWithPointer:tourLog_p]}];
+            }
         } else {
             noImproveCount++;
-        }
-        if (self.client.currentSolverType == TSPSolverTypeAS) {
-            [self.tourQueue enqueueTour:&globalBest routeSize:(n + 1)];
         }
 
         [csv appendFormat:@"%d, %d\n", ++loop, globalBest.distance];
@@ -804,6 +826,13 @@ void depositPheromone(Tour tour, int n, double *P)
     // Export iteration best tour distances in CSV format.
     if (log) {
         *log = csv;
+    }
+    if (self.client.currentSolverType == TSPSolverTypeAS) {
+        NSMutableString *routeString = [NSMutableString string];
+        for (int i = 0; i <= n; i++) {
+            [routeString appendFormat:@" %d", globalBest.route[i]];
+        }
+        [self.logQueue enqueue:@{@"Log": [NSString stringWithFormat:@"Best route: %@\nDistance: %d\n\n", routeString, globalBest.distance]}];
     }
     
     return globalBest;
@@ -838,6 +867,10 @@ void limitPheromoneRange(int opt, double r, int n, double pB, double *P)
                               use2opt:(BOOL)use2opt
                          CSVLogString:(NSString *__autoreleasing *)log
 {
+    if (self.client.currentSolverType == TSPSolverTypeMMAS) {
+        [self.logQueue enqueue:@{@"Log": @"Max-Min Ant System algorism began.\n"}];
+    }
+    
     srand(seed);
     if (c > n) {
         c = n;
@@ -894,20 +927,34 @@ void limitPheromoneRange(int opt, double r, int n, double pB, double *P)
         
         // Enqueue pheromone matrix.
         if (self.client.currentSolverType == TSPSolverTypeMMAS) {
-            [self.matrixQueue enqueueMatrix:P size:n];
+            // Copy upper triangle matrix of current pheromone.
+            double *PLog = calloc(n * (n - 1) / 2, sizeof(double));
+            int p = 0;
+            for (int i = 0; i < n; i++) {
+                for (int j = i + 1; j < n; j++) {
+                    PLog[p++] = P[i * n + j];
+                }
+            }
+            [self.logQueue enqueue:@{@"Pheromone": [NSValue valueWithPointer:PLog]}];
         }
         
         // Update global best tour.
         if (takeBetterTour(iterationBest, &globalBest)) {
             noImproveCount = 0;
+            // Enqueue tour log.
+            if (self.client.currentSolverType == TSPSolverTypeMMAS) {
+                // Copy global best.
+                Tour *tourLog_p     = calloc(1,     sizeof(Tour));
+                tourLog_p->route    = calloc(n + 1, sizeof(int));
+                tourLog_p->distance = globalBest.distance;
+                memcpy(tourLog_p->route, globalBest.route, (n + 1) * sizeof(int));
+                [self.logQueue enqueue:@{@"Log": [NSString stringWithFormat:@"New global best distance: %d.\n", tourLog_p->distance],
+                                         @"Tour": [NSValue valueWithPointer:tourLog_p]}];
+            }
         } else {
             noImproveCount++;
         }
         
-        // Enqueue the global best tour.
-        if (self.client.currentSolverType == TSPSolverTypeMMAS) {
-            [self.tourQueue enqueueTour:&globalBest routeSize:(n + 1)];
-        }
         [csv appendFormat:@"%d, %d\n", ++loop, globalBest.distance];
     }
     free(tours);
@@ -915,6 +962,13 @@ void limitPheromoneRange(int opt, double r, int n, double pB, double *P)
     // Export iteration best tour distances in CSV format.
     if (log) {
         *log = csv;
+    }
+    if (self.client.currentSolverType == TSPSolverTypeMMAS) {
+        NSMutableString *routeString = [NSMutableString string];
+        for (int i = 0; i <= n; i++) {
+            [routeString appendFormat:@" %d", globalBest.route[i]];
+        }
+        [self.logQueue enqueue:@{@"Log": [NSString stringWithFormat:@"Best route: %@\nDistance: %d\n\n", routeString, globalBest.distance]}];
     }
     
     return globalBest;
@@ -1027,11 +1081,9 @@ void limitPheromoneRange(int opt, double r, int n, double pB, double *P)
 
 - (void)dealloc
 {
-    [self.tourQueue flush];
-    [self.matrixQueue flush];
-    
 	if (N)  free(N);
 	if (A)	free(A);
+    if (NN) free(NN);
 }
 
 @end

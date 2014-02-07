@@ -22,8 +22,8 @@ typedef enum _ExpandingPanel {
 // For visualizer
 @property (weak, nonatomic) IBOutlet UIImageView *backgroundImageView;
 @property (weak, nonatomic) IBOutlet UIImageView *optimalPathImageView;
-@property (weak, nonatomic) IBOutlet UIImageView *globalBestPathImageView;
 @property (weak, nonatomic) IBOutlet UIImageView *additionalImageView;
+@property (weak, nonatomic) IBOutlet UIImageView *globalBestPathImageView;
 @property (weak, nonatomic) IBOutlet UIImageView *nodeImageView;
 @property NSTimer *pathImageUpdateTimer;
 
@@ -44,6 +44,9 @@ typedef enum _ExpandingPanel {
 @property (weak, nonatomic) IBOutlet UIView *solverView;
 @property (weak, nonatomic) IBOutlet UIView *logView;
 @property ExpandingPanel expandingPanel;
+//@property (weak, nonatomic) IBOutlet UIScrollView *monitorScrollView; // iPhone only
+//@property UIPageControl *pageControl;
+
 
 // TSP supporting classes
 @property TSPVisualizer        *visualizer;
@@ -83,8 +86,31 @@ typedef enum _ExpandingPanel {
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+
+    if ([self canPerformAction:@selector(setNeedsStatusBarAppearanceUpdate) withSender:nil]) {
+            [self setNeedsStatusBarAppearanceUpdate];
+    }
     
-    [self setNeedsStatusBarAppearanceUpdate];
+//    if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
+//        CGFloat len = self.view.frame.size.width;
+//        self.monitorScrollView.contentSize = CGSizeMake(len * 2, len);
+//
+//        self.additionalImageView.frame     = CGRectMake(0, 0, len, len);
+//        self.globalBestPathImageView.frame = CGRectMake(0, 0, len, len);
+//        self.nodeImageView.frame           = CGRectMake(0, 0, len, len);
+//        [self.monitorScrollView addSubview:self.additionalImageView];
+//        [self.monitorScrollView addSubview:self.globalBestPathImageView];
+//        [self.monitorScrollView addSubview:self.nodeImageView];
+//        [self.additionalImageView removeFromSuperview];
+//        [self.globalBestPathImageView removeFromSuperview];
+//        [self.nodeImageView removeFromSuperview];
+//        
+//        self.pageControl = [[UIPageControl alloc] initWithFrame:CGRectMake(0, 0, 0, 0)];
+//        self.pageControl.center = self.view.center;
+//        self.pageControl.frame = CGRectMake(self.pageControl.frame.origin.x, self.monitorScrollView.frame.origin.y + self.monitorScrollView.frame.size.height, self.pageControl.frame.size.width, self.pageControl.frame.size.height);
+//        self.pageControl.numberOfPages = 2;
+//        [self.view addSubview:self.pageControl];
+//    }
     
     self.solverExecutionQueue   = [NSOperationQueue new];
     self.solverExecutionQueue.maxConcurrentOperationCount = 1;
@@ -101,6 +127,12 @@ typedef enum _ExpandingPanel {
     self.experimentManager.visualizer = self.visualizer;
     
     self.logString = [NSMutableString string];
+
+//    if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
+//        [self.logTextView removeFromSuperview];
+//        self.logTextView.frame = CGRectMake(self.monitorScrollView.frame.size.width, 0, self.monitorScrollView.frame.size.width, self.monitorScrollView.frame.size.height);
+//        [self.monitorScrollView addSubview:self.logTextView];
+//    }
     
     // Workaround until Apple fixes the choppy UITextView bug.
     NSString *reqSysVer = @"7.0";
@@ -121,8 +153,14 @@ typedef enum _ExpandingPanel {
         self.fixedLogTextView.textColor = [UIColor whiteColor];
         [self.logView addSubview:self.fixedLogTextView];
         [self.logTextView removeFromSuperview];
+        
+//        if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
+//            [self.fixedLogTextView removeFromSuperview];
+//            self.fixedLogTextView.frame = CGRectMake(self.monitorScrollView.frame.size.width, 0, self.monitorScrollView.frame.size.width, self.monitorScrollView.frame.size.height);
+//            [self.monitorScrollView addSubview:self.fixedLogTextView];
+//        }
     }
-
+    
 //    [self.experimentManager doExperiment:USKTSPExperimentMMAS2opt];
     
     // Default Setting
@@ -155,6 +193,7 @@ typedef enum _ExpandingPanel {
     self.solveButton.layer.borderColor  = [[UIColor colorWithWhite:1.0 alpha:0.5] CGColor];
     
     self.pathImageUpdateTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 / 60.0 target:self selector:@selector(visualizeLog) userInfo:nil repeats:YES];
+
 }
 
 - (void)didReceiveMemoryWarning
@@ -500,4 +539,9 @@ typedef enum _ExpandingPanel {
     }
 }
 
+//#pragma mark - UIScrollViewDelegate
+//- (void)scrollViewDidEndDecelerating:(UIScrollView *)sender {
+//    uint page = sender.contentOffset.x / sender.frame.size.width;
+//    [self.pageControl setCurrentPage:page];
+//}
 @end

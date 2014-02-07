@@ -188,7 +188,7 @@ typedef enum _ExpandingPanel {
     int capacity = 200000000 / (n * n * sizeof(double));
     if ([self.currentTSP.logQueue count] > capacity) {
         [self.currentTSP.operationQueue setSuspended:YES];
-    } else if ([self.currentTSP.operationQueue isSuspended] == YES && [self.currentTSP.logQueue count] < 10) {
+    } else if ([self.currentTSP.operationQueue isSuspended] == YES && [self.currentTSP.logQueue count] < 3) {
         [self.currentTSP.operationQueue setSuspended:NO];
     }
     

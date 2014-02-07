@@ -15,7 +15,7 @@ typedef struct _Neighbor {
 	int distance;
 } Neighbor;
 
-int euc2D(Coordinate P, Coordinate Q)
+int euclid_edgelen(Coordinate P, Coordinate Q)
 {
 	double dx = Q.x - P.x;
 	double dy = Q.y - P.y;
@@ -25,31 +25,68 @@ int euc2D(Coordinate P, Coordinate Q)
 // FIXME: something wrong...
 int geo(Coordinate P, Coordinate Q)
 {
+    double PI = 3.141592;
+    
     int deg, min;
     Coordinate geoP, geoQ;
     
-    deg = (int)(P.x + 0.5);
+    deg = P.x + 0.5;
     min = P.x - deg;
-    geoP.x = M_PI * (deg + 5.0 * min / 3.0) / 180.0;
+    geoP.x = PI * (deg + 5.0 * min / 3.0) / 180.0;
     
-    deg = (int)(P.y + 0.5);
+    deg = P.y + 0.5;
     min = P.y - deg;
-    geoP.y = M_PI * (deg + 5.0 * min / 3.0) / 180.0;
-    
-    deg = (int)(Q.x + 0.5);
+    geoP.y = PI * (deg + 5.0 * min / 3.0) / 180.0;
+
+    deg = Q.x + 0.5;
     min = Q.x - deg;
-    geoQ.x = M_PI * (deg + 5.0 * min / 3.0) / 180.0;
+    geoQ.x = PI * (deg + 5.0 * min / 3.0) / 180.0;
     
-    deg = (int)(Q.y + 0.5);
+    deg = Q.y + 0.5;
     min = Q.y - deg;
-    geoQ.y = M_PI * (deg + 5.0 * min / 3.0) / 180.0;
+    geoQ.y = PI * (deg + 5.0 * min / 3.0) / 180.0;
+
+//    geoP.x = M_PI * P.x / 180.0;
+//    geoP.y = M_PI * P.y / 180.0;
+//    geoQ.x = M_PI * Q.x / 180.0;
+//    geoQ.y = M_PI * Q.y / 180.0;
     
-    double RRR = 6378.388;
     double q1 = cos(geoP.y - geoQ.y);
     double q2 = cos(geoP.x - geoQ.x);
     double q3 = cos(geoP.x + geoQ.x);
     
-    return (int)(RRR * acos(0.5 * ((1.0 + q1) * q2 - (1.0 - q1) * q3)) + 1.0);
+    double RRR = 6378.388;
+
+    return (int)(RRR * acos (0.5 * ((1.0 + q1) * q2 - (1.0 - q1) * q3)) + 1.0);
+    
+//    double q1 = cos (geoQ.x) * sin(geoP.y - geoQ.y);
+//    double q3 = sin((geoP.y - geoQ.y)/2.0);
+//    double q4 = cos((geoP.y - geoQ.y)/2.0);
+//    double q2 = sin(geoP.x + geoQ.x) * q3 * q3 - sin(geoP.x - geoQ.x) * q4 * q4;
+//    double q5 = cos(geoP.x - geoQ.x) * q4 * q4 - cos(geoP.x + geoQ.x) * q3 * q3;
+//    return (int) (RRR * atan2(sqrt(q1*q1 + q2*q2), q5) + 1.0);
+}
+
+int euclid_ceiling_edgelen(Coordinate P, Coordinate Q)
+{
+	double dx = Q.x - P.x;
+	double dy = Q.y - P.y;
+    return (int)ceil((sqrt(dx * dx + dy * dy)));
+}
+
+static int att_edgelen (Coordinate P, Coordinate Q)
+{
+    double dx = Q.x - P.x;
+    double dy = Q.y - P.y;
+    double rij = sqrt ((dx * dx + dy * dy) / 10.0);
+    double tij = (double)(int)rij;
+    int dij;
+    
+    if (tij < rij)
+        dij = (int) tij + 1;
+    else
+        dij = (int) tij;
+    return dij;
 }
 
 int compareDistances(const Neighbor *n1, const Neighbor *n2)
@@ -112,11 +149,12 @@ void swap2opt(int *route, int d, int i, int j)
             [self computeNeighborMatrix];
             [self prepareQueues];
             Tour tour = [TSP optimalSolutionWithName:_information[@"NAME"]];
-            if (tour.route != NULL && [_information[@"EDGE_WEIGHT_TYPE"] isEqualToString:@"EUC_2D"]) {
+            if (tour.distance > 0 && [_information[@"EDGE_WEIGHT_TYPE"] isEqualToString:@"GEO"] == NO) {
                 [_information setValue:[NSNumber numberWithInt:tour.distance] forKey:@"OPTIMAL_LENGTH"];
                 _optimalTour = tour;
-            } else {
+            } else { // distance is -1, if not available.
                 [_information setValue:@"N/A" forKey:@"OPTIMAL_LENGTH"];
+                _optimalTour.distance = -1;
                 _optimalTour.route = NULL;
             }
             
@@ -383,8 +421,15 @@ void swap2opt(int *route, int d, int i, int j)
 			for (int j = 0; j < n; j++) {
                 if ([self.information[@"EDGE_WEIGHT_TYPE"] isEqualToString:@"GEO"]) {
                     A[i * n + j] = geo(N[i].coord, N[j].coord);
+                } else if ([self.information[@"EDGE_WEIGHT_TYPE"] isEqualToString:@"ATT"]) {
+                    A[i * n + j] = att_edgelen(N[i].coord, N[j].coord);
+                } else if ([self.information[@"EDGE_WEIGHT_TYPE"] isEqualToString:@"CEIL_2D"]) {
+                    A[i * n + j] = euclid_ceiling_edgelen(N[i].coord, N[j].coord);
+                } else if ([self.information[@"EDGE_WEIGHT_TYPE"] isEqualToString:@"EXPLICIT"]) {
+                    // Already read from file.
+                    printf("ex");
                 } else { // EUC2D
-                    A[i * n + j] = euc2D(N[i].coord, N[j].coord);
+                    A[i * n + j] = euclid_edgelen(N[i].coord, N[j].coord);
                 }
 			}
 		}
@@ -474,7 +519,7 @@ int nearestNodeNumber(bool *visited, int from, int n, Neighbor *NN)
         tourLog_p->distance = tour.distance;
         memcpy(tourLog_p->route, tour.route, (n + 1) * sizeof(int));
         NSString *resultString = @"";
-        if (self.optimalTour.route != NULL) {
+        if (self.optimalTour.distance > 0) {
             resultString = [NSString stringWithFormat:@"(%+5.2f%% from optimal: %d)", tour.distance * 100.0 / self.optimalTour.distance - 100.0, self.optimalTour.distance];
         }
         [self.logQueue enqueue:@{@"Log":  [NSString stringWithFormat:@"%d \nDistance: %d%@\n\n", start, tour.distance, resultString],
@@ -496,7 +541,7 @@ int nearestNodeNumber(bool *visited, int from, int n, Neighbor *NN)
             tourLog_p->distance = tour.distance;
             memcpy(tourLog_p->route, tour.route, (n + 1) * sizeof(int));
             NSString *resultString = @"";
-            if (self.optimalTour.route != NULL) {
+            if (self.optimalTour.distance > 0) {
                 resultString = [NSString stringWithFormat:@"(%+5.2f%% from optimal: %d)", tour.distance * 100.0 / self.optimalTour.distance - 100.0, self.optimalTour.distance];
             }
             [self.logQueue enqueue:@{@"Log": [NSString stringWithFormat:@"Improved route:%@\nDistance: %d%@\n\n", routeString, tour.distance, resultString],
@@ -887,7 +932,7 @@ void depositPheromone(Tour tour, int n, double *P)
             [routeString appendFormat:@" %d", globalBest.route[i]];
         }
         NSString *resultString = @"";
-        if (self.optimalTour.route != NULL) {
+        if (self.optimalTour.distance > 0) {
             resultString = [NSString stringWithFormat:@"(%+5.2f%% from optimal: %d)", globalBest.distance * 100.0 / self.optimalTour.distance - 100.0, self.optimalTour.distance];
         }
         [self.logQueue enqueue:@{@"Log": [NSString stringWithFormat:@"Best route: %@\nDistance: %d%@\n\n", routeString, globalBest.distance, resultString]}];
@@ -1032,7 +1077,7 @@ void limitPheromoneRange(int opt, double r, int n, double pB, double *P)
             [routeString appendFormat:@" %d", globalBest.route[i]];
         }
         NSString *resultString = @"";
-        if (self.optimalTour.route != NULL) {
+        if (self.optimalTour.distance > 0) {
             resultString = [NSString stringWithFormat:@"(%+5.2f%% from optimal: %d)", globalBest.distance * 100.0 / self.optimalTour.distance - 100.0, self.optimalTour.distance];
         }
         [self.logQueue enqueue:@{@"Log": [NSString stringWithFormat:@"Best route: %@\nDistance: %d%@\n\n", routeString, globalBest.distance, resultString]}];

@@ -9,6 +9,7 @@
 #import "ViewController.h"
 #import "TSPExperimentManager.h"
 #import "TSPVisualizer.h"
+#import "USKTSPCSVParser.h"
 
 typedef enum _ExpandingPanel {
     ExpandingPanelNone = 0,
@@ -91,6 +92,11 @@ typedef enum _ExpandingPanel {
             [self setNeedsStatusBarAppearanceUpdate];
     }
     
+    // Load welcome TSP problem from CSV.
+//    USKTSPCSVParser *parser = [USKTSPCSVParser new];
+//    [parser TSPWithCSV:[[NSBundle mainBundle] pathForResource:@"welcome" ofType:@"csv"]];
+    
+    
 //    if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
 //        CGFloat len = self.view.frame.size.width;
 //        self.monitorScrollView.contentSize = CGSizeMake(len * 2, len);
@@ -163,8 +169,8 @@ typedef enum _ExpandingPanel {
     
 //    [self.experimentManager doExperiment:USKTSPExperimentMMAS2opt];
     
-    // Default Setting
-//    self.currentTSPName = @"st70";
+    // Load default problem
+//    self.currentTSPName = @"welcome91";
 //    self.currentTSPLabel.text = self.currentTSPName;
 //    
 //    self.currentSolverType = TSPSolverTypeNN;
@@ -179,10 +185,13 @@ typedef enum _ExpandingPanel {
 //        self.logTextView.text = self.logString;
 //    }
 //    [self.visualizer drawNodesWithTSP:self.currentTSP withStyle:self.currentVisualizationStyle];
+    
+    // Draw optimal tour if available
 //    if (self.currentTSP.optimalTour.route != NULL) {
 //        [self.visualizer drawPath:self.currentTSP.optimalTour ofTSP:self.currentTSP withStyle:TSPVisualizationStyleDark onImageView:self.optimalPathImageView];
 //    }
 
+    // Round button layer.
     self.saveButton.layer.cornerRadius  =
     self.stepButton.layer.cornerRadius  =
     self.stopButton.layer.cornerRadius  = self.stopButton.frame.size.width / 2.0;

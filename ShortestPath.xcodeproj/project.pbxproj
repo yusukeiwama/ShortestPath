@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4337DB8618A4F14A0007ED9E /* USKTSPCSVParser.m in Sources */ = {isa = PBXBuildFile; fileRef = 4337DB8518A4F14A0007ED9E /* USKTSPCSVParser.m */; };
+		4337DB8818A4F17C0007ED9E /* welcome.csv in Resources */ = {isa = PBXBuildFile; fileRef = 4337DB8718A4F17C0007ED9E /* welcome.csv */; };
+		4337DB8C18A4FC700007ED9E /* welcome91.tsp in Resources */ = {isa = PBXBuildFile; fileRef = 4337DB8B18A4FC700007ED9E /* welcome91.tsp */; };
 		434AC5B918A0207D004AF327 /* triangle.png in Resources */ = {isa = PBXBuildFile; fileRef = 434AC5B818A0207D004AF327 /* triangle.png */; };
 		434AC5C818A137A6004AF327 /* deepBlueOcean.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 434AC5C718A137A6004AF327 /* deepBlueOcean.jpg */; };
 		434AC5CE18A14BA0004AF327 /* aurora1.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 434AC5CB18A14BA0004AF327 /* aurora1.jpg */; };
@@ -195,6 +198,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		4337DB8418A4F14A0007ED9E /* USKTSPCSVParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = USKTSPCSVParser.h; sourceTree = "<group>"; };
+		4337DB8518A4F14A0007ED9E /* USKTSPCSVParser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = USKTSPCSVParser.m; sourceTree = "<group>"; };
+		4337DB8718A4F17C0007ED9E /* welcome.csv */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = welcome.csv; sourceTree = "<group>"; };
+		4337DB8B18A4FC700007ED9E /* welcome91.tsp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = welcome91.tsp; sourceTree = "<group>"; };
 		434AC5B818A0207D004AF327 /* triangle.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = triangle.png; sourceTree = "<group>"; };
 		434AC5C718A137A6004AF327 /* deepBlueOcean.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = deepBlueOcean.jpg; sourceTree = "<group>"; };
 		434AC5CB18A14BA0004AF327 /* aurora1.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = aurora1.jpg; sourceTree = "<group>"; };
@@ -406,6 +413,17 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		4337DB8318A4F1180007ED9E /* TSPCSV */ = {
+			isa = PBXGroup;
+			children = (
+				4337DB8418A4F14A0007ED9E /* USKTSPCSVParser.h */,
+				4337DB8518A4F14A0007ED9E /* USKTSPCSVParser.m */,
+				4337DB8718A4F17C0007ED9E /* welcome.csv */,
+				4337DB8B18A4FC700007ED9E /* welcome91.tsp */,
+			);
+			name = TSPCSV;
+			sourceTree = "<group>";
+		};
 		434D6EDB185A13530068D753 = {
 			isa = PBXGroup;
 			children = (
@@ -442,6 +460,7 @@
 				43D05D501895EFF6003E7268 /* DOC.PS */,
 				43BAD67318959EFE0016F3B2 /* optimalSolutions.txt */,
 				43BAD6B218959EFE0016F3B2 /* xray.problems */,
+				4337DB8318A4F1180007ED9E /* TSPCSV */,
 				43BAD62118959EDB0016F3B2 /* TSPData */,
 				434D6F1F185A21D40068D753 /* Model */,
 				434D6F20185A21DF0068D753 /* View */,
@@ -792,6 +811,7 @@
 				43BAD6B418959EFE0016F3B2 /* a280.tsp in Resources */,
 				43BAD6C818959EFE0016F3B2 /* ch150.tsp in Resources */,
 				43BAD71518959EFE0016F3B2 /* pr152.tsp in Resources */,
+				4337DB8818A4F17C0007ED9E /* welcome.csv in Resources */,
 				43BAD6EE18959EFE0016F3B2 /* gr229.tsp in Resources */,
 				43BAD6E918959EFE0016F3B2 /* gr120.opt.tour in Resources */,
 				43BAD6CF18959EFE0016F3B2 /* d15112.tsp in Resources */,
@@ -863,6 +883,7 @@
 				43BAD71818959EFE0016F3B2 /* pr299.tsp in Resources */,
 				434AC5C818A137A6004AF327 /* deepBlueOcean.jpg in Resources */,
 				43BAD70918959EFE0016F3B2 /* pcb442.tsp in Resources */,
+				4337DB8C18A4FC700007ED9E /* welcome91.tsp in Resources */,
 				43BAD6BA18959EFE0016F3B2 /* bayg29.tsp in Resources */,
 				43BAD72A18959EFE0016F3B2 /* rl11849.tsp in Resources */,
 				43BAD73018959EFE0016F3B2 /* swiss42.tsp in Resources */,
@@ -958,6 +979,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4337DB8618A4F14A0007ED9E /* USKTSPCSVParser.m in Sources */,
 				434D6F01185A13530068D753 /* ViewController.m in Sources */,
 				434D6F26185A22B10068D753 /* TSP.m in Sources */,
 				434D6EF8185A13530068D753 /* AppDelegate.m in Sources */,

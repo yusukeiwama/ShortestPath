@@ -560,4 +560,35 @@ typedef enum _ExpandingPanel {
 //    uint page = sender.contentOffset.x / sender.frame.size.width;
 //    [self.pageControl setCurrentPage:page];
 //}
+
+#pragma mark - touches handler
+- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    if (self.currentSolverType != TSPSolverTypeNN) {
+        self.globalBestPathImageView.hidden = YES;
+        self.nodeImageView.hidden           = YES;
+    }
+}
+
+- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    
+}
+
+- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    if (self.currentSolverType != TSPSolverTypeNN) {
+        self.globalBestPathImageView.hidden = NO;
+        self.nodeImageView.hidden           = NO;
+    }
+}
+
+- (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    if (self.currentSolverType != TSPSolverTypeNN) {
+        self.globalBestPathImageView.hidden = NO;
+        self.nodeImageView.hidden           = NO;
+    }
+}
+
 @end

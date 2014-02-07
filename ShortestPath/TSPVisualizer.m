@@ -83,6 +83,7 @@ Coordinate correctedPoint(Coordinate point, UIEdgeInsets margin)
     _startNodeColor  = [[UIColor whiteColor] CGColor];
     _edgeColor       = [[UIColor whiteColor] CGColor];
     _pheromoneColor  = [[UIColor colorWithRed:0.5 green:0.0 blue:1 alpha:1.0] CGColor];
+//    _pheromoneColor  = [[UIColor colorWithRed:1.0 green:1.0 blue:0 alpha:0.8] CGColor];
 
     switch (style) {
         case TSPVisualizationStyleDark:
@@ -190,9 +191,10 @@ Coordinate correctedPoint(Coordinate point, UIEdgeInsets margin)
         CGContextRef context = UIGraphicsGetCurrentContext();
         
         // Draw matrix
-        if (_pheromoneFactor > 1.0) {
-            CGContextSetLineCap(context, kCGLineCapRound);
-        }
+//        if (_pheromoneFactor > 1.0) {
+        // Round cap to display as single layer.
+        CGContextSetLineCap(context, kCGLineCapRound);
+//        }
         CGContextSetStrokeColorWithColor(context, _pheromoneColor);
 //        CGContextSetStrokeColorWithColor(context, [[UIColor colorWithRed:0.5 green:0.0 blue:0.8 alpha:0.5] CGColor]);
         k = 0;
@@ -201,7 +203,8 @@ Coordinate correctedPoint(Coordinate point, UIEdgeInsets margin)
             for (int j = i + 1; j < n; j++) {
                 Coordinate to = correctedPoint(tsp.nodes[j].coord, margin);
                 double pheromone = P[k++];
-                CGContextSetLineWidth(context, self.additionalImageView.frame.size.width * (_nodeRadiusFactor * 2) * ((pheromone - min) / range) * _pheromoneFactor);
+                double lineWidth = self.additionalImageView.frame.size.width * (_nodeRadiusFactor * 2) * ((pheromone - min) / range) * _pheromoneFactor;
+                CGContextSetLineWidth(context, lineWidth);
                 CGContextMoveToPoint(context, from.x, from.y);
                 CGContextAddLineToPoint(context, to.x, to.y);
                 CGContextStrokePath(context);

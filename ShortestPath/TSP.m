@@ -811,6 +811,8 @@ void depositPheromone(Tour tour, int n, double *P)
         int from = tour.route[i];
         int to   = tour.route[i + 1];
         P[(from - 1) * n + (to - 1)] += pheromone;
+        // pheromone matrix has to be symmetry in symmetry TSP.
+        P[(to - 1) * n + (from - 1)] += pheromone;
     }
 }
 
@@ -836,15 +838,10 @@ void depositPheromone(Tour tour, int n, double *P)
     
     double *P = calloc(n * n, sizeof(double)); // Pheromone matrix
     
-    // Initialize pheromone with average tour distance.
-    int	totalDistance = 0;
-    for (int i = 0; i < n; i++) {
-        Tour aTour = [self tourByNNFrom:i + 1 use2opt:use2opt];
-        totalDistance += aTour.distance;
-        free(aTour.route);
-    }
-    double averageDistance  = (double)totalDistance / n;
-    double initialPheromone = m / averageDistance;
+    // Initialize pheromone with NN.
+    Tour aTour = [self tourByNNFrom:1 use2opt:NO];
+    free(aTour.route);
+    double initialPheromone = m / aTour.distance;
     initializePheromone(initialPheromone, n, P);
     
     // Generate solutions.
@@ -982,17 +979,10 @@ void limitPheromoneRange(int opt, double r, int n, double pB, double *P)
     double *P = calloc(n * n, sizeof(double)); // Pheromone matrix
     
     // Compute initial best tour by NN.
-    Tour initialBest = {INT32_MAX, calloc(n + 1, sizeof(int))};
-
-    for (int i = 0; i < n; i++) {
-        Tour aTour = [self tourByNNFrom:i + 1 use2opt:use2opt];
-        takeBetterTour(aTour, &initialBest);
-    }
-    
-    // Initialize pheromone with max pheromone.
-    double initialPheromone = 1.0 / (r * initialBest.distance);
+    Tour aTour = [self tourByNNFrom:1 use2opt:NO];
+    double initialPheromone = 1.0 / (r * aTour.distance);
     initializePheromone(initialPheromone, n, P);
-    free(initialBest.route);
+    free(aTour.route);
     
     // Generate solutions.
     Tour globalBest      = {INT32_MAX, calloc(n + 1, sizeof(int))};
@@ -1057,6 +1047,11 @@ void limitPheromoneRange(int opt, double r, int n, double pB, double *P)
         } else {
             noImproveCount++;
         }
+        
+//        // Update pheromone
+//        evaporatePheromone(r, n, P);
+//        depositPheromone(globalBest, n, P);
+//        limitPheromoneRange(globalBest.distance, r, n, pB, P);
         
         [csv appendFormat:@"%d, %d\n", ++loop, globalBest.distance];
         // Break if optimal solution is found.

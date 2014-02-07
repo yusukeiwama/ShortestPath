@@ -164,21 +164,21 @@ typedef enum _ExpandingPanel {
 //    [self.experimentManager doExperiment:USKTSPExperimentMMAS2opt];
     
     // Default Setting
-    self.currentTSPName = @"st70";
-    self.currentTSPLabel.text = self.currentTSPName;
-    
-    self.currentSolverType = TSPSolverTypeNN;
-    self.currentTSPSolverTypeLabel.text = @"Nearest Neighbor";
-    
-    self.currentVisualizationStyle = TSPVisualizationStyleDark;
-    self.currentTSP = [TSP TSPWithFile:[[NSBundle mainBundle] pathForResource:self.currentTSPName ofType:@"tsp"]];
-    [self.logString appendString:[self.currentTSP informationString]];
-    if (osVersionSupported) {
-    self.fixedLogTextView.text = self.logString;
-    } else {
-        self.logTextView.text = self.logString;
-    }
-    [self.visualizer drawNodesWithTSP:self.currentTSP withStyle:self.currentVisualizationStyle];
+//    self.currentTSPName = @"st70";
+//    self.currentTSPLabel.text = self.currentTSPName;
+//    
+//    self.currentSolverType = TSPSolverTypeNN;
+//    self.currentTSPSolverTypeLabel.text = @"Nearest Neighbor";
+//    
+//    self.currentVisualizationStyle = TSPVisualizationStyleDark;
+//    self.currentTSP = [TSP TSPWithFile:[[NSBundle mainBundle] pathForResource:self.currentTSPName ofType:@"tsp"]];
+//    [self.logString appendString:[self.currentTSP informationString]];
+//    if (osVersionSupported) {
+//    self.fixedLogTextView.text = self.logString;
+//    } else {
+//        self.logTextView.text = self.logString;
+//    }
+//    [self.visualizer drawNodesWithTSP:self.currentTSP withStyle:self.currentVisualizationStyle];
 //    if (self.currentTSP.optimalTour.route != NULL) {
 //        [self.visualizer drawPath:self.currentTSP.optimalTour ofTSP:self.currentTSP withStyle:TSPVisualizationStyleDark onImageView:self.optimalPathImageView];
 //    }
@@ -228,6 +228,9 @@ typedef enum _ExpandingPanel {
     // Suspend solving operation when log queue have enough data to visualize. (prevent memory pressure.)
     // Limit memory allocation for pheromone matrix in 200MB.
     int n = self.currentTSP.dimension;
+    if (n <= 0) {
+        return;
+    }
     int capacity = 200000000 / (n * n * sizeof(double));
     if ([self.currentTSP.logQueue count] > capacity) {
         [self.currentTSP.operationQueue setSuspended:YES];

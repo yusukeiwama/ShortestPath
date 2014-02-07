@@ -79,9 +79,10 @@
                                     <outlet property="delegate" destination="vXZ-lx-hvc" id="ym9-am-fKC"/>
                                 </connections>
                             </tableView>
-                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="HUu-8r-JIl">
-                                <rect key="frame" x="135" y="498" width="50" height="50"/>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" showsTouchWhenHighlighted="YES" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="HUu-8r-JIl">
+                                <rect key="frame" x="130" y="488" width="60" height="60"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <color key="backgroundColor" red="0.29411765933036804" green="0.53333336114883423" blue="0.7568628191947937" alpha="0.5" colorSpace="deviceRGB"/>
                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
                                 <state key="normal" title="Solve">
                                     <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>

@@ -18,6 +18,9 @@
 @end
 
 /**
-TODO: Enable to edit parameters.
+ TODO: fix bug that changing algorithm while solving big problem result in disabling solving functionality.
+ TODO: fix bug that the problem is read from file no less than three time before solving!
+ 
+ TODO: Enable to edit parameters.
  TODO: Human mode
 */

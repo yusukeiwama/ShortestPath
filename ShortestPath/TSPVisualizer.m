@@ -203,7 +203,18 @@ Coordinate correctedPoint(Coordinate point, UIEdgeInsets margin)
             for (int j = i + 1; j < n; j++) {
                 Coordinate to = correctedPoint(tsp.nodes[j].coord, margin);
                 double pheromone = P[k++];
-                double lineWidth = self.additionalImageView.frame.size.width * (_nodeRadiusFactor * 2) * ((pheromone - min) / range) * _pheromoneFactor;
+                /*
+                 For performance reason, not use (pheromone / max) but use ((pheromone - min) / range).
+                 Probability is related (pheromone / max), not ((pheromone - min) / range). 
+                 However ...
+                 1. It's too heavy to draw first few step in MMAS with draw-type A.
+                 2. min pheromone in MMAS is hardly visible with both draw-type A and B.
+                 3. Because min pheromone goes to zero in AS, there is no difference between draw-type A and B.
+                 So, draw-type B is used.
+                 */
+//                double lineWidth = self.additionalImageView.frame.size.width * (_nodeRadiusFactor * 2) * (pheromone / max) * _pheromoneFactor; // ... A
+                double lineWidth = self.additionalImageView.frame.size.width * (_nodeRadiusFactor * 2) * ((pheromone - min) / range) * _pheromoneFactor; // ... B
+
                 CGContextSetLineWidth(context, lineWidth);
                 CGContextMoveToPoint(context, from.x, from.y);
                 CGContextAddLineToPoint(context, to.x, to.y);

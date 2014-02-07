@@ -21,33 +21,6 @@
                                 <rect key="frame" x="0.0" y="0.0" width="1024" height="768"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                             </imageView>
-                            <view contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="TOz-JD-KBF" userLabel="MonitorView">
-                                <rect key="frame" x="20" y="32" width="640" height="640"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <subviews>
-                                    <imageView contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="IA9-tS-Pl1" userLabel="backgroundView">
-                                        <rect key="frame" x="0.0" y="0.0" width="640" height="640"/>
-                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                                    </imageView>
-                                    <imageView contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="hMh-Og-sOP" userLabel="optimalView">
-                                        <rect key="frame" x="0.0" y="0.0" width="640" height="640"/>
-                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                                    </imageView>
-                                    <imageView contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="2oE-OX-eSp" userLabel="additionalView">
-                                        <rect key="frame" x="0.0" y="0.0" width="640" height="640"/>
-                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                                    </imageView>
-                                    <imageView contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Zja-rO-8tn" userLabel="pathView">
-                                        <rect key="frame" x="0.0" y="0.0" width="640" height="640"/>
-                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                                    </imageView>
-                                    <imageView contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Etu-9b-ev7" userLabel="nodeView">
-                                        <rect key="frame" x="0.0" y="0.0" width="640" height="640"/>
-                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                                    </imageView>
-                                </subviews>
-                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                            </view>
                             <view contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Vh0-00-R3A" userLabel="ControlView">
                                 <rect key="frame" x="674" y="32" width="330" height="736"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
@@ -94,7 +67,7 @@
                                                         </connections>
                                                     </button>
                                                 </subviews>
-                                                <color key="backgroundColor" red="0.12941177189350128" green="0.27450981736183167" blue="0.54117649793624878" alpha="1" colorSpace="deviceRGB"/>
+                                                <color key="backgroundColor" red="0.90196079015731812" green="0.90196079015731812" blue="0.90196079015731812" alpha="1" colorSpace="calibratedRGB"/>
                                             </view>
                                             <tableView clipsSubviews="YES" contentMode="scaleToFill" fixedFrame="YES" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="TRx-4e-xSx">
                                                 <rect key="frame" x="0.0" y="46" width="330" height="165"/>
@@ -194,7 +167,7 @@
                                                         </connections>
                                                     </button>
                                                 </subviews>
-                                                <color key="backgroundColor" red="0.12941177189350128" green="0.27450981736183167" blue="0.54117649793624878" alpha="1" colorSpace="deviceRGB"/>
+                                                <color key="backgroundColor" red="0.90196079015731812" green="0.90196079015731812" blue="0.90196079015731812" alpha="1" colorSpace="calibratedRGB"/>
                                             </view>
                                             <tableView clipsSubviews="YES" contentMode="scaleToFill" fixedFrame="YES" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="bT8-E3-ZJ9">
                                                 <rect key="frame" x="0.0" y="46" width="330" height="165"/>
@@ -287,7 +260,7 @@
                                                         </connections>
                                                     </button>
                                                 </subviews>
-                                                <color key="backgroundColor" red="0.12941177189350128" green="0.27450981736183167" blue="0.54117649793624878" alpha="1" colorSpace="deviceRGB"/>
+                                                <color key="backgroundColor" red="0.90196079015731812" green="0.90196079015731812" blue="0.90196079015731812" alpha="1" colorSpace="calibratedRGB"/>
                                             </view>
                                             <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" fixedFrame="YES" showsHorizontalScrollIndicator="NO" editable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="v9N-2b-JM2">
                                                 <rect key="frame" x="0.0" y="46" width="330" height="156"/>
@@ -348,6 +321,22 @@ TYPE: TSP</string>
                                 </subviews>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                             </view>
+                            <view contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="o8n-rU-PQH" userLabel="monitorView">
+                                <rect key="frame" x="20" y="32" width="640" height="640"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                <gestureRecognizers/>
+                                <connections>
+                                    <outletCollection property="gestureRecognizers" destination="VkN-cb-wVG" appends="YES" id="RDG-1q-zI0"/>
+                                </connections>
+                            </view>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Rtw-cQ-iKe">
+                                <rect key="frame" x="20" y="660" width="640" height="30"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" name="SnellRoundhand-Black" family="Snell Roundhand" pointSize="20"/>
+                                <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <color key="backgroundColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                         <gestureRecognizers/>
@@ -359,26 +348,26 @@ TYPE: TSP</string>
                     </view>
                     <simulatedOrientationMetrics key="simulatedOrientationMetrics" orientation="landscapeRight"/>
                     <connections>
-                        <outlet property="additionalImageView" destination="2oE-OX-eSp" id="QJl-2q-LR3"/>
-                        <outlet property="backgroundImageView" destination="IA9-tS-Pl1" id="C3H-75-0sT"/>
+                        <outlet property="backgroundImageView" destination="mUF-YH-kSq" id="xHG-MG-Xo4"/>
                         <outlet property="controlView" destination="Vh0-00-R3A" id="LF6-y8-vWb"/>
                         <outlet property="currentTSPLabel" destination="dNv-Ei-xX2" id="q7V-yF-xyJ"/>
                         <outlet property="currentTSPSolverTypeLabel" destination="ewk-RH-ah5" id="QIg-gG-wsx"/>
-                        <outlet property="globalBestPathImageView" destination="Zja-rO-8tn" id="gau-CI-kgl"/>
+                        <outlet property="layerTitleLabel" destination="Rtw-cQ-iKe" id="VNB-Mg-4CA"/>
                         <outlet property="logExpandIndicatorImageView" destination="mEL-Nu-gJC" id="nbJ-U2-FgS"/>
+                        <outlet property="logHeaderView" destination="6XN-kX-OaD" id="viN-qj-8GU"/>
                         <outlet property="logTextView" destination="v9N-2b-JM2" id="syI-Dy-h4x"/>
                         <outlet property="logTextViewButton" destination="AKg-NC-gHl" id="dN8-Yx-4l5"/>
                         <outlet property="logView" destination="zxm-4P-91y" id="R83-Pr-NrR"/>
-                        <outlet property="monitorView" destination="TOz-JD-KBF" id="I7u-ET-Gzz"/>
-                        <outlet property="nodeImageView" destination="Etu-9b-ev7" id="XEJ-yD-FWK"/>
-                        <outlet property="optimalPathImageView" destination="hMh-Og-sOP" id="937-Qi-n2Y"/>
+                        <outlet property="monitorView" destination="o8n-rU-PQH" id="NtK-5F-3Vb"/>
                         <outlet property="problemExpandIndicatorImageView" destination="4gs-eK-tLZ" id="ayw-Oh-6o9"/>
+                        <outlet property="problemHeaderView" destination="pQt-Td-6KK" id="Jbt-H1-3Nt"/>
                         <outlet property="problemTableButton" destination="3Y2-Qj-MLG" id="7rR-V5-eTl"/>
                         <outlet property="problemTableView" destination="TRx-4e-xSx" id="4co-Cl-NaA"/>
                         <outlet property="problemView" destination="nHy-uD-C8g" id="HNg-sL-7r2"/>
                         <outlet property="saveButton" destination="x32-C3-3g9" id="Jf4-p7-Fxh"/>
                         <outlet property="solveButton" destination="96J-Ak-HLe" id="uwr-Ik-SJs"/>
                         <outlet property="solverExpandIndicatorImaveView" destination="pm7-uj-nkO" id="37f-ae-T0a"/>
+                        <outlet property="solverHeaderView" destination="l4V-Lx-4eZ" id="5Wc-mL-3n5"/>
                         <outlet property="solverTableButton" destination="PJK-ch-6fo" id="38P-3V-gHZ"/>
                         <outlet property="solverTableView" destination="bT8-E3-ZJ9" id="U1x-gk-EQF"/>
                         <outlet property="solverView" destination="BgM-Ju-3eF" id="xUa-9g-cAI"/>
@@ -397,6 +386,11 @@ TYPE: TSP</string>
                         <action selector="showControls:" destination="BYZ-38-t0r" id="0lS-VK-vCO"/>
                     </connections>
                 </swipeGestureRecognizer>
+                <tapGestureRecognizer id="VkN-cb-wVG">
+                    <connections>
+                        <action selector="switchLayer:" destination="BYZ-38-t0r" id="rXz-AN-gFb"/>
+                    </connections>
+                </tapGestureRecognizer>
             </objects>
             <point key="canvasLocation" x="23" y="-1"/>
         </scene>

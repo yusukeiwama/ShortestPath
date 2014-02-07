@@ -183,6 +183,9 @@
 		43BAD74218959EFE0016F3B2 /* vm1748.tsp in Resources */ = {isa = PBXBuildFile; fileRef = 43BAD6B118959EFE0016F3B2 /* vm1748.tsp */; };
 		43BAD74318959EFE0016F3B2 /* xray.problems in Resources */ = {isa = PBXBuildFile; fileRef = 43BAD6B218959EFE0016F3B2 /* xray.problems */; };
 		43BAD7491895A4620016F3B2 /* USKTrimmer.m in Sources */ = {isa = PBXBuildFile; fileRef = 43BAD7481895A4620016F3B2 /* USKTrimmer.m */; };
+		43CA936B18A5179F001CA6E2 /* TSPView.m in Sources */ = {isa = PBXBuildFile; fileRef = 43CA936A18A5179F001CA6E2 /* TSPView.m */; };
+		43CA936D18A540A8001CA6E2 /* night.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 43CA936C18A540A8001CA6E2 /* night.jpg */; };
+		43CA936F18A54353001CA6E2 /* starryNight_Nicolas_Goulet.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 43CA936E18A54353001CA6E2 /* starryNight_Nicolas_Goulet.jpg */; };
 		43D05D511895EFF6003E7268 /* DOC.PS in Resources */ = {isa = PBXBuildFile; fileRef = 43D05D501895EFF6003E7268 /* DOC.PS */; };
 		43E8F44518A3750F009D7635 /* USKQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = 43E8F44418A3750F009D7635 /* USKQueue.m */; };
 /* End PBXBuildFile section */
@@ -384,6 +387,10 @@
 		43BAD6B218959EFE0016F3B2 /* xray.problems */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = xray.problems; sourceTree = "<group>"; };
 		43BAD7471895A4620016F3B2 /* USKTrimmer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = USKTrimmer.h; sourceTree = "<group>"; };
 		43BAD7481895A4620016F3B2 /* USKTrimmer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = USKTrimmer.m; sourceTree = "<group>"; };
+		43CA936918A5179F001CA6E2 /* TSPView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TSPView.h; sourceTree = "<group>"; };
+		43CA936A18A5179F001CA6E2 /* TSPView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TSPView.m; sourceTree = "<group>"; };
+		43CA936C18A540A8001CA6E2 /* night.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = night.jpg; sourceTree = "<group>"; };
+		43CA936E18A54353001CA6E2 /* starryNight_Nicolas_Goulet.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = starryNight_Nicolas_Goulet.jpg; sourceTree = "<group>"; };
 		43D05D501895EFF6003E7268 /* DOC.PS */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = DOC.PS; sourceTree = "<group>"; };
 		43E8F44318A3750F009D7635 /* USKQueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = USKQueue.h; sourceTree = "<group>"; };
 		43E8F44418A3750F009D7635 /* USKQueue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = USKQueue.m; sourceTree = "<group>"; };
@@ -511,6 +518,8 @@
 		434D6F20185A21DF0068D753 /* View */ = {
 			isa = PBXGroup;
 			children = (
+				43CA936E18A54353001CA6E2 /* starryNight_Nicolas_Goulet.jpg */,
+				43CA936C18A540A8001CA6E2 /* night.jpg */,
 				434AC5D518A15439004AF327 /* moonNight.jpg */,
 				434AC5D318A15197004AF327 /* curvedLines.jpg */,
 				434AC5D118A14D9F004AF327 /* dizzyGreen.jpg */,
@@ -522,6 +531,8 @@
 				4357AFDA189F2A360077B456 /* login_background.png */,
 				434D6EF9185A13530068D753 /* Main_iPhone.storyboard */,
 				434D6EFC185A13530068D753 /* Main_iPad.storyboard */,
+				43CA936918A5179F001CA6E2 /* TSPView.h */,
+				43CA936A18A5179F001CA6E2 /* TSPView.m */,
 			);
 			name = View;
 			sourceTree = "<group>";
@@ -818,11 +829,13 @@
 				4357AFDB189F2A360077B456 /* login_background.png in Resources */,
 				43BAD71618959EFE0016F3B2 /* pr226.tsp in Resources */,
 				43BAD6EA18959EFE0016F3B2 /* gr120.tsp in Resources */,
+				43CA936D18A540A8001CA6E2 /* night.jpg in Resources */,
 				43BAD73718959EFE0016F3B2 /* u1060.tsp in Resources */,
 				43BAD6BB18959EFE0016F3B2 /* bays29.opt.tour in Resources */,
 				43BAD6D418959EFE0016F3B2 /* eil51.tsp in Resources */,
 				43BAD6FF18959EFE0016F3B2 /* lin105.opt.tour in Resources */,
 				434D6EFE185A13530068D753 /* Main_iPad.storyboard in Resources */,
+				43CA936F18A54353001CA6E2 /* starryNight_Nicolas_Goulet.jpg in Resources */,
 				43BAD71118959EFE0016F3B2 /* pr107.tsp in Resources */,
 				43BAD6E018959EFE0016F3B2 /* gil262.tsp in Resources */,
 				43BAD71F18959EFE0016F3B2 /* rat195.tsp in Resources */,
@@ -981,6 +994,7 @@
 			files = (
 				4337DB8618A4F14A0007ED9E /* USKTSPCSVParser.m in Sources */,
 				434D6F01185A13530068D753 /* ViewController.m in Sources */,
+				43CA936B18A5179F001CA6E2 /* TSPView.m in Sources */,
 				434D6F26185A22B10068D753 /* TSP.m in Sources */,
 				434D6EF8185A13530068D753 /* AppDelegate.m in Sources */,
 				43BAD7491895A4620016F3B2 /* USKTrimmer.m in Sources */,

@@ -154,7 +154,7 @@ void swap2opt(int *route, int d, int i, int j)
                 _optimalTour = tour;
             } else { // distance is -1, if not available.
                 [_information setValue:@"N/A" forKey:@"OPTIMAL_LENGTH"];
-                _optimalTour.distance = -1;
+                _optimalTour.distance = OPTIMAL_TOUR_NOT_AVAILABLE;
                 _optimalTour.route = NULL;
             }
             
@@ -337,7 +337,7 @@ void swap2opt(int *route, int d, int i, int j)
 
 + (Tour)optimalSolutionWithName:(NSString *)name
 {
-	Tour optimalPath = {-1, NULL};
+	Tour optimalPath = {OPTIMAL_TOUR_NOT_AVAILABLE, NULL};
 	
 	// Read optimal lengths from file
 		NSMutableDictionary *tmpDictionary = [NSMutableDictionary dictionary];
@@ -407,6 +407,9 @@ void swap2opt(int *route, int d, int i, int j)
 			l++;
 		}
 	}
+    if (optimalPath.route == NULL) {
+        optimalPath.distance = OPTIMAL_TOUR_NOT_AVAILABLE;
+    }
 
 	return optimalPath;
 }

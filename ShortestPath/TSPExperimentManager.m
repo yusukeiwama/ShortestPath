@@ -27,7 +27,7 @@ static const int seeds[NUMBER_OF_SEEDS] = {469049721, 2053676357, 1781357515, 12
 //        self.sampleNames = @[@"a280", @"ali535", @"att48", @"att532", @"bayg29", @"bays29", @"berlin52", @"bier127", @"burma14", @"ch130", @"ch150", @"d198", @"d493", @"d657", @"d1291", @"d1655", @"d2103", @"dantzig42", @"dsj1000", @"eil51", @"eil76", @"eil101", @"fl417", @"fl1400", @"fl1577", @"gr96", @"gr120", @"gr137", @"gr202", @"gr229", @"gr431", @"gr666", @"kroA100", @"kroB100", @"kroC100", @"kroD100", @"kroE100", @"kroA150", @"kroB150", @"kroA200", @"kroB200", @"lin105", @"lin318",/* can't read @"linhp318",*/ @"nrw1379", @"p654", @"pa561", @"pcb442", @"pcb1173", @"pr76", @"pr107", @"pr124", @"pr136", @"pr144", @"pr152", @"pr226", @"pr264", @"pr299", @"pr439", @"pr1002", @"pr2392", @"rat99", @"rat195", @"rat575", @"rat783", @"rd100", @"rd400", @"rl1304", @"rl1323", @"rl1889", @"st70", @"ts225", @"tsp225", @"u159", @"u574", @"u724", @"u1060", @"u1432", @"u1817", @"u2152", @"u2319", @"ulysses16", @"ulysses22", @"vm1084", @"vm1748"];
         
         // Selected samples for app (too big problem result in heating!)
-        self.sampleNames = @[@"a280", @"att48", @"bays29", @"berlin52", @"bier127", @"burma14", @"ch130", @"ch150", @"dantzig42", @"eil51", @"eil76", @"eil101", @"gr96", @"gr120", @"gr137", @"gr202", @"gr229", @"gr431", @"gr666", @"kroA100", @"kroB100", @"kroC100", @"kroD100", @"kroE100", @"kroA150", @"kroB150", @"kroA200", @"kroB200", @"lin105", @"lin318", @"pr76", @"pr107", @"pr124", @"pr136", @"pr144", @"pr152", @"rat99", @"rat195", @"rd100", @"st70", @"ts225", @"tsp225"];
+        self.sampleNames = @[@"a280", @"att48", @"bays29", @"berlin52", @"bier127", @"burma14", @"ch130", @"ch150", @"dantzig42", @"eil51", @"eil76", @"eil101", @"gr96", @"gr120", @"gr137", @"gr202", @"gr229", @"gr431", @"gr666", @"kroA100", @"kroB100", @"kroC100", @"kroD100", @"kroE100", @"kroA150", @"kroB150", @"kroA200", @"kroB200", @"lin105", @"lin318", @"pr76", @"pr107", @"pr124", @"pr136", @"pr144", @"pr152", @"rat99", @"rat195", @"rd100", @"rd400", @"st70", @"ts225", @"tsp225"];
 
         self.solverNames = @[@"Nearest Neighbor", @"Ant System", @"Max-Min Ant System"];
     }
@@ -116,8 +116,11 @@ static const int seeds[NUMBER_OF_SEEDS] = {469049721, 2053676357, 1781357515, 12
 		[statisticString appendFormat:@"%@, %d, %d, %.0f, %d, %.0f\n", sampleName, [TSP optimalSolutionWithName:sampleName].distance, shortestTour.distance, averageLength, longestTour.distance, standardDeviation];
         
 		// Visualize the shortest path.
-		[self.visualizer PNGWithPath:longestTour ofTSP:tsp toFileNamed:[NSString stringWithFormat:@"%@_NN_Longest.png", sampleName] withStyle:TSPVisualizationStyleLight];
-		[self.visualizer PNGWithPath:shortestTour ofTSP:tsp toFileNamed:[NSString stringWithFormat:@"%@_NN_Shortest.png", sampleName] withStyle:TSPVisualizationStyleLight];
+        [self.visualizer drawTour:longestTour withTSP:tsp];
+        [self.visualizer PNGWithImageOnImageView:self.visualizer.view.tourImageView fileName:[NSString stringWithFormat:@"%@_NN_Longest.png", sampleName]];
+
+        [self.visualizer drawTour:shortestTour withTSP:tsp];
+        [self.visualizer PNGWithImageOnImageView:self.visualizer.view.tourImageView fileName:[NSString stringWithFormat:@"%@_NN_Shortest.png", sampleName]];
 	}
 	
 	// Export data
@@ -172,8 +175,11 @@ static const int seeds[NUMBER_OF_SEEDS] = {469049721, 2053676357, 1781357515, 12
 		[statisticString appendFormat:@"%@, %d, %d, %.0f, %d, %.0f\n", sampleName, [TSP optimalSolutionWithName:sampleName].distance, shortestTour.distance, averageLength, longestTour.distance, standardDeviation];
 
 		// Visualize the shortest path.
-		[self.visualizer PNGWithPath:longestTour ofTSP:tsp toFileNamed:[NSString stringWithFormat:@"%@_NN2opt_Longest.png", sampleName] withStyle:TSPVisualizationStyleLight];
-		[self.visualizer PNGWithPath:shortestTour ofTSP:tsp toFileNamed:[NSString stringWithFormat:@"%@_NN2opt_Shortest.png", sampleName] withStyle:TSPVisualizationStyleLight];
+        [self.visualizer drawTour:longestTour withTSP:tsp];
+        [self.visualizer PNGWithImageOnImageView:self.visualizer.view.tourImageView fileName:[NSString stringWithFormat:@"%@_NN2opt_Longest.png", sampleName]];
+        
+        [self.visualizer drawTour:shortestTour withTSP:tsp];
+        [self.visualizer PNGWithImageOnImageView:self.visualizer.view.tourImageView fileName:[NSString stringWithFormat:@"%@_NN2opt_Shortest.png", sampleName]];
 	}
 	
 	// Export data
@@ -235,7 +241,8 @@ static const int seeds[NUMBER_OF_SEEDS] = {469049721, 2053676357, 1781357515, 12
         
         
         // Visualize the shortest path.
-        [self.visualizer PNGWithPath:shortestTour ofTSP:tsp toFileNamed:[NSString stringWithFormat:@"%@_AS_beta%d.png", sampleName, b] withStyle:TSPVisualizationStyleLight];
+        [self.visualizer drawTour:shortestTour withTSP:tsp];
+        [self.visualizer PNGWithImageOnImageView:self.visualizer.view.tourImageView fileName:[NSString stringWithFormat:@"%@_AS_beta%d.png", sampleName, b]];
     }
 	
 	// Export data
@@ -299,7 +306,8 @@ static const int seeds[NUMBER_OF_SEEDS] = {469049721, 2053676357, 1781357515, 12
         [statisticString appendFormat:@"%@, %d, %d, %.2f, %d, %.2f\n", sampleName, [TSP optimalSolutionWithName:sampleName].distance, shortestTour.distance, averageLength, longestTour.distance, standardDeviation];
         
         // Visualize the shortest path.
-        [self.visualizer PNGWithPath:shortestTour ofTSP:tsp toFileNamed:[NSString stringWithFormat:@"%@_AS.png", sampleName] withStyle:TSPVisualizationStyleLight];
+        [self.visualizer drawTour:shortestTour withTSP:tsp];
+        [self.visualizer PNGWithImageOnImageView:self.visualizer.view.tourImageView fileName:[NSString stringWithFormat:@"%@_AS.png", sampleName]];
         
         // Export iteration best tour distances log.
         [TSPExperimentManager writeString:shortestLog toFileNamed:[NSString stringWithFormat:@"%@_ASLog.csv", sampleName]];
@@ -365,7 +373,8 @@ static const int seeds[NUMBER_OF_SEEDS] = {469049721, 2053676357, 1781357515, 12
         
         
         // Visualize the shortest path.
-        [self.visualizer PNGWithPath:shortestTour ofTSP:tsp toFileNamed:[NSString stringWithFormat:@"%@_MMAS_beta%d.png", sampleName, b] withStyle:TSPVisualizationStyleLight];
+        [self.visualizer drawTour:shortestTour withTSP:tsp];
+        [self.visualizer PNGWithImageOnImageView:self.visualizer.view.tourImageView fileName:[NSString stringWithFormat:@"%@_MMAS_beta%d.png", sampleName, b]];
     }
 	
 	// Export data
@@ -430,11 +439,11 @@ static const int seeds[NUMBER_OF_SEEDS] = {469049721, 2053676357, 1781357515, 12
         [statisticString appendFormat:@"%@, %d, %d, %.2f, %d, %.2f\n", sampleName, [TSP optimalSolutionWithName:sampleName].distance, shortestTour.distance, averageLength, longestTour.distance, standardDeviation];
         
         // Visualize the shortest path.
-        [self.visualizer PNGWithPath:shortestTour ofTSP:tsp toFileNamed:[NSString stringWithFormat:@"%@_MMAS.png", sampleName] withStyle:TSPVisualizationStyleLight];
-        
+        [self.visualizer drawTour:shortestTour withTSP:tsp];
+        [self.visualizer PNGWithImageOnImageView:self.visualizer.view.tourImageView fileName:[NSString stringWithFormat:@"%@_MMAS.png", sampleName]];
+
         // Export iteration best tour distances log.
         [TSPExperimentManager writeString:shortestLog toFileNamed:[NSString stringWithFormat:@"%@_MMASLog.csv", sampleName]];
-
     }
 	
 	// Export data
@@ -509,7 +518,9 @@ static const int seeds[NUMBER_OF_SEEDS] = {469049721, 2053676357, 1781357515, 12
             }
         }
         // Visualize the shortest path.
-        [self.visualizer PNGWithPath:globalBest ofTSP:tsp toFileNamed:[NSString stringWithFormat:@"%@_MMAS2opt.png", sampleName] withStyle:TSPVisualizationStyleLight];
+        [self.visualizer drawTour:globalBest withTSP:tsp];
+        [self.visualizer PNGWithImageOnImageView:self.visualizer.view.tourImageView fileName:[NSString stringWithFormat:@"%@_MMAS2opt.png", sampleName]];
+
         free(globalBest.route);
     }
 	
@@ -577,7 +588,9 @@ static const int seeds[NUMBER_OF_SEEDS] = {469049721, 2053676357, 1781357515, 12
         [statisticString appendFormat:@"%@, %d, %d, %.2f, %d, %.2f\n", sampleName, [TSP optimalSolutionWithName:sampleName].distance, shortestTour.distance, averageLength, longestTour.distance, standardDeviation];
         
         // Visualize the shortest path.
-        [self.visualizer PNGWithPath:shortestTour ofTSP:tsp toFileNamed:[NSString stringWithFormat:@"%@_MMAS2opt.png", sampleName] withStyle:TSPVisualizationStyleLight];
+        [self.visualizer drawTour:shortestTour withTSP:tsp];
+        [self.visualizer PNGWithImageOnImageView:self.visualizer.view.tourImageView fileName:[NSString stringWithFormat:@"%@_MMAS2opt.png", sampleName]];
+        
         free(shortestTour.route);
         
         // Export iteration best tour distances log.
@@ -650,7 +663,9 @@ static const int seeds[NUMBER_OF_SEEDS] = {469049721, 2053676357, 1781357515, 12
     [statisticString appendFormat:@"%@, %d, %d, %.2f, %d, %.2f\n", sampleName, [TSP optimalSolutionWithName:sampleName].distance, shortestTour.distance, averageLength, longestTour.distance, standardDeviation];
     
     // Visualize the shortest path.
-    [self.visualizer PNGWithPath:shortestTour ofTSP:tsp toFileNamed:[NSString stringWithFormat:@"%@_MMAS2opt.png", sampleName] withStyle:TSPVisualizationStyleLight];
+    [self.visualizer drawTour:shortestTour withTSP:tsp];
+    [self.visualizer PNGWithImageOnImageView:self.visualizer.view.tourImageView fileName:[NSString stringWithFormat:@"%@_MMAS2opt.png", sampleName]];
+    
     free(shortestTour.route);
     
     // Export iteration best tour distances log.
@@ -665,9 +680,10 @@ static const int seeds[NUMBER_OF_SEEDS] = {469049721, 2053676357, 1781357515, 12
 {
 	for (NSString *sampleName in self.sampleNames) {
 		TSP *tsp = [TSP TSPWithFile:[[NSBundle mainBundle] pathForResource:sampleName ofType:@"tsp"]];
-		Tour anOptimalPath = [TSP optimalSolutionWithName:sampleName];
-		[self.visualizer PNGWithPath:anOptimalPath ofTSP:tsp toFileNamed:[NSString stringWithFormat:@"%@_Optimal.png", sampleName] withStyle:TSPVisualizationStyleDark];
-		free(anOptimalPath.route);
+		Tour anOptimalTour = [TSP optimalSolutionWithName:sampleName];
+        [self.visualizer drawTour:anOptimalTour withTSP:tsp];
+        [self.visualizer PNGWithImageOnImageView:self.visualizer.view.tourImageView fileName:[NSString stringWithFormat:@"%@_Optimal.png", sampleName]];
+		free(anOptimalTour.route);
 	}
 }
 

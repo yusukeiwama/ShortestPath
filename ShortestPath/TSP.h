@@ -10,6 +10,7 @@
 #import "USKQueue.h"
 
 #define MAX_DIMENSION 3000
+#define OPTIMAL_TOUR_NOT_AVAILABLE -1
 
 @class ViewController;
 

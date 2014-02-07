@@ -8,6 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import "TSP.h"
+#import "TSPView.h"
 
 typedef enum TSPVisualizationStyle {
     TSPVisualizationStyleDark,
@@ -19,28 +20,24 @@ typedef enum TSPVisualizationStyle {
 
 @interface TSPVisualizer : NSObject
 
-@property UIImageView *backgroundImaveView;
-@property UIImageView *optimalPathImageView;
-@property UIImageView *globalBestPathImageView;
-@property UIImageView *additionalImageView;
-@property UIImageView *nodeImageView;
+@property TSPVisualizationStyle style;
+@property TSPView               *view;
 
+#pragma mark - Visualizations
 
-- (BOOL)drawPath:(Tour)path ofTSP:(TSP *)tsp withStyle:(TSPVisualizationStyle)style onImageView:(UIImageView *)imageView;
+- (BOOL)drawBackground;
+- (BOOL)drawPheromone:(double *)P withTSP:(TSP *)tsp;
+- (BOOL)drawOptimalTour:(Tour)tour withTSP:(TSP *)tsp;
+- (BOOL)drawDirectionalTour:(Tour)tour withTSP:(TSP *)tsp;
+- (BOOL)drawTour:(Tour)tour withTSP:(TSP *)tsp;
+- (BOOL)drawNodesWithTSP:(TSP *)tsp;
 
-- (void)drawNodesWithTSP:(TSP *)tsp withStyle:(TSPVisualizationStyle)style;
-
-- (void)drawBackgroundWithStyle:(TSPVisualizationStyle)style;
-
-- (BOOL)drawPheromone:(double *)P ofTSP:(TSP *)tsp withStyle:(TSPVisualizationStyle)style;
-
-/// Clear all layer but background.
-- (void)clearTSPVisualization;
-
-/// Clear path and pheromone.
-- (void)clearTSPTour;
+- (BOOL)clearTourImages; // Clear optimal tour, directional tour, tour, pheromone.
+- (BOOL)clearTSPImages;  // Clear all except for background.
+- (BOOL)clearAll;
 
 #pragma mark - Export
-- (BOOL)PNGWithPath:(Tour)path ofTSP:(TSP *)tsp toFileNamed:(NSString *)fileName withStyle:(TSPVisualizationStyle)style;
+
+- (BOOL)PNGWithImageOnImageView:(UIImageView *)image fileName:(NSString *)fileName;
 
 @end

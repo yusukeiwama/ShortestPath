@@ -173,7 +173,11 @@ typedef enum _ExpandingPanel {
     self.currentVisualizationStyle = TSPVisualizationStyleDark;
     self.currentTSP = [TSP TSPWithFile:[[NSBundle mainBundle] pathForResource:self.currentTSPName ofType:@"tsp"]];
     [self.logString appendString:[self.currentTSP informationString]];
+    if (osVersionSupported) {
     self.fixedLogTextView.text = self.logString;
+    } else {
+        self.logTextView.text = self.logString;
+    }
     [self.visualizer drawNodesWithTSP:self.currentTSP withStyle:self.currentVisualizationStyle];
 //    if (self.currentTSP.optimalTour.route != NULL) {
 //        [self.visualizer drawPath:self.currentTSP.optimalTour ofTSP:self.currentTSP withStyle:TSPVisualizationStyleDark onImageView:self.optimalPathImageView];
@@ -253,10 +257,22 @@ typedef enum _ExpandingPanel {
     if (aLog) {
         [self.logString appendString:aLog];
     }
-    self.fixedLogTextView.text = self.logString;
-    if (self.fixedLogTextView.text.length > 0) {
-        NSRange bottomRange = NSMakeRange(self.fixedLogTextView.text.length - 1, 1);
-        [self.fixedLogTextView scrollRangeToVisible:bottomRange];
+    
+    NSString *reqSysVer = @"7.0";
+    NSString *currSysVer = [[UIDevice currentDevice] systemVersion];
+    BOOL osVersionSupported = ([currSysVer compare:reqSysVer  options:NSNumericSearch] != NSOrderedAscending);
+    if (osVersionSupported) {
+        self.fixedLogTextView.text = self.logString;
+        if (self.fixedLogTextView.text.length > 0) {
+            NSRange bottomRange = NSMakeRange(self.fixedLogTextView.text.length - 1, 1);
+            [self.fixedLogTextView scrollRangeToVisible:bottomRange];
+        }
+    } else {
+        self.logTextView.text = self.logString;
+        if (self.logTextView.text.length > 0) {
+            NSRange bottomRange = NSMakeRange(self.logTextView.text.length - 1, 1);
+            [self.logTextView scrollRangeToVisible:bottomRange];
+        }
     }
 }
 

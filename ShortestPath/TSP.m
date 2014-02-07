@@ -1115,14 +1115,14 @@ void limitPheromoneRange(int opt, double r, int n, double pB, double *P)
 {
     NSMutableString *string = [NSMutableString string];
 
-    [string appendString:@"============== TSP INFORMATION ===============\n"];
+    [string appendString:@"========== TSP INFORMATION ==========\n"];
     [string appendString:[NSString stringWithFormat:@"%s: %s\n", "NAME", [[self.information objectForKey:@"NAME"] cStringUsingEncoding:NSUTF8StringEncoding]]];
 	[self.information enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop){
         if ([key isEqualToString:@"NAME"] == NO) {
             [string appendString:[NSString stringWithFormat:@"%@: %@\n", key, obj]];
         }
 	}];
-    [string appendString:@"==============================================\n\n"];
+    [string appendString:@"=====================================\n\n"];
 
     return string;
 }

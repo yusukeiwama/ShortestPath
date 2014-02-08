@@ -193,7 +193,7 @@ Coordinate correctedPoint(Coordinate point, UIEdgeInsets margin)
              3. Because min pheromone goes to zero in AS, there is no difference between draw-type A and B.
              So, draw-type B is used.
              */
-            //          double lineWidth = self.additionalImageView.frame.size.width * (_nodeRadiusFactor * 2) * (pheromone / max) * _pheromoneFactor; // ... A
+//            double lineWidth = self.view.frame.size.width * (_nodeRadiusFactor * 2) * (pheromone / max) * _pheromoneFactor; // ... A
             double lineWidth = self.view.frame.size.width * (_nodeRadiusFactor * 2) * _pheromoneFactor * ((pheromone - min) / range); // ... B
             
             CGContextSetLineWidth(context, lineWidth);

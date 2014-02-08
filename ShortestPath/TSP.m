@@ -821,12 +821,12 @@ void depositPheromone(Tour tour, int n, double *P)
 }
 
 - (Tour)tourByASWithNumberOfAnt:(int)m
-             pheromoneInfluence:(int)a
-            transitionInfluence:(int)b
-           pheromoneEvaporation:(double)r
+             pheromoneInfluence:(int)alpha
+            transitionInfluence:(int)beta
+           pheromoneEvaporation:(double)rho
                            seed:(unsigned int)seed
                  noImproveLimit:(int)limit
-              candidateListSize:(int)c
+              candidateListSize:(int)size
                         use2opt:(BOOL)use2opt
                    CSVLogString:(NSString *__autoreleasing *)log
 
@@ -836,8 +836,8 @@ void depositPheromone(Tour tour, int n, double *P)
     }
     
     srand(seed);
-    if (c > n) {
-        c = n;
+    if (size > n) {
+        size = n;
     }
     
     double *P = calloc(n * n, sizeof(double)); // Pheromone matrix
@@ -851,7 +851,7 @@ void depositPheromone(Tour tour, int n, double *P)
     // Generate solutions.
     Tour globalBest      = {INT32_MAX, calloc(n + 1, sizeof(int))};
     int  noImproveCount  = 0;
-    int  loop            = 0;
+    int  loop            = 1;
     NSMutableString *csv = [@"LOOP, DISTANCE\n" mutableCopy];
     Tour *tours = calloc(m, sizeof(Tour));
     while (noImproveCount < limit) { // improve loop
@@ -859,7 +859,7 @@ void depositPheromone(Tour tour, int n, double *P)
         // Do ant tours concurrently.
         dispatch_apply(m, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(size_t k){
             [self.operationQueue addOperationWithBlock:^{
-            tours[k] = antTour((int)k, n, A, NN, P, a, b, c);
+            tours[k] = antTour((int)k, n, A, NN, P, alpha, beta, size);
             if (use2opt) {
                 [self improveTourBy2opt:&(tours[k])];
             }
@@ -871,7 +871,7 @@ void depositPheromone(Tour tour, int n, double *P)
         }
         
         // Update pheromone
-        evaporatePheromone(r, n, P);
+        evaporatePheromone(rho, n, P);
         for (int k = 0; k < m; k++) {
             depositPheromone(tours[k], n, P);
         }
@@ -914,12 +914,13 @@ void depositPheromone(Tour tour, int n, double *P)
             noImproveCount++;
         }
 
-        [csv appendFormat:@"%d, %d\n", ++loop, globalBest.distance];
+        [csv appendFormat:@"%d, %d\n", loop, globalBest.distance];
         // Break if optimal solution is found.
         if (globalBest.distance == self.optimalTour.distance) {
             [self.logQueue enqueue:@{@"Log": @"Found optimal solution!\n"}];
             break;
         }
+        loop++;
     }
     free(tours);
     
@@ -936,17 +937,17 @@ void depositPheromone(Tour tour, int n, double *P)
         if (self.optimalTour.distance > 0) {
             resultString = [NSString stringWithFormat:@"(%+5.2f%% from optimal: %d)", globalBest.distance * 100.0 / self.optimalTour.distance - 100.0, self.optimalTour.distance];
         }
-        [self.logQueue enqueue:@{@"Log": [NSString stringWithFormat:@"Best route: %@\nDistance: %d%@\n\n", routeString, globalBest.distance, resultString]}];
+        [self.logQueue enqueue:@{@"Log": [NSString stringWithFormat:@"Best route: %@\nDistance: %d%@\nNumber of loops: %d\n\n", routeString, globalBest.distance, resultString, loop]}];
     }
     
     return globalBest;
 }
 
-void limitPheromoneRange(int opt, double r, int n, double pB, double *P)
+void limitPheromoneRange(int opt, double rho, int n, double pBest, double *P)
 {
     // Update max and min of pheromone.
-    double max = 1.0 / (r * opt);
-    double min = ((1 - pow(pB, 1.0 / n)) / (n / 2.0 * pow(pB, 1.0 / n))) * max;
+    double max = 1.0 / (rho * opt);
+    double min = ((1.0 - pow(pBest, 1.0 / n)) / ((n / 2.0 - 1.0) * pow(pBest, 1.0 / n))) * max;
     
     // Fix pheromone amount between min and max.
     for (int i = 0; i < n; i++) {
@@ -961,37 +962,39 @@ void limitPheromoneRange(int opt, double r, int n, double pB, double *P)
 }
 
 - (Tour)tourByMMASWithNumberOfAnt:(int)m
-                   pheromoneInfluence:(int)a
-                  transitionInfluence:(int)b
-                 pheromoneEvaporation:(double)r
-                      probabilityBest:(double)pB
-                                 seed:(unsigned int)seed
-                       noImproveLimit:(int)limit
-                    candidateListSize:(int)c
-                              use2opt:(BOOL)use2opt
-                         CSVLogString:(NSString *__autoreleasing *)log
+               pheromoneInfluence:(int)alpha
+              transitionInfluence:(int)beta
+             pheromoneEvaporation:(double)rho
+                  probabilityBest:(double)pBest
+                   takeGlogalBest:(BOOL)takeGlobalBest
+                             seed:(unsigned int)seed
+                   noImproveLimit:(int)limit
+                candidateListSize:(int)size
+                          use2opt:(BOOL)use2opt
+                     CSVLogString:(NSString *__autoreleasing *)log
 {
     if (self.client.currentSolverType == TSPSolverTypeMMAS) {
         [self.logQueue enqueue:@{@"Log": @"Max-Min Ant System algorism began.\n"}];
     }
     
     srand(seed);
-    if (c > n) {
-        c = n;
+    if (size > n) {
+        size = n;
     }
     
     double *P = calloc(n * n, sizeof(double)); // Pheromone matrix
     
     // Compute initial best tour by NN.
     Tour aTour = [self tourByNNFrom:1 use2opt:NO];
-    double initialPheromone = 1.0 / (r * aTour.distance);
+//    [self improveTourBy2opt:&aTour];
+    double initialPheromone = 1.0 / (rho * aTour.distance);
     initializePheromone(initialPheromone, n, P);
     free(aTour.route);
     
     // Generate solutions.
     Tour globalBest      = {INT32_MAX, calloc(n + 1, sizeof(int))};
     int  noImproveCount  = 0;
-    int  loop            = 0;
+    int  loop            = 1;
     NSMutableString *csv = [@"LOOP, DISTANCE\n" mutableCopy];
 //    Tour tours[m]; // Cannot refer to declaration with a variably modified type inside block.
     Tour *tours = calloc(m, sizeof(Tour));
@@ -1000,7 +1003,7 @@ void limitPheromoneRange(int opt, double r, int n, double pB, double *P)
         // Do ant tours concurrently.
         dispatch_apply(m, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(size_t k){
             [self.operationQueue addOperationWithBlock:^{
-                tours[k] = antTour((int)k, n, A, NN, P, a, b, c);
+                tours[k] = antTour((int)k, n, A, NN, P, alpha, beta, size);
                 if (use2opt) {
                     [self improveTourBy2opt:&(tours[k])];
                 }
@@ -1017,22 +1020,11 @@ void limitPheromoneRange(int opt, double r, int n, double pB, double *P)
             takeBetterTour(tours[k], &iterationBest);
         }
         
-        // Update pheromone
-        evaporatePheromone(r, n, P);
-        depositPheromone(iterationBest, n, P);
-        limitPheromoneRange(iterationBest.distance, r, n, pB, P);
-        
-        // Enqueue pheromone matrix.
-        if (self.client.currentSolverType == TSPSolverTypeMMAS) {
-            // Copy upper triangle matrix of current pheromone.
-            double *PLog = calloc(n * (n - 1) / 2, sizeof(double));
-            int p = 0;
-            for (int i = 0; i < n; i++) {
-                for (int j = i + 1; j < n; j++) {
-                    PLog[p++] = P[i * n + j];
-                }
-            }
-            [self.logQueue enqueue:@{@"Pheromone": [NSValue valueWithPointer:PLog]}];
+        if (takeGlobalBest == NO) {
+            // Update pheromone with iteration best
+            evaporatePheromone(rho, n, P);
+            depositPheromone(iterationBest, n, P);
+            limitPheromoneRange(iterationBest.distance, rho, n, pBest, P);
         }
         
         // Update global best tour.
@@ -1052,17 +1044,33 @@ void limitPheromoneRange(int opt, double r, int n, double pB, double *P)
             noImproveCount++;
         }
         
-//        // Update pheromone
-//        evaporatePheromone(r, n, P);
-//        depositPheromone(globalBest, n, P);
-//        limitPheromoneRange(globalBest.distance, r, n, pB, P);
+        if (takeGlobalBest) {
+            // Update pheromone
+            evaporatePheromone(rho, n, P);
+            depositPheromone(globalBest, n, P);
+            limitPheromoneRange(globalBest.distance, rho, n, pBest, P);
+        }
         
-        [csv appendFormat:@"%d, %d\n", ++loop, globalBest.distance];
+        // Enqueue pheromone matrix.
+        if (self.client.currentSolverType == TSPSolverTypeMMAS) {
+            // Copy upper triangle matrix of current pheromone.
+            double *PLog = calloc(n * (n - 1) / 2, sizeof(double));
+            int p = 0;
+            for (int i = 0; i < n; i++) {
+                for (int j = i + 1; j < n; j++) {
+                    PLog[p++] = P[i * n + j];
+                }
+            }
+            [self.logQueue enqueue:@{@"Pheromone": [NSValue valueWithPointer:PLog]}];
+        }
+        
+        [csv appendFormat:@"%d, %d\n", loop, globalBest.distance];
         // Break if optimal solution is found.
         if (globalBest.distance == self.optimalTour.distance) {
             [self.logQueue enqueue:@{@"Log": @"Found optimal solution!\n"}];
             break;
         }
+        loop++;
     }
     free(tours);
     
@@ -1079,7 +1087,7 @@ void limitPheromoneRange(int opt, double r, int n, double pB, double *P)
         if (self.optimalTour.distance > 0) {
             resultString = [NSString stringWithFormat:@"(%+5.2f%% from optimal: %d)", globalBest.distance * 100.0 / self.optimalTour.distance - 100.0, self.optimalTour.distance];
         }
-        [self.logQueue enqueue:@{@"Log": [NSString stringWithFormat:@"Best route: %@\nDistance: %d%@\n\n", routeString, globalBest.distance, resultString]}];
+        [self.logQueue enqueue:@{@"Log": [NSString stringWithFormat:@"Best route: %@\nDistance: %d%@\nNumber of loops: %d\n\n", routeString, globalBest.distance, resultString, loop]}];
     }
     
     return globalBest;

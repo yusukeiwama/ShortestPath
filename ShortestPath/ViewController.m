@@ -433,8 +433,9 @@ typedef enum _TSPViewControllerSkin {
                                            pheromoneInfluence:1
                                           transitionInfluence:4
                                          pheromoneEvaporation:0.2
-                                              probabilityBest:0.01
-                                                         seed:rand()
+                                              probabilityBest:0.05
+                                        takeGlogalBest:YES
+                                                  seed:rand()
                                                noImproveLimit:200
                                             candidateListSize:20
                                                       use2opt:YES

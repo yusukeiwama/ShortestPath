@@ -341,6 +341,7 @@ static const int seeds[NUMBER_OF_SEEDS] = {469049721, 2053676357, 1781357515, 12
                                     transitionInfluence:b
                                    pheromoneEvaporation:r
                                         probabilityBest:0.05
+                                         takeGlogalBest:NO
                                                    seed:seeds[ri]
                                          noImproveLimit:1000
                                       candidateListSize:20
@@ -407,6 +408,7 @@ static const int seeds[NUMBER_OF_SEEDS] = {469049721, 2053676357, 1781357515, 12
                                     transitionInfluence:beta
                                    pheromoneEvaporation:rho
                                         probabilityBest:0.05
+                                         takeGlogalBest:NO
                                                    seed:seeds[ri]
                                          noImproveLimit:1000
                                       candidateListSize:20
@@ -479,6 +481,7 @@ static const int seeds[NUMBER_OF_SEEDS] = {469049721, 2053676357, 1781357515, 12
                                             transitionInfluence:beta
                                            pheromoneEvaporation:rho[r]
                                                 probabilityBest:pBest[p]
+                                                 takeGlogalBest:NO
                                                            seed:seeds[ri]
                                                  noImproveLimit:limit
                                                   candidateListSize:20
@@ -557,6 +560,7 @@ static const int seeds[NUMBER_OF_SEEDS] = {469049721, 2053676357, 1781357515, 12
                                         transitionInfluence:beta
                                        pheromoneEvaporation:rho
                                             probabilityBest:pBest
+                                         takeGlogalBest:NO
                                                        seed:seeds[ri]
                                              noImproveLimit:limit
                                           candidateListSize:20
@@ -632,6 +636,7 @@ static const int seeds[NUMBER_OF_SEEDS] = {469049721, 2053676357, 1781357515, 12
                                     transitionInfluence:beta
                                    pheromoneEvaporation:rho
                                         probabilityBest:pBest
+                                     takeGlogalBest:NO
                                                    seed:seeds[ri]
                                          noImproveLimit:limit
                                       candidateListSize:20

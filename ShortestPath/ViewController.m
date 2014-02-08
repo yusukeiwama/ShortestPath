@@ -59,8 +59,6 @@ typedef enum _TSPViewControllerSkin {
 @property                            UITextView  *fixedLogTextView;
 
 @property ExpandingPanel expandingPanel; // enum: which panel is expanding now
-//@property (weak, nonatomic) IBOutlet UIScrollView *monitorScrollView; // iPhone only
-//@property UIPageControl *pageControl;
 
 // Control buttons
 @property (weak, nonatomic) IBOutlet UIButton *solveButton;
@@ -104,33 +102,9 @@ typedef enum _TSPViewControllerSkin {
             [self setNeedsStatusBarAppearanceUpdate];
     }
     
-    //
-    
     // Load welcome TSP problem from CSV.
 //    USKTSPCSVParser *parser = [USKTSPCSVParser new];
 //    [parser TSPWithCSV:[[NSBundle mainBundle] pathForResource:@"welcome" ofType:@"csv"]];
-    
-    
-//    if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
-//        CGFloat len = self.view.frame.size.width;
-//        self.monitorScrollView.contentSize = CGSizeMake(len * 2, len);
-//
-//        self.additionalImageView.frame     = CGRectMake(0, 0, len, len);
-//        self.globalBestPathImageView.frame = CGRectMake(0, 0, len, len);
-//        self.nodeImageView.frame           = CGRectMake(0, 0, len, len);
-//        [self.monitorScrollView addSubview:self.additionalImageView];
-//        [self.monitorScrollView addSubview:self.globalBestPathImageView];
-//        [self.monitorScrollView addSubview:self.nodeImageView];
-//        [self.additionalImageView removeFromSuperview];
-//        [self.globalBestPathImageView removeFromSuperview];
-//        [self.nodeImageView removeFromSuperview];
-//        
-//        self.pageControl = [[UIPageControl alloc] initWithFrame:CGRectMake(0, 0, 0, 0)];
-//        self.pageControl.center = self.view.center;
-//        self.pageControl.frame = CGRectMake(self.pageControl.frame.origin.x, self.monitorScrollView.frame.origin.y + self.monitorScrollView.frame.size.height, self.pageControl.frame.size.width, self.pageControl.frame.size.height);
-//        self.pageControl.numberOfPages = 2;
-//        [self.view addSubview:self.pageControl];
-//    }
     
     self.solverExecutionQueue   = [NSOperationQueue new];
     self.solverExecutionQueue.maxConcurrentOperationCount = 1;
@@ -147,12 +121,7 @@ typedef enum _TSPViewControllerSkin {
     
     self.logString = [NSMutableString string];
 
-//    if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
-//        [self.logTextView removeFromSuperview];
-//        self.logTextView.frame = CGRectMake(self.monitorScrollView.frame.size.width, 0, self.monitorScrollView.frame.size.width, self.monitorScrollView.frame.size.height);
-//        [self.monitorScrollView addSubview:self.logTextView];
-//    }
-    
+
     // Workaround until Apple fixes the choppy UITextView bug.
     NSString *reqSysVer = @"7.0";
     NSString *currSysVer = [[UIDevice currentDevice] systemVersion];
@@ -167,18 +136,36 @@ typedef enum _TSPViewControllerSkin {
                                                     textContainer:textContainer];
         self.fixedLogTextView.font = [UIFont fontWithName:@"menlo" size:11.0];
         self.fixedLogTextView.editable = NO;
+        self.fixedLogTextView.selectable = NO;
         self.fixedLogTextView.backgroundColor = [UIColor clearColor];
         self.fixedLogTextView.textColor = [UIColor whiteColor];
         [self.logView addSubview:self.fixedLogTextView];
         [self.logTextView removeFromSuperview];
         
-//        if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
-//            [self.fixedLogTextView removeFromSuperview];
-//            self.fixedLogTextView.frame = CGRectMake(self.monitorScrollView.frame.size.width, 0, self.monitorScrollView.frame.size.width, self.monitorScrollView.frame.size.height);
-//            [self.monitorScrollView addSubview:self.fixedLogTextView];
-//        }
+        if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
+            self.fixedLogTextView.frame = CGRectMake(self.monitorView.frame.origin.x + 12.0,
+                                                     self.monitorView.frame.origin.y,
+                                                     self.monitorView.frame.size.width - 24.0,
+                                                     self.monitorView.frame.size.height - 24.0);
+            [self.view addSubview:self.fixedLogTextView];
+            self.fixedLogTextView.hidden = YES;
+            UITapGestureRecognizer *tapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(switchLayer:)];
+            [self.fixedLogTextView addGestureRecognizer:tapRecognizer];
+        }
+        
     } else {
         self.fixedLogTextView = nil;
+        if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
+            self.logTextView.frame = CGRectMake(self.monitorView.frame.origin.x + 12.0,
+                                                     self.monitorView.frame.origin.y,
+                                                     self.monitorView.frame.size.width - 24.0,
+                                                     self.monitorView.frame.size.height - 24.0);
+            [self.view addSubview:self.logTextView];
+            self.logTextView.hidden = YES;
+            UITapGestureRecognizer *tapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(switchLayer:)];
+            [self.logTextView addGestureRecognizer:tapRecognizer];
+        }
+
     }
     
 //    [self.experimentManager doExperiment:USKTSPExperimentMMAS2opt];
@@ -464,10 +451,6 @@ typedef enum _TSPViewControllerSkin {
 - (void)clearCurrentSolvingContext
 {
     [self.solverExecutionQueue cancelAllOperations];
-
-    // maybe not necessary (TSP is responsible for flush queue when dealloc.)
-//    [self.currentTSP flushTours];
-//    [self.currentTSP flushMatrices];
 }
 
 
@@ -590,21 +573,26 @@ typedef enum _TSPViewControllerSkin {
     }
 }
 
-//#pragma mark - UIScrollViewDelegate
-//- (void)scrollViewDidEndDecelerating:(UIScrollView *)sender {
-//    uint page = sender.contentOffset.x / sender.frame.size.width;
-//    [self.pageControl setCurrentPage:page];
-//}
-
-
+- (void)hideLogIfPhone
+{
+    if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
+        if (self.fixedLogTextView) {
+            self.fixedLogTextView.hidden = YES;
+        } else {
+            self.logTextView.hidden = YES;
+        }
+    }
+}
 
 - (IBAction)switchLayer:(id)sender {
     static long long tapCount = 0;
     tapCount++;
     
-    switch (tapCount % 5) {
+    switch (tapCount % 6) {
         case 1: // show tour
+            [self hideLogIfPhone];
             self.layerTitleLabel.text = @"Global Best Tour";
+            self.tspView.backgroundImageView.hidden      = NO;
             self.tspView.pheromoneImageView.hidden       = YES;
             self.tspView.optimalTourImageView.hidden     = YES;
             self.tspView.directionalTourImageView.hidden = NO;
@@ -617,7 +605,9 @@ typedef enum _TSPViewControllerSkin {
                 [self switchLayer:nil];
                 return;
             }
+            [self hideLogIfPhone];
             self.layerTitleLabel.text = @"Pheromone";
+            self.tspView.backgroundImageView.hidden      = NO;
             self.tspView.pheromoneImageView.hidden       = NO;
             self.tspView.optimalTourImageView.hidden     = YES;
             self.tspView.directionalTourImageView.hidden = YES;
@@ -625,7 +615,9 @@ typedef enum _TSPViewControllerSkin {
             self.tspView.nodeImageView.hidden            = NO;
             break;
         case 3: // show nodes
+            [self hideLogIfPhone];
             self.layerTitleLabel.text = @"Nodes";
+            self.tspView.backgroundImageView.hidden      = NO;
             self.tspView.pheromoneImageView.hidden       = YES;
             self.tspView.optimalTourImageView.hidden     = YES;
             self.tspView.directionalTourImageView.hidden = YES;
@@ -633,19 +625,43 @@ typedef enum _TSPViewControllerSkin {
             self.tspView.nodeImageView.hidden            = NO;
             break;
         case 4: // show optimal tour
-            if (self.currentTSP.optimalTour.distance == OPTIMAL_TOUR_NOT_AVAILABLE) {
+            if (self.currentTSP.optimalTour.route == NULL) {
                 [self switchLayer:nil];
                 return;
             }
+            [self hideLogIfPhone];
             self.layerTitleLabel.text = @"Optimal Tour";
+            self.tspView.backgroundImageView.hidden      = NO;
             self.tspView.pheromoneImageView.hidden       = YES;
             self.tspView.optimalTourImageView.hidden     = NO;
             self.tspView.directionalTourImageView.hidden = YES;
             self.tspView.tourImageView.hidden            = YES;
             self.tspView.nodeImageView.hidden            = NO;
             break;
+        case 5:
+            if ([[UIDevice currentDevice] userInterfaceIdiom] != UIUserInterfaceIdiomPhone) {
+                [self switchLayer:nil];
+                return;
+            }
+            if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
+                if (self.fixedLogTextView) {
+                    self.fixedLogTextView.hidden = NO;
+                } else {
+                    self.logTextView.hidden = NO;
+                }
+            }
+            self.layerTitleLabel.text = @"Log";
+            self.tspView.backgroundImageView.hidden      = NO;
+            self.tspView.pheromoneImageView.hidden       = YES;
+            self.tspView.optimalTourImageView.hidden     = YES;
+            self.tspView.directionalTourImageView.hidden = YES;
+            self.tspView.tourImageView.hidden            = YES;
+            self.tspView.nodeImageView.hidden            = YES;
+            break;
         default:
-            self.layerTitleLabel.text = @"";
+            [self hideLogIfPhone];
+            self.layerTitleLabel.text = @"Default";
+            self.tspView.backgroundImageView.hidden      = NO;
             self.tspView.pheromoneImageView.hidden       = NO;
             self.tspView.optimalTourImageView.hidden     = YES;
             self.tspView.directionalTourImageView.hidden = NO;

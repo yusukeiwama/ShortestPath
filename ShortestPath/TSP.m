@@ -407,9 +407,10 @@ void swap2opt(int *route, int d, int i, int j)
 			l++;
 		}
 	}
-    if (optimalPath.route == NULL) {
-        optimalPath.distance = OPTIMAL_TOUR_NOT_AVAILABLE;
-    }
+    // Set optimal distance to OPTIMAL_TOUR_NOT_AVAILABLE even if it has optimal distance because it can't visualize a tour route.
+//    if (optimalPath.route == NULL) {
+//        optimalPath.distance = OPTIMAL_TOUR_NOT_AVAILABLE;
+//    }
 
 	return optimalPath;
 }

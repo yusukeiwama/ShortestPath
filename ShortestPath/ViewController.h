@@ -10,7 +10,7 @@
 
 #import "TSP.h"
 
-@interface ViewController : UIViewController <UITableViewDelegate, UITableViewDataSource, UITextViewDelegate, UIScrollViewDelegate>
+@interface ViewController : UIViewController <UITableViewDelegate, UITableViewDataSource, UITextViewDelegate>
 
 @property TSPSolverType   currentSolverType;
 @property NSMutableString *logString;

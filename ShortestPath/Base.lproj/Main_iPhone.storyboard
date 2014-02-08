@@ -21,13 +21,14 @@
                                 <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                             </imageView>
-                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="kQE-b1-bG6">
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="kQE-b1-bG6">
                                 <rect key="frame" x="0.0" y="350" width="112" height="198"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="112" id="plu-Wx-j0B"/>
                                 </constraints>
+                                <inset key="separatorInset" minX="0.0" minY="0.0" maxX="15" maxY="0.0"/>
                                 <color key="sectionIndexColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <prototypes>
                                     <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="sampleNameCell" textLabel="Q5C-ZK-2Kl" style="IBUITableViewCellStyleDefault" id="AEc-Ca-GpP">
@@ -53,7 +54,7 @@
                                     <outlet property="delegate" destination="vXZ-lx-hvc" id="dim-Kh-kMn"/>
                                 </connections>
                             </tableView>
-                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="ybC-Dt-LMP">
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="ybC-Dt-LMP">
                                 <rect key="frame" x="120" y="350" width="200" height="138"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
@@ -66,7 +67,7 @@
                                             <rect key="frame" x="0.0" y="0.0" width="200" height="43"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
-                                                <label opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="left" text="Title" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" id="S54-Ji-b2f">
+                                                <label opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="left" text="Title" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" adjustsLetterSpacingToFitWidth="YES" id="S54-Ji-b2f">
                                                     <rect key="frame" x="15" y="0.0" width="170" height="43"/>
                                                     <autoresizingMask key="autoresizingMask"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="18"/>
@@ -113,10 +114,10 @@
                                 </connections>
                             </view>
                             <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="gbl-VZ-pne">
-                                <rect key="frame" x="0.0" y="320" width="320" height="22"/>
+                                <rect key="frame" x="0.0" y="316" width="320" height="26"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <constraints>
-                                    <constraint firstAttribute="height" constant="22" id="eEr-zR-9MB"/>
+                                    <constraint firstAttribute="height" constant="26" id="eEr-zR-9MB"/>
                                 </constraints>
                                 <fontDescription key="fontDescription" name="SnellRoundhand-Black" family="Snell Roundhand" pointSize="20"/>
                                 <color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
@@ -138,7 +139,7 @@
                             <constraint firstItem="kQE-b1-bG6" firstAttribute="top" secondItem="gbl-VZ-pne" secondAttribute="bottom" constant="8" id="eY2-hK-Hz1"/>
                             <constraint firstItem="ybC-Dt-LMP" firstAttribute="leading" secondItem="kQE-b1-bG6" secondAttribute="trailing" constant="8" id="gSN-df-wea"/>
                             <constraint firstItem="b34-UF-yvt" firstAttribute="top" secondItem="QNJ-g6-b0T" secondAttribute="bottom" id="hbe-Hr-C0w"/>
-                            <constraint firstItem="gbl-VZ-pne" firstAttribute="top" secondItem="QNJ-g6-b0T" secondAttribute="bottom" constant="300" id="yq6-am-QTv"/>
+                            <constraint firstItem="gbl-VZ-pne" firstAttribute="top" secondItem="QNJ-g6-b0T" secondAttribute="bottom" constant="296" id="yq6-am-QTv"/>
                         </constraints>
                     </view>
                     <connections>

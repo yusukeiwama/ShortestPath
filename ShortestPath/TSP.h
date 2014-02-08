@@ -10,7 +10,7 @@
 #import "USKQueue.h"
 
 #define MAX_DIMENSION 3000
-#define OPTIMAL_TOUR_NOT_AVAILABLE -1
+#define OPTIMAL_TOUR_NOT_AVAILABLE -1 // If tour.distance has this value, both route and distance are not available.
 
 @class ViewController;
 

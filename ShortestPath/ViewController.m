@@ -400,7 +400,7 @@ typedef enum _TSPViewControllerSkin {
 
     self.currentTSP.aborted = YES;
     self.currentTSP = [TSP TSPWithFile:[[NSBundle mainBundle] pathForResource:self.currentTSPName ofType:@"tsp"]];
-   
+    
     [self.visualizer clearTourImages];
     
     switch (self.currentSolverType) {
@@ -414,32 +414,32 @@ typedef enum _TSPViewControllerSkin {
         }
         case TSPSolverTypeAS: {
             NSBlockOperation *operation = [NSBlockOperation blockOperationWithBlock:^{
-            [self.currentTSP tourByASWithNumberOfAnt:self.currentTSP.dimension
-                                         pheromoneInfluence:1
-                                        transitionInfluence:2
-                                       pheromoneEvaporation:0.5
-                                                       seed:rand()
-                                             noImproveLimit:200
-                                          candidateListSize:20
-                                                    use2opt:YES
-                                               CSVLogString:nil];
+                [self.currentTSP tourByASWithNumberOfAnt:self.currentTSP.dimension
+                                      pheromoneInfluence:1
+                                     transitionInfluence:2
+                                    pheromoneEvaporation:0.5
+                                                    seed:rand()
+                                          noImproveLimit:200
+                                       candidateListSize:20
+                                                 use2opt:YES
+                                            CSVLogString:nil];
             }];
             [self.solverExecutionQueue addOperation:operation];
             break;
         }
         case TSPSolverTypeMMAS: {
             NSBlockOperation *operation = [NSBlockOperation blockOperationWithBlock:^{
-            [self.currentTSP tourByMMASWithNumberOfAnt:25
-                                           pheromoneInfluence:1
-                                          transitionInfluence:4
-                                         pheromoneEvaporation:0.2
-                                              probabilityBest:0.05
-                                        takeGlogalBest:YES
-                                                  seed:rand()
-                                               noImproveLimit:200
-                                            candidateListSize:20
-                                                      use2opt:YES
-                                                 CSVLogString:nil];
+                [self.currentTSP tourByMMASWithNumberOfAnt:25
+                                        pheromoneInfluence:1
+                                       transitionInfluence:4
+                                      pheromoneEvaporation:0.2
+                                           probabilityBest:0.05
+                                            takeGlogalBest:NO
+                                                      seed:rand()
+                                            noImproveLimit:200
+                                         candidateListSize:20
+                                                   use2opt:YES
+                                              CSVLogString:nil];
             }];
             [self.solverExecutionQueue addOperation:operation];
             break;

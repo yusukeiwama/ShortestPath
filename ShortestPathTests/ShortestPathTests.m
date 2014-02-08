@@ -121,6 +121,7 @@
                            transitionInfluence:2
                           pheromoneEvaporation:0.02
                                probabilityBest:0.05
+                                takeGlogalBest:NO
                                           seed:469049721
                                 noImproveLimit:1000
                              candidateListSize:0
@@ -142,6 +143,7 @@
                            transitionInfluence:2
                           pheromoneEvaporation:0.02
                                probabilityBest:0.05
+                                takeGlogalBest:NO
                                           seed:469049721
                                 noImproveLimit:1000
                              candidateListSize:20
@@ -163,6 +165,7 @@
                            transitionInfluence:4
                           pheromoneEvaporation:0.01
                                probabilityBest:0.001
+                                takeGlogalBest:NO
                                           seed:469049721
                                 noImproveLimit:200
                              candidateListSize:0
@@ -180,15 +183,16 @@
     
     // Compute the shortest path.
     Tour tour = [tsp tourByMMASWithNumberOfAnt:25
-                                pheromoneInfluence:1
-                               transitionInfluence:4
-                              pheromoneEvaporation:0.01
-                                   probabilityBest:0.001
-                                              seed:469049721
-                                    noImproveLimit:200
-                                 candidateListSize:20
+                            pheromoneInfluence:1
+                           transitionInfluence:4
+                          pheromoneEvaporation:0.01
+                               probabilityBest:0.001
+                                takeGlogalBest:NO
+                                          seed:469049721
+                                noImproveLimit:200
+                             candidateListSize:20
                                        use2opt:YES
-                                      CSVLogString:NULL];
+                                  CSVLogString:NULL];
     NSLog(@"%@: Distance = %d", sampleName, tour.distance);
     XCTAssertTrue([TSP optimalSolutionWithName:sampleName].distance <= tour.distance, @"Shorter than the optimal solution.");
 }

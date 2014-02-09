@@ -126,6 +126,7 @@
                                 noImproveLimit:1000
                              candidateListSize:0
                                        use2opt:NO
+                                     smoothing:0.5
                                   CSVLogString:NULL];
     NSLog(@"%@: Distance = %d", sampleName, tour.distance);
     XCTAssertTrue([TSP optimalSolutionWithName:sampleName].distance <= tour.distance, @"Shorter than the optimal solution.");
@@ -148,6 +149,7 @@
                                 noImproveLimit:1000
                              candidateListSize:20
                                        use2opt:NO
+                                     smoothing:0.5
                                   CSVLogString:NULL];
     NSLog(@"%@: Distance = %d", sampleName, tour.distance);
     XCTAssertTrue([TSP optimalSolutionWithName:sampleName].distance <= tour.distance, @"Shorter than the optimal solution.");
@@ -170,6 +172,7 @@
                                 noImproveLimit:200
                              candidateListSize:0
                                        use2opt:YES
+                                     smoothing:0.5
                                   CSVLogString:NULL];
     NSLog(@"%@: Distance = %d", sampleName, tour.distance);
     XCTAssertTrue([TSP optimalSolutionWithName:sampleName].distance <= tour.distance, @"Shorter than the optimal solution.");
@@ -192,6 +195,7 @@
                                 noImproveLimit:200
                              candidateListSize:20
                                        use2opt:YES
+                                     smoothing:0.5
                                   CSVLogString:NULL];
     NSLog(@"%@: Distance = %d", sampleName, tour.distance);
     XCTAssertTrue([TSP optimalSolutionWithName:sampleName].distance <= tour.distance, @"Shorter than the optimal solution.");

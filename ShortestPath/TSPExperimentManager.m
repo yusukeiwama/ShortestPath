@@ -346,6 +346,7 @@ static const int seeds[NUMBER_OF_SEEDS] = {469049721, 2053676357, 1781357515, 12
                                          noImproveLimit:1000
                                       candidateListSize:20
                                                 use2opt:NO
+                                              smoothing:0.5
                                            CSVLogString:NULL];
             lengths[ri] = aTour.distance;
 			lengthSum += aTour.distance;
@@ -413,6 +414,7 @@ static const int seeds[NUMBER_OF_SEEDS] = {469049721, 2053676357, 1781357515, 12
                                          noImproveLimit:1000
                                       candidateListSize:20
                                                 use2opt:NO
+                                              smoothing:0.5
                                            CSVLogString:&log];
             lengths[ri] = aTour.distance;
 			lengthSum += aTour.distance;
@@ -486,6 +488,7 @@ static const int seeds[NUMBER_OF_SEEDS] = {469049721, 2053676357, 1781357515, 12
                                                  noImproveLimit:limit
                                                   candidateListSize:20
                                                             use2opt:YES
+                                                      smoothing:0.5
                                                    CSVLogString:NULL];
                     lengths[ri] =  aTour.distance;
                     lengthSum   += aTour.distance;
@@ -565,6 +568,7 @@ static const int seeds[NUMBER_OF_SEEDS] = {469049721, 2053676357, 1781357515, 12
                                              noImproveLimit:limit
                                           candidateListSize:20
                                                     use2opt:YES
+                                              smoothing:0.5
                                                CSVLogString:&log];
             lengths[ri] =  aTour.distance;
             lengthSum   += aTour.distance;
@@ -641,6 +645,7 @@ static const int seeds[NUMBER_OF_SEEDS] = {469049721, 2053676357, 1781357515, 12
                                          noImproveLimit:limit
                                       candidateListSize:20
                                                 use2opt:YES
+                                          smoothing:0.5
                                            CSVLogString:&log];
         lengths[ri] =  aTour.distance;
         lengthSum   += aTour.distance;

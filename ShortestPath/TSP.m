@@ -449,8 +449,8 @@ void swap2opt(int *route, int d, int i, int j)
 		for (int i = 0; i < n; i++) {
 			for (int j = 0; j < n; j++) {
 				// Copy adjacency matrix.
-				NN[i * n + j].number = j + 1;
-				NN[i * n + j].distance   = A[i * n + j];
+				NN[i * n + j].number   = j + 1;
+				NN[i * n + j].distance = A[i * n + j];
 			}
 			
 			// Ignore i == j element because the element is not a neighbor but itself.
@@ -970,6 +970,63 @@ void limitPheromoneRange(int opt, double rho, int n, double pBest, double *P)
     }
 }
 
+bool pheromoneTrailSmoothing(double delta, int opt, double rho, int n, double *P)
+{
+    /*
+     Pheromone matrix element on first loop after initialization always have only two possible values
+     because there is only a iteration best tour and all the rest are not.
+     So, its average number of pheromone-rich nodes is always just 2.
+    */
+    static BOOL isFirstLoopAfterInitialization = YES;
+    if (isFirstLoopAfterInitialization) {
+        isFirstLoopAfterInitialization = NO;
+        return NO;
+    }
+
+    // Set the threshold for smoothing.
+    double lambda = 2.04;
+    
+    // Compute average number of pheromone-rich edge.
+    double averageNumRichEdge = 0.0;
+    double max = DBL_MIN;
+    double min = DBL_MAX;
+    for (int i = 0; i < n; i++) { // for all nodes
+        // Find max and min pheromone from node i+1 to node j+1.
+        for (int j = 0; j < n; j++) { // for all j+1 destination nodes
+            if (i == j) {
+                continue;
+            }
+            if (P[i * n + j] > max) {
+                max = P[i * n + j];
+            }
+            if (P[i * n + j] < min) {
+                min = P[i * n + j];
+            }
+        }
+        // Count the number of edges that has enough pheromone.
+        int numRichEdge = 0;
+        for (int j = 0; j < n; j++) {
+            if (P[i * n + j] >= min + 0.05 * (max - min)) numRichEdge++;
+        }
+        averageNumRichEdge += numRichEdge;
+    }
+    averageNumRichEdge /= n;
+
+    // If pheromone trail is convergent, smooth it.
+    if (averageNumRichEdge < lambda) {
+        isFirstLoopAfterInitialization = YES;
+        double globalMaxPheromone = 1 / (opt * rho);
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                P[i * n + j] = P[i * n + j] + delta * (globalMaxPheromone - P[i * n + j]);
+            }
+        }
+        return YES;
+    } else {
+        return NO;
+    }
+}
+
 - (Tour)tourByMMASWithNumberOfAnt:(int)m
                pheromoneInfluence:(int)alpha
               transitionInfluence:(int)beta
@@ -980,6 +1037,7 @@ void limitPheromoneRange(int opt, double rho, int n, double pBest, double *P)
                    noImproveLimit:(int)limit
                 candidateListSize:(int)size
                           use2opt:(BOOL)use2opt
+                        smoothing:(double)delta
                      CSVLogString:(NSString *__autoreleasing *)log
 {
     if (self.client.currentSolverType == TSPSolverTypeMMAS) {
@@ -1017,6 +1075,7 @@ void limitPheromoneRange(int opt, double rho, int n, double pBest, double *P)
     while (noImproveCount < limit) {
         
         NSMutableDictionary *logsForThisLoop = [NSMutableDictionary dictionary];
+        NSMutableString *logStringForThisLoop = [NSMutableString string];
         
         // Do ant tours concurrently.
         dispatch_apply(m, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(size_t k){
@@ -1055,8 +1114,8 @@ void limitPheromoneRange(int opt, double rho, int n, double pBest, double *P)
                 tourLog_p->route    = calloc(n + 1, sizeof(int));
                 tourLog_p->distance = globalBest.distance;
                 memcpy(tourLog_p->route, globalBest.route, (n + 1) * sizeof(int));
-                [logsForThisLoop addEntriesFromDictionary:@{@"Log": [NSString stringWithFormat:@"New global best distance: %d.\n", tourLog_p->distance],
-                                                            @"Tour": [NSValue valueWithPointer:tourLog_p]}];
+                [logStringForThisLoop appendFormat:@"New global best distance: %d.\n", tourLog_p->distance];
+                [logsForThisLoop addEntriesFromDictionary:@{@"Tour": [NSValue valueWithPointer:tourLog_p]}];
             }
         } else {
             noImproveCount++;
@@ -1067,6 +1126,10 @@ void limitPheromoneRange(int opt, double rho, int n, double pBest, double *P)
             evaporatePheromone(rho, n, P);
             depositPheromone(globalBest, n, P);
             limitPheromoneRange(globalBest.distance, rho, n, pBest, P);
+        }
+        
+        if (pheromoneTrailSmoothing(delta, globalBest.distance, rho, n, P)) {
+            [logStringForThisLoop appendFormat:@"Did pheromone trail smoothing.\n"];
         }
         
         // Enqueue pheromone matrix.
@@ -1082,6 +1145,7 @@ void limitPheromoneRange(int opt, double rho, int n, double pBest, double *P)
             [logsForThisLoop addEntriesFromDictionary:@{@"Pheromone": [NSValue valueWithPointer:PLog]}];
         }
         
+        [logsForThisLoop addEntriesFromDictionary:@{@"Log": logStringForThisLoop}];
         [self.logQueue enqueue:logsForThisLoop];
         [csv appendFormat:@"%d, %d\n", loop, globalBest.distance];
         // Break if optimal solution is found.

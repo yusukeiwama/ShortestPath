@@ -131,6 +131,7 @@ typedef enum _TSPSolverType {
  @param limit       The number of iteration without improvement to break.
  @param size        The number of closest nodes to be candidates. If less than or equal to 0, a candidate list won't be used.
  @param use2opt     If YES, improve tour by 2-opt (local search algorithm).
+ @param delta       Use for Pheromone Trail Smoothing method. If pheromone is convergent, all pheromone are incresed with this value. 1.0 corresponds to re-initialization of the pheromone trails. 0.0 means turning off the pheromone trail smoothing.
  @param log         Iteration best tour distances in CSV format.
  @return The result tour.
  */
@@ -144,6 +145,7 @@ typedef enum _TSPSolverType {
                    noImproveLimit:(int)limit
                 candidateListSize:(int)size
                           use2opt:(BOOL)use2opt
+                        smoothing:(double)delta
                      CSVLogString:(NSString *__autoreleasing *)log;
 
 

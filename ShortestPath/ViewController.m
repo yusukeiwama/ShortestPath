@@ -460,6 +460,7 @@ typedef enum _TSPViewControllerSkin {
             case 0:
                 self.currentSolverType = TSPSolverTypeNN;
                 self.currentVisualizationStyle = TSPVisualizationStyleDark;
+                self.visualizer.view.pheromoneImageView.image = nil;
                 break;
             case 1:
                 self.currentSolverType = TSPSolverTypeAS;
@@ -516,10 +517,15 @@ typedef enum _TSPViewControllerSkin {
 
 - (IBAction)step:(id)sender
 {
-    // If not solving, start solving
+    // If not solving, start solving and try to step again.
     if ([self.currentTSP.logQueue count] == 0) {
         [self.pathImageUpdateTimer invalidate];
         [self executeSolver];
+        double delayInSeconds = 0.1;
+        dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
+        dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
+            [self step:sender];
+        });
         return;
     }
     
@@ -527,7 +533,6 @@ typedef enum _TSPViewControllerSkin {
     if ([self.pathImageUpdateTimer isValid]) {
         [self.pathImageUpdateTimer invalidate];
         [self.currentTSP.operationQueue setSuspended:YES];
-        [self.solveButton setTitle:@"Pausing" forState:UIControlStateNormal];
     }
     
     // Confirm that there is a data to visualize. if not or only few left, resume solving to get more log.
@@ -577,6 +582,7 @@ typedef enum _TSPViewControllerSkin {
                                             noImproveLimit:200
                                          candidateListSize:20
                                                    use2opt:YES
+                                                 smoothing:0.5
                                               CSVLogString:nil];
             }];
             [self.solverExecutionQueue addOperation:operation];

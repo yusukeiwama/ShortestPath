@@ -288,26 +288,20 @@ TYPE: TSP</string>
                                             <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                         </state>
                                         <connections>
-                                            <action selector="solve:" destination="BYZ-38-t0r" eventType="touchUpInside" id="xx1-Jk-6wR"/>
+                                            <action selector="solveButtonAction:" destination="BYZ-38-t0r" eventType="touchUpInside" id="7OD-Dh-FiY"/>
                                         </connections>
                                     </button>
-                                    <button hidden="YES" opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" showsTouchWhenHighlighted="YES" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="zHA-wQ-t4o">
-                                        <rect key="frame" x="164" y="644" width="68" height="68"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                        <color key="backgroundColor" red="0.12941176470588234" green="0.27450980392156865" blue="0.54117647058823526" alpha="1" colorSpace="deviceRGB"/>
-                                        <fontDescription key="fontDescription" name="HelveticaNeue-Bold" family="Helvetica Neue" pointSize="17"/>
-                                        <state key="normal" title="Stop">
-                                            <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                        </state>
-                                    </button>
-                                    <button hidden="YES" opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" showsTouchWhenHighlighted="YES" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="PQE-EM-HbW">
-                                        <rect key="frame" x="82" y="644" width="68" height="68"/>
+                                    <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" showsTouchWhenHighlighted="YES" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="PQE-EM-HbW">
+                                        <rect key="frame" x="170" y="644" width="68" height="68"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <color key="backgroundColor" red="0.12941176469999999" green="0.27450980390000002" blue="0.54117647059999996" alpha="1" colorSpace="deviceRGB"/>
                                         <fontDescription key="fontDescription" name="HelveticaNeue-Bold" family="Helvetica Neue" pointSize="17"/>
                                         <state key="normal" title="Step">
                                             <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                         </state>
+                                        <connections>
+                                            <action selector="step:" destination="BYZ-38-t0r" eventType="touchUpInside" id="sIS-Lj-ixd"/>
+                                        </connections>
                                     </button>
                                     <button hidden="YES" opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" showsTouchWhenHighlighted="YES" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="x32-C3-3g9">
                                         <rect key="frame" x="0.0" y="644" width="68" height="68"/>
@@ -372,7 +366,6 @@ TYPE: TSP</string>
                         <outlet property="solverTableView" destination="bT8-E3-ZJ9" id="U1x-gk-EQF"/>
                         <outlet property="solverView" destination="BgM-Ju-3eF" id="xUa-9g-cAI"/>
                         <outlet property="stepButton" destination="PQE-EM-HbW" id="KBh-sm-RSl"/>
-                        <outlet property="stopButton" destination="zHA-wQ-t4o" id="BjH-mm-VzU"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>

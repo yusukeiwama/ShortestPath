@@ -842,10 +842,16 @@ void depositPheromone(Tour tour, int n, double *P)
     
     double *P = calloc(n * n, sizeof(double)); // Pheromone matrix
     
-    // Initialize pheromone with NN.
-    Tour aTour = [self tourByNNFrom:1 use2opt:NO];
-    free(aTour.route);
-    double initialPheromone = m / aTour.distance;
+    // Initialize pheromone with average tour distance.
+    int	totalDistance = 0;
+    int initialLoop = (n > m) ? m : n; // set initial loop count to m. if m is larger than n, then use n.
+    for (int i = 0; i < initialLoop; i++) {
+        Tour aTour = [self tourByNNFrom:i + 1 use2opt:use2opt];
+        totalDistance += aTour.distance;
+        free(aTour.route);
+    }
+    double averageDistance  = (double)totalDistance / n;
+    double initialPheromone = m / averageDistance;
     initializePheromone(initialPheromone, n, P);
     
     // Generate solutions.
@@ -985,11 +991,18 @@ void limitPheromoneRange(int opt, double rho, int n, double pBest, double *P)
     double *P = calloc(n * n, sizeof(double)); // Pheromone matrix
     
     // Compute initial best tour by NN.
-    Tour aTour = [self tourByNNFrom:1 use2opt:NO];
-//    [self improveTourBy2opt:&aTour];
-    double initialPheromone = 1.0 / (rho * aTour.distance);
+    Tour initialBest = {INT32_MAX, calloc(n + 1, sizeof(int))};
+    
+    int initialLoop = (n > m) ? m : n; // set initial loop count to m. if m is larger than n, then use n.
+    for (int i = 0; i < initialLoop; i++) {
+        Tour aTour = [self tourByNNFrom:i + 1 use2opt:use2opt];
+        takeBetterTour(aTour, &initialBest);
+    }
+    
+    // Initialize pheromone with max pheromone.
+    double initialPheromone = 1.0 / (rho * initialBest.distance);
     initializePheromone(initialPheromone, n, P);
-    free(aTour.route);
+    free(initialBest.route);
     
     // Generate solutions.
     Tour globalBest      = {INT32_MAX, calloc(n + 1, sizeof(int))};

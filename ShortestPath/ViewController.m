@@ -28,12 +28,16 @@ typedef enum _TSPViewControllerSkin {
 
 @interface ViewController ()
 
-// For visualizer
-@property (weak, nonatomic) IBOutlet UIView *monitorView;
+@property (weak, nonatomic) IBOutlet UIImageView *backgroundImageView;
+
+/** Monitor view on the left of the screen. ================================= */
+@property (weak, nonatomic) IBOutlet UIView  *monitorView;
+@property (weak, nonatomic) IBOutlet UILabel *layerTitleLabel;
 @property TSPView *tspView;
 @property NSTimer *pathImageUpdateTimer;
+/* ========================================================================== */
 
-/** Control views on the left of the screen. ================================ */
+/** Control views on the right of the screen. ================================ */
 @property (weak, nonatomic) IBOutlet UIView *controlView;
 @property (weak, nonatomic) IBOutlet UILabel *currentTSPLabel;
 @property (weak, nonatomic) IBOutlet UILabel *currentTSPSolverTypeLabel;
@@ -59,32 +63,30 @@ typedef enum _TSPViewControllerSkin {
 @property                            UITextView  *fixedLogTextView;
 
 @property ExpandingPanel expandingPanel; // enum: which panel is expanding now
+@property UIColor *cellHighlightedColor;
+@property UIColor *headerViewColor;
 
 // Control buttons
 @property (weak, nonatomic) IBOutlet UIButton *solveButton;
-@property (weak, nonatomic) IBOutlet UIButton *stopButton;
 @property (weak, nonatomic) IBOutlet UIButton *stepButton;
 @property (weak, nonatomic) IBOutlet UIButton *saveButton;
 /* ========================================================================== */
 
 // TSP supporting classes
-@property TSPVisualizer         *visualizer;
-@property TSPExperimentManager  *experimentManager;
+@property TSPVisualizer        *visualizer;
+@property TSPExperimentManager *experimentManager;
 
 // Queue for cancellation.
 @property NSOperationQueue *solverExecutionQueue;
 @property NSBlockOperation *currentSolverOperation;
 
 // Current TSP information
-@property TSP           *currentTSP;
-@property NSString      *currentTSPName;
+@property TSP      *currentTSP;
+@property NSString *currentTSPName;
 
 // Styles
 @property TSPViewControllerSkin skin;
 @property TSPVisualizationStyle currentVisualizationStyle;
-@property (weak, nonatomic) IBOutlet UIImageView *backgroundImageView;
-@property UIColor *cellHighlightedColor;
-@property (weak, nonatomic) IBOutlet UILabel *layerTitleLabel;
 
 @end
 
@@ -194,20 +196,17 @@ typedef enum _TSPViewControllerSkin {
 
     // Round button layer.
     self.saveButton.layer.cornerRadius  =
-    self.stepButton.layer.cornerRadius  =
-    self.stopButton.layer.cornerRadius  = self.stopButton.frame.size.width / 2.0;
+    self.stepButton.layer.cornerRadius  = self.stepButton.frame.size.width / 2.0;
     self.solveButton.layer.cornerRadius = self.solveButton.frame.size.width / 2.0;
     self.saveButton.layer.borderWidth   =
     self.stepButton.layer.borderWidth   =
-    self.stopButton.layer.borderWidth   =
     self.solveButton.layer.borderWidth  = 1.0;
     self.saveButton.layer.borderColor   =
     self.stepButton.layer.borderColor   =
-    self.stopButton.layer.borderColor   =
     self.solveButton.layer.borderColor  = [[UIColor colorWithWhite:1.0 alpha:0.5] CGColor];
     
     self.pathImageUpdateTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 / 60.0 target:self selector:@selector(visualizeLog) userInfo:nil repeats:YES];
-
+    
     self.skin = TSPViewControllerSkinStarryNight;
     [self prepareSkin];
 }
@@ -237,6 +236,10 @@ typedef enum _TSPViewControllerSkin {
 
 - (void)visualizeLog
 {
+    if ([self.currentTSP.logQueue count] == 0) { // Did finish solving.
+        [self.solveButton setTitle:@"Solve" forState:UIControlStateNormal];
+    }
+    
     // Suspend solving operation when log queue have enough data to visualize. (prevent memory pressure.)
     // Limit memory allocation for pheromone matrix in 200MB.
     int n = self.currentTSP.dimension;
@@ -291,11 +294,15 @@ typedef enum _TSPViewControllerSkin {
     }
 }
 
-#pragma mark - TableViewDataSource
+#pragma mark - UITableViewDataSource
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
     if ([tableView isEqual:self.problemTableView]) {
-        return self.experimentManager.sampleNames.count;
+        switch (section) {
+            case 0: return self.experimentManager.sampleNames.count;
+            case 1: return 1;
+        }
+
     } else if ([tableView isEqual:self.solverTableView]) {
         return self.experimentManager.solverNames.count;
     }
@@ -309,18 +316,33 @@ typedef enum _TSPViewControllerSkin {
     
     UITableViewCell *cell;
     if ([tableView isEqual:self.problemTableView]) {
-        cell = [tableView dequeueReusableCellWithIdentifier:sampleNameCell];
-        if (cell == nil) {
-            cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:sampleNameCell];
-        }
         // Set Highlight color
         UIView *bgColorView = [[UIView alloc] init];
         bgColorView.backgroundColor = self.cellHighlightedColor;
         bgColorView.layer.masksToBounds = YES;
-        cell.selectedBackgroundView = bgColorView;
 
-        cell.textLabel.text  = self.experimentManager.sampleNames[indexPath.row];
-        cell.backgroundColor = [UIColor clearColor];
+        switch (indexPath.section) {
+            case 0:
+                cell = [tableView dequeueReusableCellWithIdentifier:sampleNameCell];
+                if (cell == nil) {
+                    cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:sampleNameCell];
+                }
+                cell.selectedBackgroundView = bgColorView;
+                cell.textLabel.text  = self.experimentManager.sampleNames[indexPath.row];
+                cell.backgroundColor = [UIColor clearColor];
+                break;
+            case 1:
+                cell = [tableView dequeueReusableCellWithIdentifier:sampleNameCell];
+                if (cell == nil) {
+                    cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:sampleNameCell];
+                }
+                cell.selectedBackgroundView = bgColorView;
+                cell.textLabel.text  = @"welcome91";
+                cell.backgroundColor = [UIColor clearColor];
+                break;
+            default:
+                break;
+        }
     } else if ([tableView isEqual:self.solverTableView]) {
         cell = [tableView dequeueReusableCellWithIdentifier:solverNameCellIdentifier];
         if (cell == nil) {
@@ -331,12 +353,59 @@ typedef enum _TSPViewControllerSkin {
         bgColorView.backgroundColor = self.cellHighlightedColor;
         bgColorView.layer.masksToBounds = YES;
         cell.selectedBackgroundView = bgColorView;
-
+        
         cell.textLabel.text  = self.experimentManager.solverNames[indexPath.row];
         cell.backgroundColor = [UIColor clearColor];
     }
-    
     return cell;
+}
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
+{
+    if ([tableView isEqual:self.problemTableView]) {
+        return 2;
+    }
+    return 1;
+}
+
+- (UIView *) tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section
+{
+    if ([tableView isEqual:self.problemTableView]) {
+        UIView *headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, tableView.bounds.size.width, 24)];
+        headerView.backgroundColor = self.headerViewColor;
+        headerView.alpha           = 0.9;
+        
+        UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(10, 3, tableView.bounds.size.width - 10, 18)];
+        label.text      = [self tableView:tableView titleForHeaderInSection:section];
+        label.textColor = [UIColor colorWithWhite:1.0 alpha:1.0];
+        label.font      = [UIFont fontWithName:@"Helvetica Bold" size:14.0];
+        label.backgroundColor = [UIColor clearColor];
+        [headerView addSubview:label];
+        
+        return headerView;
+    }
+    return nil;
+}
+
+- (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section
+{
+    if ([tableView isEqual:self.problemTableView]) {
+        switch (section) {
+            case 0:  return @"TSPLIB";
+            case 1:  return @"Original";
+            default: return nil;
+        }
+    }
+    return nil;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section
+{
+    if ([tableView isEqual:self.problemTableView]) {
+        return 24.0;
+    } else {
+        return 0.0;
+    }
 }
 
 #pragma mark - TableViewDelegate
@@ -347,7 +416,7 @@ typedef enum _TSPViewControllerSkin {
     
     if ([tableView isEqual:self.problemTableView]) { // Change current problem.
         self.currentTSP.aborted = YES;
-        self.currentTSPName = self.experimentManager.sampleNames[indexPath.row];
+        self.currentTSPName = [self.problemTableView cellForRowAtIndexPath:indexPath].textLabel.text;
         self.currentTSPLabel.text = self.currentTSPName;
         self.currentTSP = [TSP TSPWithFile:[[NSBundle mainBundle] pathForResource:self.currentTSPName ofType:@"tsp"]];
         [self.logString setString:@""];
@@ -394,15 +463,71 @@ typedef enum _TSPViewControllerSkin {
 }
 
 #pragma mark - Button Actions
-- (IBAction)solve:(id)sender
-{
-    [self clearCurrentSolvingContext];
 
-    self.currentTSP.aborted = YES;
-    self.currentTSP = [TSP TSPWithFile:[[NSBundle mainBundle] pathForResource:self.currentTSPName ofType:@"tsp"]];
+/**
+ solve: atcually may not execute the solver in some situations. In proper situation, executeSolver is called.
+ */
+- (IBAction)solveButtonAction:(id)sender
+{
+    if ([self.pathImageUpdateTimer isValid]) { // Visualizing
+        
+        if ([self.currentTSP.logQueue count] == 0) { // not solving
+            
+            // start solving
+            [self.solveButton setTitle:@"Solving" forState:UIControlStateNormal];
+            [self clearCurrentSolvingContext];
+            
+            self.currentTSP.aborted = YES;
+            self.currentTSP = [TSP TSPWithFile:[[NSBundle mainBundle] pathForResource:self.currentTSPName ofType:@"tsp"]];
+            
+            [self.visualizer clearTourImages];
+            
+            [self executeSolver];
+            
+        } else { // now solving
+
+            // Pause
+            [self.currentTSP.operationQueue setSuspended:YES];
+            [self.solveButton setTitle:@"Pausing" forState:UIControlStateNormal];
+            [self.pathImageUpdateTimer invalidate];
+
+        }
+
+    } else { // not Visualizing
+        
+        [self.solveButton setTitle:@"Solving" forState:UIControlStateNormal];
+        self.pathImageUpdateTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 / 60.0 target:self selector:@selector(visualizeLog) userInfo:nil repeats:YES];
+
+    }
+}
+
+- (IBAction)step:(id)sender
+{
+    // If not solving, start solving
+    if ([self.currentTSP.logQueue count] == 0) {
+        [self.pathImageUpdateTimer invalidate];
+        [self executeSolver];
+        return;
+    }
     
-    [self.visualizer clearTourImages];
+    // Pause
+    if ([self.pathImageUpdateTimer isValid]) {
+        [self.pathImageUpdateTimer invalidate];
+        [self.currentTSP.operationQueue setSuspended:YES];
+        [self.solveButton setTitle:@"Pausing" forState:UIControlStateNormal];
+    }
     
+    // Confirm that there is a data to visualize. if not or only few left, resume solving to get more log.
+    if ([self.currentTSP.logQueue count] < 3) {
+        self.pathImageUpdateTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 / 60.0 target:self selector:@selector(visualizeLog) userInfo:nil repeats:YES];
+        [self.currentTSP.operationQueue setSuspended:NO];
+    }
+    
+    [self visualizeLog];
+}
+
+- (void)executeSolver
+{
     switch (self.currentSolverType) {
         case TSPSolverTypeNN: {
             NSBlockOperation *operation = [NSBlockOperation blockOperationWithBlock:^{
@@ -688,40 +813,52 @@ typedef enum _TSPViewControllerSkin {
         case TSPViewControllerSkinOcean:
 //            self.currentVisualizationStyle = TSPVisualizationStyleOcean;
             self.backgroundImageView.image = [UIImage imageNamed:@"deepBlueOcean.jpg"];
+            self.headerViewColor = [UIColor colorWithRed:33/255.0 green:70/255.0 blue:138/255.0 alpha:1.0];
             self.problemHeaderView.backgroundColor =
             self.solverHeaderView.backgroundColor  =
-            self.logHeaderView.backgroundColor     = [UIColor colorWithRed:33/255.0 green:70/255.0 blue:138/255.0 alpha:1.0];
-            self.solveButton.backgroundColor       = [UIColor colorWithRed:33/255.0 green:70/255.0 blue:138/255.0 alpha:0.5];
+            self.logHeaderView.backgroundColor     = self.headerViewColor;
+            self.saveButton.backgroundColor  =
+            self.stepButton.backgroundColor  =
+            self.solveButton.backgroundColor = [UIColor colorWithRed:33/255.0 green:70/255.0 blue:138/255.0 alpha:0.5];
             self.cellHighlightedColor = [UIColor colorWithRed:(76.0/255.0) green:(161.0/255.0) blue:(255.0/255.0) alpha:1.0];
             break;
         case TSPViewControllerSkinStarryNight:
 //            self.currentVisualizationStyle = TSPVisualizationStyleOcean;
             self.backgroundImageView.image = [UIImage imageNamed:@"starryNight_Nicolas_Goulet.jpg"];
             self.view.backgroundColor = [UIColor blackColor];
+            self.headerViewColor = [UIColor colorWithRed:123/255.0 green:144/255.0 blue:133/255.0 alpha:1.0];
             self.problemHeaderView.backgroundColor =
             self.solverHeaderView.backgroundColor  =
-            self.logHeaderView.backgroundColor     = [UIColor colorWithRed:123/255.0 green:144/255.0 blue:133/255.0 alpha:1.0];
-            self.solveButton.backgroundColor       = [UIColor colorWithRed:123/255.0 green:144/255.0 blue:133/255.0 alpha:0.5];
+            self.logHeaderView.backgroundColor     = self.headerViewColor;
+            self.saveButton.backgroundColor  =
+            self.stepButton.backgroundColor  =
+            self.solveButton.backgroundColor = [UIColor colorWithRed:123/255.0 green:144/255.0 blue:133/255.0 alpha:0.5];
             self.cellHighlightedColor = [UIColor colorWithRed:(183.0/255.0) green:(171.0/255.0) blue:(141.0/255.0) alpha:1.0];
             break;
         case TSPViewControllerSkinBlack:
 //            self.currentVisualizationStyle = TSPVisualizationStyleOcean;
             self.backgroundImageView.image = nil;
             self.view.backgroundColor = [UIColor blackColor];
+            self.headerViewColor = [UIColor colorWithRed:179/255.0 green:179/255.0 blue:179/255.0 alpha:1.0];
             self.problemHeaderView.backgroundColor =
             self.solverHeaderView.backgroundColor  =
-            self.logHeaderView.backgroundColor     = [UIColor colorWithRed:179/255.0 green:179/255.0 blue:179/255.0 alpha:1.0];
-            self.solveButton.backgroundColor       = [UIColor colorWithRed:179/255.0 green:179/255.0 blue:179/255.0 alpha:0.5];
+            self.logHeaderView.backgroundColor     = self.headerViewColor;
+            self.saveButton.backgroundColor  =
+            self.stepButton.backgroundColor  =
+            self.solveButton.backgroundColor = [UIColor colorWithRed:179/255.0 green:179/255.0 blue:179/255.0 alpha:0.5];
             self.cellHighlightedColor = [UIColor colorWithRed:(128/255.0) green:(128/255.0) blue:(128.0/255.0) alpha:1.0];
             break;
         case TSPViewControllerSkinWhite:
             self.currentVisualizationStyle = TSPVisualizationStyleGrayScale;
             self.backgroundImageView.image = nil;
             self.view.backgroundColor = [UIColor whiteColor];
+            self.headerViewColor = [UIColor colorWithRed:179/255.0 green:179/255.0 blue:179/255.0 alpha:1.0];
             self.problemHeaderView.backgroundColor =
             self.solverHeaderView.backgroundColor  =
-            self.logHeaderView.backgroundColor     = [UIColor colorWithRed:179/255.0 green:179/255.0 blue:179/255.0 alpha:1.0];
-            self.solveButton.backgroundColor       = [UIColor colorWithRed:179/255.0 green:179/255.0 blue:179/255.0 alpha:0.5];
+            self.logHeaderView.backgroundColor     = self.headerViewColor;
+            self.saveButton.backgroundColor  =
+            self.stepButton.backgroundColor  =
+            self.solveButton.backgroundColor = [UIColor colorWithRed:179/255.0 green:179/255.0 blue:179/255.0 alpha:0.5];
             self.cellHighlightedColor = [UIColor colorWithRed:(128/255.0) green:(128/255.0) blue:(128.0/255.0) alpha:1.0];
         default:
             break;

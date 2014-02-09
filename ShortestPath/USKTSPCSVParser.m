@@ -10,6 +10,9 @@
 
 #import "USKTrimmer.h"
 
+// Prevent round error.
+#define SCALE_FACTOR 100
+
 @implementation USKTSPCSVParser
 
 
@@ -27,7 +30,7 @@
             NSString *str = cells[j];
             if ([str isEqualToString:@""] == NO) { // Found node
                 n++;
-                printf("%d %d %d\n", n, j, -i);
+                printf("%d %d %d\n", n, j * SCALE_FACTOR, -i * SCALE_FACTOR); // scale to prevent round error.
             }
         }
     }

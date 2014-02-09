@@ -236,10 +236,6 @@ typedef enum _TSPViewControllerSkin {
 
 - (void)visualizeLog
 {
-    if ([self.currentTSP.logQueue count] == 0) { // Did finish solving.
-        [self.solveButton setTitle:@"Solve" forState:UIControlStateNormal];
-    }
-    
     // Suspend solving operation when log queue have enough data to visualize. (prevent memory pressure.)
     // Limit memory allocation for pheromone matrix in 200MB.
     int n = self.currentTSP.dimension;
@@ -254,9 +250,26 @@ typedef enum _TSPViewControllerSkin {
     }
     
     NSDictionary *logDictionary = [self.currentTSP.logQueue dequeue];
+    static int countToChangeTitle = 0;
     if (logDictionary == nil) {
+        // Prevent fluctuating solve button title when start solving and no log in queue.
+        if (countToChangeTitle < 100) {
+            countToChangeTitle++;
+        }
+        if ([self.solveButton.titleLabel.text isEqualToString:@"Solve"] == NO
+            && [self.currentTSP.logQueue count] == 0
+            && countToChangeTitle > 30) { // Did finish solving.
+            [self.solveButton setTitle:@"Solve" forState:UIControlStateNormal];
+        }
         return;
+    } else {
+        countToChangeTitle = 0;
     }
+    
+    if ([self.solveButton.titleLabel.text isEqualToString:@"Solving"] == NO) {
+        [self.solveButton setTitle:@"Solving" forState:UIControlStateNormal];
+    }
+
 
     Tour *tour_p = [((NSValue *)logDictionary[@"Tour"]) pointerValue];
     if (tour_p != NULL) {
@@ -375,7 +388,7 @@ typedef enum _TSPViewControllerSkin {
         headerView.backgroundColor = self.headerViewColor;
         headerView.alpha           = 0.9;
         
-        UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(10, 3, tableView.bounds.size.width - 10, 18)];
+        UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(10, 2, tableView.bounds.size.width - 10, 18)];
         label.text      = [self tableView:tableView titleForHeaderInSection:section];
         label.textColor = [UIColor colorWithWhite:1.0 alpha:1.0];
         label.font      = [UIFont fontWithName:@"Helvetica Bold" size:14.0];
@@ -402,7 +415,7 @@ typedef enum _TSPViewControllerSkin {
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section
 {
     if ([tableView isEqual:self.problemTableView]) {
-        return 24.0;
+        return 22.0;
     } else {
         return 0.0;
     }

@@ -862,6 +862,8 @@ void depositPheromone(Tour tour, int n, double *P)
     Tour *tours = calloc(m, sizeof(Tour));
     while (noImproveCount < limit) { // improve loop
         
+        NSMutableDictionary *logsForThisLoop = [NSMutableDictionary dictionary];
+        
         // Do ant tours concurrently.
         dispatch_apply(m, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(size_t k){
             [self.operationQueue addOperationWithBlock:^{
@@ -892,7 +894,7 @@ void depositPheromone(Tour tour, int n, double *P)
                     PLog[p++] = P[i * n + j];
                 }
             }
-            [self.logQueue enqueue:@{@"Pheromone": [NSValue valueWithPointer:PLog]}];
+            [logsForThisLoop addEntriesFromDictionary:@{@"Pheromone": [NSValue valueWithPointer:PLog]}];
         }
         
         // Find iteration best tour.
@@ -913,13 +915,14 @@ void depositPheromone(Tour tour, int n, double *P)
                 for (int i = 0; i <= n; i++) {
                     tourLog_p->route[i] = globalBest.route[i];
                 }
-                [self.logQueue enqueue:@{@"Log": [NSString stringWithFormat:@"New global best distance: %d.\n", tourLog_p->distance],
-                                         @"Tour": [NSValue valueWithPointer:tourLog_p]}];
+                [logsForThisLoop addEntriesFromDictionary:@{@"Log": [NSString stringWithFormat:@"New global best distance: %d.\n", tourLog_p->distance],
+                                                            @"Tour": [NSValue valueWithPointer:tourLog_p]}];
             }
         } else {
             noImproveCount++;
         }
 
+        [self.logQueue enqueue:logsForThisLoop];
         [csv appendFormat:@"%d, %d\n", loop, globalBest.distance];
         // Break if optimal solution is found.
         if (globalBest.distance == self.optimalTour.distance) {
@@ -1013,6 +1016,8 @@ void limitPheromoneRange(int opt, double rho, int n, double pBest, double *P)
     Tour *tours = calloc(m, sizeof(Tour));
     while (noImproveCount < limit) {
         
+        NSMutableDictionary *logsForThisLoop = [NSMutableDictionary dictionary];
+        
         // Do ant tours concurrently.
         dispatch_apply(m, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(size_t k){
             [self.operationQueue addOperationWithBlock:^{
@@ -1050,8 +1055,8 @@ void limitPheromoneRange(int opt, double rho, int n, double pBest, double *P)
                 tourLog_p->route    = calloc(n + 1, sizeof(int));
                 tourLog_p->distance = globalBest.distance;
                 memcpy(tourLog_p->route, globalBest.route, (n + 1) * sizeof(int));
-                [self.logQueue enqueue:@{@"Log": [NSString stringWithFormat:@"New global best distance: %d.\n", tourLog_p->distance],
-                                         @"Tour": [NSValue valueWithPointer:tourLog_p]}];
+                [logsForThisLoop addEntriesFromDictionary:@{@"Log": [NSString stringWithFormat:@"New global best distance: %d.\n", tourLog_p->distance],
+                                                            @"Tour": [NSValue valueWithPointer:tourLog_p]}];
             }
         } else {
             noImproveCount++;
@@ -1074,9 +1079,10 @@ void limitPheromoneRange(int opt, double rho, int n, double pBest, double *P)
                     PLog[p++] = P[i * n + j];
                 }
             }
-            [self.logQueue enqueue:@{@"Pheromone": [NSValue valueWithPointer:PLog]}];
+            [logsForThisLoop addEntriesFromDictionary:@{@"Pheromone": [NSValue valueWithPointer:PLog]}];
         }
         
+        [self.logQueue enqueue:logsForThisLoop];
         [csv appendFormat:@"%d, %d\n", loop, globalBest.distance];
         // Break if optimal solution is found.
         if (globalBest.distance == self.optimalTour.distance) {

@@ -98,6 +98,7 @@ typedef enum _TSPViewControllerSkin {
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    
 
     // Prevent crash on iOS 6.
     if ([self canPerformAction:@selector(setNeedsStatusBarAppearanceUpdate) withSender:nil]) {
@@ -123,6 +124,8 @@ typedef enum _TSPViewControllerSkin {
     
     self.logString = [NSMutableString string];
 
+//    [self.experimentManager doExperiment:USKTSPExperimentMMASSmoothing];
+//    return;
 
     // Workaround until Apple fixes the choppy UITextView bug.
     NSString *reqSysVer = @"7.0";
@@ -169,8 +172,6 @@ typedef enum _TSPViewControllerSkin {
         }
 
     }
-    
-//    [self.experimentManager doExperiment:USKTSPExperimentMMAS2opt];
     
     // Load default problem
     self.currentTSPName = @"welcome91";
@@ -563,6 +564,7 @@ typedef enum _TSPViewControllerSkin {
                                     pheromoneEvaporation:0.5
                                                     seed:rand()
                                           noImproveLimit:200
+                                            maxIteration:INT32_MAX
                                        candidateListSize:20
                                                  use2opt:YES
                                             CSVLogString:nil];
@@ -580,6 +582,7 @@ typedef enum _TSPViewControllerSkin {
                                             takeGlogalBest:NO
                                                       seed:rand()
                                             noImproveLimit:200
+                                              maxIteration:1000
                                          candidateListSize:20
                                                    use2opt:YES
                                                  smoothing:0.5

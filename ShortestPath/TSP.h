@@ -105,6 +105,7 @@ typedef enum _TSPSolverType {
  @param rho         The pheromone evaporatin coefficient. The rate of pheromone evaporation.
  @param seed        Seed to generate random number.
  @param limit       The number of iteration without improvement to break.
+@param maxIteration The max number of iteration. Return if loop count exceeds this value.
  @param size        The number of closest nodes to be candidates. If less than or equal to 0, a candidate list won't be used.
  @param use2opt     If YES, improve tour by 2-opt (local search algorithm).
  @param log         Iteration best tour distances in CSV format.
@@ -116,23 +117,25 @@ typedef enum _TSPSolverType {
            pheromoneEvaporation:(double)rho
                            seed:(unsigned)seed
                  noImproveLimit:(int)limit
+                   maxIteration:(int)maxIteration
               candidateListSize:(int)size
                         use2opt:(BOOL)use2opt
                    CSVLogString:(NSString *__autoreleasing *)log;
 
 /**
  Compute the shortest path by Max-Min Ant System with 2-opt. Only global best or iteration best tour deposites pheromone. It may not be the optimal path.
- @param numberOfAnt The number of ants.
- @param alpha       A parameter to control the influence of pheromone.
- @param beta        A parameter to control the influence of the desirability of state transition. (a priori knowledge, typically 1/dxy, where dxy is the distance between node x and node y)
- @param rho         The pheromone evaporatin coefficient. The rate of pheromone evaporation.
- @param pBest       The parameter to compute minimum pheromone. The bigger pBest, the less minimum pheromone. The value when max == min is pow(2/n, n).
- @param seed        Seed to generate random number.
- @param limit       The number of iteration without improvement to break.
- @param size        The number of closest nodes to be candidates. If less than or equal to 0, a candidate list won't be used.
- @param use2opt     If YES, improve tour by 2-opt (local search algorithm).
- @param delta       Use for Pheromone Trail Smoothing method. If pheromone is convergent, all pheromone are incresed with this value. 1.0 corresponds to re-initialization of the pheromone trails. 0.0 means turning off the pheromone trail smoothing.
- @param log         Iteration best tour distances in CSV format.
+ @param numberOfAnt  The number of ants.
+ @param alpha        A parameter to control the influence of pheromone.
+ @param beta         A parameter to control the influence of the desirability of state transition. (a priori knowledge, typically 1/dxy, where dxy is the distance between node x and node y)
+ @param rho          The pheromone evaporatin coefficient. The rate of pheromone evaporation.
+ @param pBest        The parameter to compute minimum pheromone. The bigger pBest, the less minimum pheromone. The value when max == min is pow(2/n, n).
+ @param seed         Seed to generate random number.
+ @param limit        The number of iteration without improvement to break.
+ @param maxIteration The max number of iteration. Return if loop count exceeds this value.
+ @param size         The number of closest nodes to be candidates. If less than or equal to 0, a candidate list won't be used.
+ @param use2opt      If YES, improve tour by 2-opt (local search algorithm).
+ @param delta        Use for Pheromone Trail Smoothing method. If pheromone is convergent, all pheromone are incresed with this value. 1.0 corresponds to re-initialization of the pheromone trails. 0.0 means turning off the pheromone trail smoothing.
+ @param log          Iteration best tour distances in CSV format.
  @return The result tour.
  */
 - (Tour)tourByMMASWithNumberOfAnt:(int)numberOfAnt
@@ -143,6 +146,7 @@ typedef enum _TSPSolverType {
                    takeGlogalBest:(BOOL)takeGlobalBest
                              seed:(unsigned)seed
                    noImproveLimit:(int)limit
+                     maxIteration:(int)maxIteration
                 candidateListSize:(int)size
                           use2opt:(BOOL)use2opt
                         smoothing:(double)delta

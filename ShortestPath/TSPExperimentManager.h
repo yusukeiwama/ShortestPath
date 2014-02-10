@@ -19,6 +19,9 @@ typedef enum USKTSPExperiment {
     USKTSPExperimentMMAS,
     USKTSPExperimentMMAS2optTuning,
     USKTSPExperimentMMAS2opt,
+    USKTSPExperimentMMAS2optCandidate,
+    USKTSPExperimentMMASSmoothing,
+    USKTSPExperimentCompareAlgorithms,
     USKTSPExperimentTSPTrial,
 	USKTSPExperimentOptimal
 } USKTSPExperiment;
@@ -26,8 +29,9 @@ typedef enum USKTSPExperiment {
 @interface TSPExperimentManager : NSObject
 
 @property TSPVisualizer *visualizer;
-@property NSArray       *sampleNames;
-@property NSArray       *solverNames;
+
+@property NSArray *sampleNames;
+@property NSArray *solverNames;
 
 - (void)doExperiment:(USKTSPExperiment)experiment;
 
@@ -38,6 +42,8 @@ typedef enum USKTSPExperiment {
  異なるアルゴリズムを比較するときは解の作成回数を同じにして考える。
  2-optの１回を１回とする
  同じOのものを同じコストとかんがえる。
+ 
+ 実験すると、ループ1000回の実行時間はAS, MMAS, MMAS-2optのいずれも同じである。
 */
 
 /*

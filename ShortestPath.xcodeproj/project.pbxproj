@@ -761,7 +761,7 @@
 				ORGANIZATIONNAME = "Yusuke Iwama";
 				TargetAttributes = {
 					434D6EE3185A13530068D753 = {
-						DevelopmentTeam = VV4XJ6D4G4;
+						DevelopmentTeam = RM3N4N4RRF;
 					};
 					434D6F07185A13530068D753 = {
 						TestTargetID = 434D6EE3185A13530068D753;

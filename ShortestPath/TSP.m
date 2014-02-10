@@ -616,30 +616,32 @@ double pheromoneWeight(int from, int to, int n, int a, int b, double *P, int *A)
 int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int *A, Neighbor *NN, int numCandidates)
 {
     if (numCandidates > n) {
-        numCandidates = n; // Correspontds to solving without Candidate List
+        numCandidates = n; // Correspontds to solving without Candidate List.
     } else if (numCandidates < 1) {
-        return nearestNodeNumber(visited, from, n, NN); // Same as NN
+        return nearestNodeNumber(visited, from, n, NN); // Correspontds to solving in NN method.
     }
     
     /*
-     When using Candidate List, there are 4 case.
+     When using Candidate List, there are 4 cases.
      case 1: Intersection is empty and pheromone exist => select the unused edge which has the most pheromone weight.
-     case 2: Intersection is empty and no pheromone => select node randomly from all unvisited nodes.
-     case 3: Intersection is not empty and no pheromone => select node randomly from intersection.
-     case 4: Intersection is not empty and pheromone exist => select node with probability from intersection.
+     case 2: Intersection is empty and no pheromone => select the node randomly from all unvisited nodes.
+     case 3: Intersection is not empty and no pheromone => select the node randomly from intersection.
+     case 4: Intersection is not empty and pheromone exist => select the node with probability from intersection.
      */
     
-    // Get candidate list and the number of elements in intersection.
+    // Get candidate list and the intersection.
     int candidates[numCandidates];
-    int numberOfElementsInIntersection = 0;
+    int *intersection = calloc(numCandidates, sizeof(int)); // prepare enough memory to store the intersection elements.
+    int numIntersections = 0;
     for (int i = 0; i < numCandidates; i++) {
         candidates[i] = NN[(from - 1) * n + i].number;
         if (visited[candidates[i] - 1] == false) {
-            numberOfElementsInIntersection++;
+            intersection[numIntersections] = candidates[i];
+            numIntersections++;
         }
     }
     
-    if (numberOfElementsInIntersection == 0) { // Intersection is empty.
+    if (numIntersections == 0) { // Intersection is empty.
         // case 1: select the unused edge which has the most pheromone weight.
         // Find the node to which the edge has the most pheromone weight.
         double maxWeight = DBL_MIN;
@@ -655,18 +657,19 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
             }
         }
         if (maxWeightNodeNumber != 0) {
+            free(intersection);
             return maxWeightNodeNumber;
         }
         
         // No intersection and no pheromone.
-        // case 2: select node randomly from all unvisited nodes.
-        int numberOfUnvisitedNodes = 0;
+        // case 2: select the node randomly from all unvisited nodes.
+        int numUnvisiteds = 0;
         for (int i = 0; i < n; i++) {
             if (visited[i] == false) {
-                numberOfUnvisitedNodes++;
+                numUnvisiteds++;
             }
         }
-        int targetOrder = numberOfUnvisitedNodes * (double)rand() / (RAND_MAX + 1.0) + 1;
+        int targetOrder = numUnvisiteds * (double)rand() / (RAND_MAX + 1.0) + 1;
         int order = 0;
         int targetNodeNumber = 1;
         while (order != targetOrder) {
@@ -676,42 +679,36 @@ int nextNodeNumber(bool *visited, int from, int n, int a, int b, double *P, int 
             targetNodeNumber++;
         }
         targetNodeNumber--;
+        free(intersection);
         return targetNodeNumber;
         
     } else { // Intersection exists.
-        // Get intersection.
-        int intersectionIndex = 0;
-        int intersection[numberOfElementsInIntersection];
-        bzero(intersection, numberOfElementsInIntersection * sizeof(int));
-        for (int i = 0; i < numCandidates; i++) {
-            if (visited[candidates[i] - 1] == false) {
-                intersection[intersectionIndex++] = candidates[i];
-            }
-        }
-        
         // Compute sum weight of intersection.
         double sumWeight = 0.0;
-        for (int i = 0; i < numberOfElementsInIntersection; i++) {
+        for (int i = 0; i < numIntersections; i++) {
             sumWeight += pheromoneWeight(from, intersection[i], n, a, b, P, A);
         }
         
         if (sumWeight < DBL_MIN) { // No pheromone.
-            // case 3: select node randomly from intersection.
-            int targetIndex = numberOfElementsInIntersection * (double)rand() / (RAND_MAX + 1.0);
-            return intersection[targetIndex];
+            // case 3: select the node randomly from intersection.
+            int targetIndex = numIntersections * (double)rand() / (RAND_MAX + 1.0);
+            int to = intersection[targetIndex];
+            free(intersection);
+            return to;
             
         } else { // Pheromone exist.
-            // case 4: select with probability from intersection.
+            // case 4: select the node with probability from intersection.
             double targetWeight = sumWeight * (double)rand() / (RAND_MAX + 1.0);
-            double weight = 0.0;
-            int targetIndex = 0;
-            while (weight < targetWeight) {
-                weight += pheromoneWeight(from, intersection[targetIndex++], n, a, b, P, A);
+            double tmpWeight = 0.0;
+            int targetIndex = -1;
+            while (tmpWeight <= targetWeight) {
+                targetIndex++;
+                tmpWeight += pheromoneWeight(from, intersection[targetIndex], n, a, b, P, A);
             }
-            targetIndex--;
-            return intersection[targetIndex];
+            int to = intersection[targetIndex];
+            free(intersection);
+            return to;
         }
-        
     }
 }
 

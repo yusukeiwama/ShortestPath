@@ -124,7 +124,8 @@ typedef enum _TSPViewControllerSkin {
     
     self.logString = [NSMutableString string];
 
-//    [self.experimentManager doExperiment:USKTSPExperimentMMASSmoothing];
+//    [self.experimentManager doExperiment:USKTSPExperimentMMAS2opt];
+//    [self.experimentManager doExperiment:USKTSPExperimentMMAS2optCandidate];
 //    return;
 
     // Workaround until Apple fixes the choppy UITextView bug.
@@ -564,7 +565,7 @@ typedef enum _TSPViewControllerSkin {
                                     pheromoneEvaporation:0.5
                                                     seed:rand()
                                           noImproveLimit:200
-                                            maxIteration:INT32_MAX
+                                            maxIteration:1000
                                        candidateListSize:20
                                                  use2opt:YES
                                             CSVLogString:nil];

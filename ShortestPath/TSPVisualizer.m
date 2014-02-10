@@ -196,6 +196,10 @@ Coordinate correctedPoint(Coordinate point, UIEdgeInsets margin)
 //            double lineWidth = self.view.frame.size.width * (_nodeRadiusFactor * 2) * (pheromone / max) * _pheromoneFactor; // ... A
             double lineWidth = self.view.frame.size.width * (_nodeRadiusFactor * 2) * _pheromoneFactor * ((pheromone - min) / range); // ... B
             
+//            if (lineWidth < 0.001) { // Stop drawing too shallow line for performance.
+//                lineWidth = 0.0;
+//            }
+            
             CGContextSetLineWidth(context, lineWidth);
             CGContextMoveToPoint(context, from.x, from.y);
             CGContextAddLineToPoint(context, to.x, to.y);

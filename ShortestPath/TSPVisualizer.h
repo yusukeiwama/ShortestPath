@@ -23,6 +23,8 @@ typedef enum TSPVisualizationStyle {
 @property TSPVisualizationStyle style;
 @property TSPView               *view;
 
+@property NSOperationQueue      *operationQueue;
+
 #pragma mark - Visualizations
 
 - (BOOL)drawBackground;

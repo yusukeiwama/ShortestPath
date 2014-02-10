@@ -99,16 +99,16 @@ typedef enum _TSPSolverType {
 
 /**
  Compute the shortest path by Ant System. The global best solution deposits pheromone on every iteration along with all the other ants. It may not be the optimal path. The recommended values are as follows. numberOfAnt = tsp.dimension, alpha = 1, beta = 2 ~ 5, rho = 0.5.
- @param numberOfAnt The number of ants.
- @param alpha       A parameter to control the influence of pheromone.
- @param beta        A parameter to control the influence of the desirability of state transition. (a priori knowledge, typically 1/dxy, where dxy is the distance between node x and node y)
- @param rho         The pheromone evaporatin coefficient. The rate of pheromone evaporation.
- @param seed        Seed to generate random number.
- @param limit       The number of iteration without improvement to break.
-@param maxIteration The max number of iteration. Return if loop count exceeds this value.
- @param size        The number of closest nodes to be candidates. If less than or equal to 0, a candidate list won't be used.
- @param use2opt     If YES, improve tour by 2-opt (local search algorithm).
- @param log         Iteration best tour distances in CSV format.
+ @param numberOfAnt  The number of ants.
+ @param alpha        A parameter to control the influence of pheromone.
+ @param beta         A parameter to control the influence of the desirability of state transition. (a priori knowledge, typically 1/dxy, where dxy is the distance between node x and node y)
+ @param rho          The pheromone evaporatin coefficient. The rate of pheromone evaporation.
+ @param seed         Seed to generate random number.
+ @param limit        The number of iteration without improvement to break.
+ @param maxIteration The max number of iteration. Return if loop count exceeds this value.
+ @param size         The number of closest nodes to be candidates. If less than or equal to 0, 1 is used which corresponds to solve in NN. Setting TSP's dimension corresponds to solve without candidate list.
+ @param use2opt      If YES, improve tour by 2-opt (local search algorithm).
+ @param log          Iteration best tour distances in CSV format.
  @return The result tour.
  */
 - (Tour)tourByASWithNumberOfAnt:(int)numberOfAnt
@@ -132,7 +132,7 @@ typedef enum _TSPSolverType {
  @param seed         Seed to generate random number.
  @param limit        The number of iteration without improvement to break.
  @param maxIteration The max number of iteration. Return if loop count exceeds this value.
- @param size         The number of closest nodes to be candidates. If less than or equal to 0, a candidate list won't be used.
+ @param size         The number of closest nodes to be candidates. If less than or equal to 0, 1 is used which corresponds to solve in NN. Setting TSP's dimension corresponds to solve without candidate list.
  @param use2opt      If YES, improve tour by 2-opt (local search algorithm).
  @param delta        Use for Pheromone Trail Smoothing method. If pheromone is convergent, all pheromone are incresed with this value. 1.0 corresponds to re-initialization of the pheromone trails. 0.0 means turning off the pheromone trail smoothing.
  @param log          Iteration best tour distances in CSV format.

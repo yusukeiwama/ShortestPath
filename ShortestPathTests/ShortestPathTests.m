@@ -32,7 +32,7 @@
 ///// Check if the shortest path length is longer than the optimal path.
 //- (void)testNN
 //{
-//    NSString *sampleName = @"eil51";
+//    NSString *sampleName = @"ch130";
 //    TSP *tsp = [TSP TSPWithFile:[[NSBundle mainBundle] pathForResource:sampleName ofType:@"tsp"]];
 //    
 //    // Compute the shortest path.
@@ -52,7 +52,7 @@
 ///// Check if the shortest path length is longer than the optimal path.
 //- (void)testNN2opt
 //{
-//    NSString *sampleName = @"eil51";
+//    NSString *sampleName = @"ch130";
 //    TSP *tsp = [TSP TSPWithFile:[[NSBundle mainBundle] pathForResource:sampleName ofType:@"tsp"]];
 //    
 //    // Compute the shortest path.
@@ -73,7 +73,7 @@
 /// Check if the shortest path length is longer than the optimal path.
 //- (void)testAS
 //{
-//    NSString *sampleName = @"eil51";
+//    NSString *sampleName = @"ch130";
 //    TSP *tsp = [TSP TSPWithFile:[[NSBundle mainBundle] pathForResource:sampleName ofType:@"tsp"]];
 //
 //    NSString *log;
@@ -96,7 +96,7 @@
 ///// Check if the shortest path length is longer than the optimal path.
 //- (void)testASWithCandidateList
 //{
-//    NSString *sampleName = @"eil51";
+//    NSString *sampleName = @"ch130";
 //    TSP *tsp = [TSP TSPWithFile:[[NSBundle mainBundle] pathForResource:sampleName ofType:@"tsp"]];
 //    
 //    NSString *log;
@@ -119,7 +119,7 @@
 ///// Check if the shortest path length is longer than the optimal path.
 //- (void)testMMAS
 //{
-//    NSString *sampleName = @"eil51";
+//    NSString *sampleName = @"ch130";
 //    TSP *tsp = [TSP TSPWithFile:[[NSBundle mainBundle] pathForResource:sampleName ofType:@"tsp"]];
 // 
 //    NSString *log;
@@ -145,7 +145,7 @@
 /// Check if the shortest path length is longer than the optimal path.
 //- (void)testMMASWithCandidateList
 //{
-//    NSString *sampleName = @"eil51";
+//    NSString *sampleName = @"ch130";
 //    TSP *tsp = [TSP TSPWithFile:[[NSBundle mainBundle] pathForResource:sampleName ofType:@"tsp"]];
 //    
 //    NSString *log;
@@ -171,7 +171,7 @@
 /// Check if the shortest path length is longer than the optimal path.
 - (void)testMMAS2opt
 {
-    NSString *sampleName = @"eil51";
+    NSString *sampleName = @"ch130";
     TSP *tsp = [TSP TSPWithFile:[[NSBundle mainBundle] pathForResource:sampleName ofType:@"tsp"]];
     
     NSString *log;
@@ -185,7 +185,7 @@
                                           seed:469049721
                                 noImproveLimit:1000
                                   maxIteration:1000
-                             candidateListSize:0
+                             candidateListSize:tsp.dimension
                                        use2opt:YES
                                      smoothing:0.0
                                   CSVLogString:&log];
@@ -194,31 +194,31 @@
     XCTAssertTrue([TSP optimalSolutionWithName:sampleName].distance <= tour.distance, @"Shorter than the optimal solution.");
 }
 
-///// Check if the shortest path length is longer than the optimal path.
-//- (void)testMMAS2optWithCandidateList
-//{
-//    NSString *sampleName = @"eil51";
-//    TSP *tsp = [TSP TSPWithFile:[[NSBundle mainBundle] pathForResource:sampleName ofType:@"tsp"]];
-//    
-//    NSString *log;
-//    // Compute the shortest path.
-//    Tour tour = [tsp tourByMMASWithNumberOfAnt:25
-//                            pheromoneInfluence:1
-//                           transitionInfluence:4
-//                          pheromoneEvaporation:0.2
-//                               probabilityBest:0.05
-//                                takeGlogalBest:NO
-//                                          seed:469049721
-//                                noImproveLimit:1000
-//                                  maxIteration:1000
-//                             candidateListSize:20
-//                                       use2opt:YES
-//                                     smoothing:0.0
-//                                  CSVLogString:&log];
-//    int loopCt = [[[[[USKTrimmer trimmedArrayWithArray:[log componentsSeparatedByString:@"\n"]] lastObject] componentsSeparatedByString:@","] firstObject] intValue];
-//    NSLog(@"%@: Distance = %d, Loop = %d", sampleName, tour.distance, loopIndex + 1);
-//    XCTAssertTrue([TSP optimalSolutionWithName:sampleName].distance <= tour.distance, @"Shorter than the optimal solution.");
-//}
+/// Check if the shortest path length is longer than the optimal path.
+- (void)testMMAS2optWithCandidateList
+{
+    NSString *sampleName = @"ch130";
+    TSP *tsp = [TSP TSPWithFile:[[NSBundle mainBundle] pathForResource:sampleName ofType:@"tsp"]];
+    
+    NSString *log;
+    // Compute the shortest path.
+    Tour tour = [tsp tourByMMASWithNumberOfAnt:25
+                            pheromoneInfluence:1
+                           transitionInfluence:4
+                          pheromoneEvaporation:0.2
+                               probabilityBest:0.05
+                                takeGlogalBest:NO
+                                          seed:469049721
+                                noImproveLimit:1000
+                                  maxIteration:1000
+                             candidateListSize:20
+                                       use2opt:YES
+                                     smoothing:0.0
+                                  CSVLogString:&log];
+    int loopIndex = [[[[[USKTrimmer trimmedArrayWithArray:[log componentsSeparatedByString:@"\n"]] lastObject] componentsSeparatedByString:@","] firstObject] intValue];
+    NSLog(@"%@: Distance = %d, Loop = %d", sampleName, tour.distance, loopIndex + 1);
+    XCTAssertTrue([TSP optimalSolutionWithName:sampleName].distance <= tour.distance, @"Shorter than the optimal solution.");
+}
 
 
 @end
